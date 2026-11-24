@@ -1,0 +1,306 @@
+{
+ "apps": [
+  {
+   "name": "General ledger",
+   "fn": "Finance",
+   "owner": "Controller",
+   "users": 85,
+   "cost": 240000,
+   "contract": "C-01",
+   "critical": true
+  },
+  {
+   "name": "Accounts payable automation",
+   "fn": "Finance",
+   "owner": "Controller",
+   "users": 40,
+   "cost": 62000,
+   "contract": "C-02",
+   "critical": true
+  },
+  {
+   "name": "Expense tool (Tripwise)",
+   "fn": "Finance",
+   "owner": "Controller",
+   "users": 1100,
+   "cost": 49500,
+   "contract": "C-03",
+   "critical": false
+  },
+  {
+   "name": "Expense tool (Spendly)",
+   "fn": "Finance",
+   "owner": "VP Sales",
+   "users": 310,
+   "cost": 21000,
+   "contract": "C-04",
+   "critical": false
+  },
+  {
+   "name": "Payroll",
+   "fn": "People",
+   "owner": "CHRO",
+   "users": 1500,
+   "cost": 180000,
+   "contract": "C-05",
+   "critical": true
+  },
+  {
+   "name": "Applicant tracking",
+   "fn": "People",
+   "owner": "CHRO",
+   "users": 60,
+   "cost": 38000,
+   "contract": "C-06",
+   "critical": false
+  },
+  {
+   "name": "Learning portal",
+   "fn": "People",
+   "owner": "CHRO",
+   "users": 1500,
+   "cost": 45000,
+   "contract": "C-07",
+   "critical": false
+  },
+  {
+   "name": "Order management",
+   "fn": "Operations",
+   "owner": "",
+   "users": 420,
+   "cost": 310000,
+   "contract": "C-08",
+   "critical": true
+  },
+  {
+   "name": "Warehouse management",
+   "fn": "Operations",
+   "owner": "VP Operations",
+   "users": 260,
+   "cost": 275000,
+   "contract": "C-09",
+   "critical": true
+  },
+  {
+   "name": "Transport planning",
+   "fn": "Operations",
+   "owner": "VP Operations",
+   "users": 45,
+   "cost": 96000,
+   "contract": "C-10",
+   "critical": false
+  },
+  {
+   "name": "CRM",
+   "fn": "Sales",
+   "owner": "VP Sales",
+   "users": 380,
+   "cost": 410000,
+   "contract": "C-11",
+   "critical": true
+  },
+  {
+   "name": "Quote builder",
+   "fn": "Sales",
+   "owner": "VP Sales",
+   "users": 140,
+   "cost": 72000,
+   "contract": "",
+   "critical": false
+  },
+  {
+   "name": "Commission calculator",
+   "fn": "Sales",
+   "owner": "CFO",
+   "users": 12,
+   "cost": 18000,
+   "contract": "",
+   "critical": false
+  },
+  {
+   "name": "Customer portal",
+   "fn": "Customer service",
+   "owner": "VP Customer Service",
+   "users": 9000,
+   "cost": 160000,
+   "contract": "",
+   "critical": true
+  },
+  {
+   "name": "Help desk",
+   "fn": "Customer service",
+   "owner": "VP Customer Service",
+   "users": 95,
+   "cost": 58000,
+   "contract": "C-12",
+   "critical": true
+  },
+  {
+   "name": "Data warehouse",
+   "fn": "Data",
+   "owner": "CFO",
+   "users": 150,
+   "cost": 220000,
+   "contract": "C-13",
+   "critical": true
+  },
+  {
+   "name": "Reporting tool",
+   "fn": "Data",
+   "owner": "CFO",
+   "users": 600,
+   "cost": 84000,
+   "contract": "C-14",
+   "critical": false
+  },
+  {
+   "name": "Office suite",
+   "fn": "Company-wide",
+   "owner": "CIO",
+   "users": 1500,
+   "cost": 396000,
+   "contract": "C-15",
+   "critical": true
+  },
+  {
+   "name": "Intranet",
+   "fn": "Company-wide",
+   "owner": "CHRO",
+   "users": 1500,
+   "cost": 26000,
+   "contract": "",
+   "critical": false
+  },
+  {
+   "name": "Badge access",
+   "fn": "Facilities",
+   "owner": "VP Operations",
+   "users": 1500,
+   "cost": 14000,
+   "contract": "",
+   "critical": false
+  }
+ ],
+ "contracts": [
+  {
+   "id": "C-01",
+   "vendor": "Ledgerline",
+   "value": 240000,
+   "renewDays": 300,
+   "noticeDays": 90,
+   "autoYears": 1
+  },
+  {
+   "id": "C-02",
+   "vendor": "Paydesk",
+   "value": 62000,
+   "renewDays": 210,
+   "noticeDays": 60,
+   "autoYears": 1
+  },
+  {
+   "id": "C-03",
+   "vendor": "Tripwise",
+   "value": 49500,
+   "renewDays": 120,
+   "noticeDays": 60,
+   "autoYears": 1
+  },
+  {
+   "id": "C-04",
+   "vendor": "Spendly",
+   "value": 21000,
+   "renewDays": 75,
+   "noticeDays": 30,
+   "autoYears": 1
+  },
+  {
+   "id": "C-05",
+   "vendor": "Paystream",
+   "value": 180000,
+   "renewDays": 400,
+   "noticeDays": 90,
+   "autoYears": 1
+  },
+  {
+   "id": "C-06",
+   "vendor": "Hirebox",
+   "value": 38000,
+   "renewDays": 150,
+   "noticeDays": 30,
+   "autoYears": 1
+  },
+  {
+   "id": "C-07",
+   "vendor": "Learnloop",
+   "value": 45000,
+   "renewDays": 260,
+   "noticeDays": 30,
+   "autoYears": 1
+  },
+  {
+   "id": "C-08",
+   "vendor": "Orderwell",
+   "value": 310000,
+   "renewDays": 45,
+   "noticeDays": 30,
+   "autoYears": 3
+  },
+  {
+   "id": "C-09",
+   "vendor": "Stackyard",
+   "value": 275000,
+   "renewDays": 520,
+   "noticeDays": 90,
+   "autoYears": 1
+  },
+  {
+   "id": "C-10",
+   "vendor": "Routewise",
+   "value": 96000,
+   "renewDays": 330,
+   "noticeDays": 60,
+   "autoYears": 1
+  },
+  {
+   "id": "C-11",
+   "vendor": "Pipeline",
+   "value": 410000,
+   "renewDays": 240,
+   "noticeDays": 90,
+   "autoYears": 1
+  },
+  {
+   "id": "C-12",
+   "vendor": "Ticketry",
+   "value": 58000,
+   "renewDays": 190,
+   "noticeDays": 30,
+   "autoYears": 1
+  },
+  {
+   "id": "C-13",
+   "vendor": "Warehaus",
+   "value": 220000,
+   "renewDays": 610,
+   "noticeDays": 90,
+   "autoYears": 1
+  },
+  {
+   "id": "C-14",
+   "vendor": "Chartly",
+   "value": 84000,
+   "renewDays": 95,
+   "noticeDays": 30,
+   "autoYears": 1
+  },
+  {
+   "id": "C-15",
+   "vendor": "Corvane",
+   "value": 396000,
+   "renewDays": 280,
+   "noticeDays": 60,
+   "autoYears": 1
+  }
+ ]
+}

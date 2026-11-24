@@ -34,6 +34,11 @@ __KIT_CSS__
 .itemrow .k { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
 .prose p { font-size: 16px; line-height: 1.55; }
 .stem { font-size: 17px; font-weight: 600; line-height: 1.4; }
+.beats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.beat { display: grid; gap: 4px; }
+.beat .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline; }
+.beat.stressed { border-left: 4px solid var(--marker); }
+.beat .secs { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
 .foot { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
 </style>
 </head>
@@ -115,7 +120,8 @@ __KIT_CSS__
         '<span class="st">' + (l.active ? (last && last.v === l.id ? 'Open · last visited' : 'Open') : 'Later') + '</span></button>').join('') +
       '</div></section>' + foot() + '</main>';
   }
-  const OM = BANK.opmodel, PROMPTS = BANK.prompts;
+  const MODS = BANK.modules, PROMPTS = BANK.prompts, TMAY = BANK.tmay;
+  const modOf = lid => MODS.find(m => m.lessons.some(l => l.id === lid));
   const showFor = item => { const on = levels(); return (item.levels || ALL).some(v => on.indexOf(v) !== -1); };
   const levelName = id => (LEVELS.find(l => l.id === id) || {}).name || id;
   const draftChip = item => item && item.status === 'Draft' ? '<span class="cchip draft">Draft</span>' : '';
@@ -126,11 +132,15 @@ __KIT_CSS__
   }
   // What each built section lists. Unbuilt sections show their phase.
   const SECTION_ITEMS = {
-    'operating-model': () => { const ls = OM.lessons.filter(showFor); return ls.map(l => itemRow('#lesson-' + l.id, l.title, 'Lesson · ' + OM.checks.filter(c => c.lesson === l.id).length + ' checks', l.levels, l.status)).join('') + hidden(OM.lessons.length - ls.length); },
-    'portfolio-cases': () => { const ps = BANK.craft.filter(p => p.lane === 'cio' && showFor(p)); return ps.map(p => itemRow('#packet-' + p.id.toLowerCase(), p.title, 'Craft packet · ' + p.stages.length + ' stages · you are the ' + p.role, p.levels, p.status)).join('') + hidden(BANK.craft.filter(p => p.lane === 'cio').length - ps.length); },
-    'renewal-sim': () => { const rs = BANK.runs.filter(r => r.lane === 'cio' && showFor(r)); return rs.map(r => itemRow('#run-' + r.id.toLowerCase(), r.title, 'Simulation · ' + r.steps.length + ' steps · numbers computed in code', r.levels, r.status)).join('') + hidden(BANK.runs.filter(r => r.lane === 'cio').length - rs.length); },
-    'behavioral': () => { const n = PROMPTS.filter(showFor).length; return itemRow('#prompts-cio', 'CIO-family behavioral prompts', n + ' of ' + PROMPTS.length + ' at your levels · mapped to the Master Story Bank', ALL, PROMPTS.some(p => p.status === 'Draft') ? 'Draft' : ''); }
+    behavioral: () => { const n = PROMPTS.filter(showFor).length; return itemRow('#prompts-cio', 'CIO-family behavioral prompts', n + ' of ' + PROMPTS.length + ' at your levels · mapped to the Master Story Bank', ALL, PROMPTS.some(p => p.status === 'Draft') ? 'Draft' : ''); },
+    tmay: () => TMAY.pendingOk ? '<p class="note">Built; shown once you OK which two beats it stresses (IBM and RealPage).</p>' : itemRow('#tmay-cio', 'Tell me about yourself: CIO-family version', 'Five beats · ' + TMAY.targetSec.join(' to ') + ' seconds · four closes', ALL, TMAY.status)
   };
+  // Modules list their lessons; packets, runs and role-plays list under the section they name.
+  for (const m of MODS) SECTION_ITEMS[m.id] = () => { const ls = m.lessons.filter(showFor); return ls.map(l => itemRow('#lesson-' + l.id, l.title, 'Lesson · ' + m.checks.filter(c => c.lesson === l.id).length + ' checks', l.levels, l.status)).join('') + hidden(m.lessons.length - ls.length); };
+  const listOf = (arr, sec, href, meta) => () => { const all = arr.filter(x => x.lane === 'cio' && x.section === sec), on = all.filter(showFor); return on.map(x => itemRow(href(x), x.title, meta(x), x.levels, x.status)).join('') + hidden(all.length - on.length); };
+  for (const sec of ['portfolio-cases', 'first-90']) if (BANK.craft.some(p => p.section === sec)) SECTION_ITEMS[sec] = listOf(BANK.craft, sec, p => '#packet-' + p.id.toLowerCase(), p => 'Craft packet · ' + p.stages.length + ' stages · you are the ' + p.role);
+  for (const sec of ['renewal-sim', 'cost-sim']) if (BANK.runs.some(r => r.section === sec)) SECTION_ITEMS[sec] = listOf(BANK.runs, sec, r => '#run-' + r.id.toLowerCase(), r => 'Simulation · ' + r.steps.length + ' steps · numbers computed in code');
+  if (BANK.roleplays.some(r => r.section === 'role-plays')) SECTION_ITEMS['role-plays'] = listOf(BANK.roleplays, 'role-plays', r => '#rp-' + r.id.toLowerCase(), r => 'Role-play · Claude plays ' + r.role);
   function renderLane() {
     const l = laneById(VIEW.id);
     if (!l || !l.active) return host.go('home', {});
@@ -148,11 +158,11 @@ __KIT_CSS__
   // Operating model lesson with its two checks. Answers are kept for this visit only.
   const PICKS = {};
   function renderLesson() {
-    const l = OM.lessons.find(x => x.id === VIEW.id);
+    const M = modOf(VIEW.id), l = M && M.lessons.find(x => x.id === VIEW.id);
     if (!l) return host.go('lane', { id: 'cio' });
-    const i = OM.lessons.indexOf(l), next = OM.lessons[i + 1];
-    const checks = OM.checks.filter(c => c.lesson === l.id);
-    app.innerHTML = host.header('Operating model', 'lane', 'cio', 'Back to the CIO lane', (i + 1) + ' of ' + OM.lessons.length) +
+    const i = M.lessons.indexOf(l), next = M.lessons[i + 1];
+    const checks = M.checks.filter(c => c.lesson === l.id);
+    app.innerHTML = host.header(M.title, 'lane', 'cio', 'Back to the CIO lane', (i + 1) + ' of ' + M.lessons.length) +
       '<main class="wrap"><article class="card prose" style="display:grid;gap:12px"><div class="row">' + draftChip(l) + lvChips(l.levels) + '</div><h2 class="ttl" style="font-size:20px">' + esc(l.title) + '</h2>' +
       l.body.map(p => '<p>' + esc(p) + '</p>').join('') +
       (l.sources.length ? '<h3 class="k">Sources</h3><ul class="src">' + l.sources.map(s => '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a> <span class="lvchip">' + esc(s[2]) + '</span></li>').join('') + '</ul>' : '<p class="note">No single source: tagged Inferred.</p>') +
@@ -164,6 +174,17 @@ __KIT_CSS__
               (done && j === c.answer ? '<span class="tag">Answer</span>' : done && j === pick ? '<span class="tag">Your pick</span>' : '') + '</span></button>'; }).join('') + '</div>' +
           (done ? '<p class="verdict ' + (pick === c.answer ? 'ok' : 'bad') + '">' + (pick === c.answer ? 'Right' : 'Not quite') + '</p><p>' + esc(c.why) + '</p>' + (pick !== c.answer ? '<p class="note">' + esc(c.whyNot[pick]) + '</p>' : '') : '') + '</section>'; }).join('') +
       '<div class="row">' + (next ? '<a class="btn btn-primary" href="#lesson-' + esc(next.id) + '">Next: ' + esc(next.title) + '</a>' : '') + '<a class="btn" href="#lane-cio">Back to the CIO lane</a></div>' + foot() + '</main>';
+  }
+  // Tell me about yourself: beats with a job and a time budget; the words open in the Story Bank.
+  function renderTmay() {
+    const T = TMAY, tot = i => T.beats.reduce((a, b) => a + b[i], 0);
+    app.innerHTML = host.header('Tell me about yourself', 'lane', 'cio', 'Back to the CIO lane', T.targetSec.join('–') + ' s') +
+      '<main class="wrap"><section class="card" style="display:grid;gap:8px"><div class="row">' + draftChip(T) + '</div><p>Your words are the five paragraphs of the <a href="' + esc(T.bankUrl) + '" target="_blank" rel="noopener">Career introduction in your Master Story Bank</a> (Short practice answers). This version keeps them and changes only where the time goes: beats 3 and 4 get more of it for CIO-family roles.</p><p class="note">Budgets split ' + T.targetSec.join(' to ') + ' seconds by each paragraph’s length (bank copy ' + esc(T.bankVersion) + ').</p></section>' +
+      '<section aria-labelledby="tb-h"><div class="section-h"><h2 id="tb-h">Beats</h2><span class="hint">' + tot('lo') + ' to ' + tot('hi') + ' seconds in all</span></div><ol class="beats">' +
+      T.beats.map(b => '<li class="card beat' + (b.stressed ? ' stressed' : '') + '"><div class="top"><b>' + b.n + '. ' + esc(b.cue) + '</b><span class="secs">' + b.lo + '–' + b.hi + ' s</span></div><p>' + esc(b.job) + '</p>' + (b.stressed ? '<span class="lvchip">Stressed for CIO roles</span>' : '') + '</li>').join('') + '</ol></section>' +
+      '<section class="card" style="display:grid;gap:6px"><h2 class="ttl" style="font-size:17px">30-second version</h2><p>' + esc(T.cut30) + '</p></section>' +
+      '<section class="card" style="display:grid;gap:8px"><h2 class="ttl" style="font-size:17px">If they open with…</h2>' + T.openers.map(o => '<p><b>' + esc(o.q) + '</b><br>' + esc(o.use) + '</p>').join('') + '</section>' +
+      '<section class="card" style="display:grid;gap:8px"><h2 class="ttl" style="font-size:17px">Close for the role</h2>' + T.closes.map(c => '<p><b>' + esc(c.role) + ':</b> ' + esc(c.text) + '</p>').join('') + '</section>' + foot() + '</main>';
   }
   function renderPrompts() {
     const ps = PROMPTS.filter(showFor);
@@ -181,7 +202,7 @@ __KIT_CSS__
       '<p>Engines: study-kit ' + esc(BANK.kitVersion) + '. Claude grading and role-plays work when this page is open in Claude; everything else works without it.</p></footer>';
   }
 
-  const SCREENS = Object.assign({ home: renderHome, lane: renderLane, lesson: renderLesson, prompts: renderPrompts }, craft.screens, sims.screens);
+  const SCREENS = Object.assign({ home: renderHome, lane: renderLane, lesson: renderLesson, prompts: renderPrompts, tmay: renderTmay }, craft.screens, sims.screens);
   const ACT = Object.assign({
     home() { history.replaceState(null, '', location.pathname + location.search); host.go('home', {}); },
     'check-pick'(t) { const id = t.dataset.id; if (PICKS[id] !== undefined) return; PICKS[id] = +t.dataset.j; host.keepScroll(); },
@@ -193,8 +214,9 @@ __KIT_CSS__
 
   // Routes: dash form only (#lane-cio). Craft and Simulations route their own (#stage-br-1-1, #run-brn-1).
   function route(h) {
-    let lm = /^#lesson-(om-\d+)$/.exec(h || '');
-    if (lm && OM.lessons.some(l => l.id === lm[1])) { host.go('lesson', { id: lm[1] }); return true; }
+    let lm = /^#lesson-([a-z]+-\d+)$/.exec(h || '');
+    if (lm && modOf(lm[1])) { host.go('lesson', { id: lm[1] }); return true; }
+    if (h === '#tmay-cio') { host.go(TMAY.pendingOk ? 'lane' : 'tmay', TMAY.pendingOk ? { id: 'cio' } : {}); return true; }
     if (h === '#prompts-cio') { host.go('prompts', {}); return true; }
     const m = /^#lane-([a-z0-9-]+)$/.exec(h || '');
     if (m) { const l = laneById(m[1]); if (l && l.active) { host.go('lane', { id: l.id }); return true; } host.go('home', {}); return true; }

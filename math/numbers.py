@@ -117,4 +117,67 @@ for q, v in by.items():
     put('b6.byQuad.' + q, v)
 put('b6.total', sum(a[3] for a in apps))
 
+# ---- EC-07, EC-10
+put('ec.spendUp', 40); put('ec.ordersX', 2); put('ec.perOrderDropPct', int(((1 - D('1.4') / 2) * 100).quantize(D(1), rounding=ROUND_HALF_UP)))
+put('ec.selfFixed', 52000); put('ec.perReq', 0.006); put('ec.breakEvenM', float((D(52000) / D('0.006') / D(1000000)).quantize(D('0.1'), rounding=ROUND_HALF_UP)))
+
+# ---- BRL-1
+put('rp.itBudget', 16000000); put('rp.cutPct', 15); put('rp.cut', D(16000000) * D('0.15')); put('rp.opex', D(16000000) * D('0.6')); put('rp.capex', D(16000000) * D('0.4'))
+
+# ---- BR-7 (reads the same data file; derived figures recomputed here)
+import os
+D7 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br7.json')))
+apps, cons = D7['apps'], {c['id']: c for c in D7['contracts']}
+put('b7.appCount', len(apps)); put('b7.contractCount', len(cons))
+put('b7.appTotal', sum(a['cost'] for a in apps))
+put('b7.unowned', sum(1 for a in apps if a['owner'] == '')); put('b7.unownedCritical', sum(1 for a in apps if a['owner'] == '' and a['critical']))
+put('b7.inHouse', sum(1 for a in apps if a['contract'] == ''))
+om = cons['C-08']; put('b7.omNoticeDays', om['renewDays'] - om['noticeDays']); put('b7.omLock', om['value'] * om['autoYears']); put('b7.omAutoYears', om['autoYears'])
+due = [c for c in cons.values() if c['renewDays'] <= 120]
+put('b7.due120Count', len(due)); put('b7.due120Value', sum(c['value'] for c in due))
+put('b7.notice60Count', sum(1 for c in cons.values() if c['renewDays'] - c['noticeDays'] <= 60))
+tw = next(a for a in apps if a['name'] == 'Expense tool (Tripwise)'); sp = next(a for a in apps if a['name'] == 'Expense tool (Spendly)')
+put('b7.twPerUser', c(D(tw['cost']) / tw['users'])); mv = c(D(sp['users']) * tw['cost'] / tw['users'])
+put('b7.spMoveCost', mv); put('b7.dupSave', D(sp['cost']) - mv); put('b7.spNoticeDays', cons['C-04']['renewDays'] - cons['C-04']['noticeDays'])
+
+# ---- BRN-2 inference cost (per request = tokens x price per million)
+M = D(1000000)
+cb = (D(2000) * 3 + D(400) * 15) / M
+cc = (D(200) * 3 + D(1800) * D('0.3') + D(400) * 15) / M          # cached prefix read at 10% of the input price
+cbl = cc * (1 - D('0.4') * D('0.5'))                               # 40% of traffic on the batch API at half price
+def r6(x): return x.quantize(D('0.000001'), rounding=ROUND_HALF_UP)
+vol = [500000, 1000000, 2000000, 3000000, 4000000, 5000000]
+for kk, v in [('pin', 3), ('pout', 15), ('cachePct', 10), ('batchPct', 50), ('fixedTok', 1800), ('varTok', 200), ('outTok', 400), ('batchSharePct', 40),
+              ('cBase', r6(cb)), ('cCache', r6(cc)), ('cBlend', r6(cbl))] + [('v%d' % (i + 1), x) for i, x in enumerate(vol)]:
+    put('i.' + kk, v)
+s1 = c(vol[0] * (cb - cc)); s2 = c(vol[1] * D('0.4') * cc * D('0.5'))
+fc4 = c(vol[3] * cbl); act4 = c(2600000 * cbl)
+def pay(commit, disc, use): return c(commit * (1 - disc) + max(D(0), use - commit))
+c80, c150 = c(fc4 * D('0.8')), c(fc4 * D('1.5'))
+pay80, pay100, pay150 = pay(c80, D('0.2'), act4), pay(fc4, D('0.2'), act4), pay(c150, D('0.25'), act4)
+plan80, plan100, plan150 = fc4 - pay(c80, D('0.2'), fc4), fc4 - pay(fc4, D('0.2'), fc4), fc4 - pay(c150, D('0.25'), fc4)
+api5 = c(vol[4] * cbl); fixed = D(52000)
+for kk, v in [('base1', c(vol[0] * cb)), ('cache1', c(vol[0] * cc)), ('save1', s1), ('cheapPlanned', c(vol[0] * cb * 2 / 3)),
+              ('save2', s2), ('cost2', c(vol[1] * cbl)), ('tickets3', 250000), ('cost3', c(vol[2] * cbl)),
+              ('perTicket3', float((vol[2] * cbl / 250000).quantize(D('0.001'), rounding=ROUND_HALF_UP))),
+              ('fc4', fc4), ('act4v', 2600000), ('act4', act4), ('discPct', 20), ('bigDiscPct', 25),
+              ('c80', c80), ('c100', fc4), ('c150', c150), ('pay80', pay80), ('pay100', pay100), ('pay150', pay150),
+              ('plan80', plan80), ('plan100', plan100), ('plan150', plan150), ('save80', act4 - pay80), ('save100', act4 - pay100), ('save150', act4 - pay150),
+              ('gpu', 22000), ('staff', 30000), ('selfFixed', fixed), ('api5', api5), ('selfGap', fixed - api5),
+              ('breakEvenM', float((fixed / cbl / M).quantize(D('0.1'), rounding=ROUND_HALF_UP))),
+              ('unitDropPct', float(((1 - cbl / cb) * 100).quantize(D('0.1'), rounding=ROUND_HALF_UP))),
+              ('spend6', c(vol[5] * cbl)), ('spendBase6', c(vol[5] * cb)), ('startK', 10),
+              ('bestK', c(10 + k(s1) + k(s2) + k(act4 - pay80)))]:
+    put('i.' + kk, v)
+for kk, v in [('s1', k(s1)), ('cheapPlan', k(c(vol[0] * cb * 2 / 3))), ('s2', k(s2)), ('p80', k(plan80)), ('a80', k(act4 - pay80)),
+              ('p100', k(plan100)), ('a100', k(act4 - pay100)), ('p150', k(plan150)), ('a150', k(act4 - pay150)), ('self', -k(fixed - api5))]:
+    put('i.pv.' + kk, v)
+
+# ---- TMAY: each beat's share of 60 and 75 seconds by word count, stressed beats (RealPage, IBM) weighted 1.5
+words, stressed = [20, 19, 17, 26, 24], {2, 3}
+w = [D(x) * (D('1.5') if i in stressed else 1) for i, x in enumerate(words)]
+for i, x in enumerate(w):
+    put('tm.lo.%d' % i, int((60 * x / sum(w)).quantize(D(1), rounding=ROUND_HALF_UP)))
+    put('tm.hi.%d' % i, int((75 * x / sum(w)).quantize(D(1), rounding=ROUND_HALF_UP)))
+
 print(json.dumps(out, indent=1))

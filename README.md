@@ -14,7 +14,8 @@ Technology leadership study app (executive layer). Plan of record: `claude/tech-
 
 ## Content layout
 - `math/numbers.js` computes every number; `math/numbers.py` recomputes them with decimals; `build.js` fails on any difference over half a cent. Text gets numbers only through `{{placeholders}}` (`{{$x}}` prints money).
-- `craft-src/*.md` + `craft-stages.js`: Craft packets BR-n (filled into `build/craft/`). `sims-runs.js`: BRN-1. `content/opmodel.js`: lessons om-n and checks OM-nn. `content/prompts.js`: BP-nn, linked to Master Story Bank cards.
+- `craft-src/*.md` + `craft-stages.js`: Craft packets BR-n (filled into `build/craft/`; `{{table:...}}` renders tables from `data/*.json`). `sims-runs.js`: BRN-1, BRN-2. `sims-roleplay.js`: BRL-n. Shared modules in `content/` (`opmodel.js` om-n/OM-nn, `economics.js` ec-n/EC-nn), registered in `build.js` MODS. `content/prompts.js`: BP-nn, linked to Master Story Bank cards. `content/tmay.js`: CIO-family TMAY (beats and budgets only; bank text is never copied in). Every packet, run and role-play names its lane `section`.
+- Draft labels come from each item's `status` ('Draft' or empty).
 - `content/place.js` moves each keyed answer to a set position (POS arrays) and remaps index-keyed fields.
 - Blind-check records: `docs/blind-check-*.md`.
 

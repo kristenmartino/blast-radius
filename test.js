@@ -23,7 +23,9 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
   const browser = await chromium.launch();
   const errs = [];
   const newPage = async (opts, init) => {
+    const binds = (opts || {}).__bindings; if (opts) delete opts.__bindings;
     const ctx = await browser.newContext(Object.assign({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 }, opts));
+    for (const k in (binds || {})) await ctx.exposeBinding(k, binds[k]);
     await ctx.route('**/*', r => r.request().url().startsWith('file:') ? r.continue() : r.abort());
     if (init) await ctx.addInitScript(init);
     const page = await ctx.newPage(); page.setDefaultTimeout(6000);
@@ -42,12 +44,15 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await fit(page, tag + ' home');
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
     await fit(page, tag + ' CIO lane');
-    for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#stage-br-1-2', '#stage-br-6-1', '#run-brn-1']) {
+    for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#lesson-ec-1', '#lesson-ec-3', '#lesson-ec-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#packet-br-7', '#stage-br-1-2', '#stage-br-6-1', '#stage-br-7-2', '#run-brn-1', '#run-brn-2', '#rp-brl-1', '#rp-brl-3']) {
       await page.goto(URL + h); await page.waitForTimeout(150); await fit(page, tag + ' ' + h);
     }
     await page.goto(URL + '#lesson-om-3'); await page.waitForSelector('[data-act="check-pick"]');
     await page.locator('[data-act="check-pick"]').first().click(); await page.waitForSelector('.verdict');
     await fit(page, tag + ' lesson with a checked answer');
+    await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
+    await page.evaluate(() => { BANK.tmay.pendingOk = false; location.hash = '#tmay-cio'; }); await page.waitForSelector('.beat');
+    await fit(page, tag + ' TMAY');
     await page.goto(URL + '#craft'); await page.waitForTimeout(150); await fit(page, tag + ' craft list');
     await page.goto(URL + '#sims'); await page.waitForTimeout(150); await fit(page, tag + ' sims list');
     // the forced themes too (the switch sets data-theme)
@@ -76,7 +81,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await act(page, 'lane', 'cio'); await page.waitForSelector('.secrow');
     ok(/#lane-cio$/.test(page.url()), 'opening CIO sets #lane-cio');
     ok(/C-level/.test(await page.locator('.playtop .meta').textContent()), 'lane header shows the level filter');
-    ok(await page.locator('.secrow').count() === 7 && /Operating model/.test(await page.locator('.secrow').first().textContent()), 'CIO lane lists its sections');
+    ok(await page.locator('.secrow').count() === 9 && /Operating model/.test(await page.locator('.secrow').first().textContent()), 'CIO lane lists its sections');
     await page.reload(); await page.waitForSelector('.secrow');
     ok(await page.locator('[data-act="level"][aria-pressed="true"]').count() === 1, 'level filter survives a reload');
     await act(page, 'home'); await page.waitForSelector('.lanebtn');
@@ -102,8 +107,10 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.locator('#cio-operating-model .itemrow').count() === 6, 'lane lists 6 lessons');
     ok(await page.locator('#cio-portfolio-cases .itemrow').count() === 6, 'lane lists 6 cases');
     ok(await page.locator('#cio-renewal-sim .itemrow').count() === 1 && await page.locator('#cio-behavioral .itemrow').count() === 1, 'lane lists the sim and the prompts');
-    ok(await page.locator('#cio-first-90 .soon').count() === 1, 'Phase 2 sections still marked');
-    ok(await page.locator('.cchip.draft').count() === 0, 'reviewed Phase 1 items carry no Draft label (Kristen, Nov 24)');
+    ok(await page.locator('.secrow .soon').count() === 0, 'every CIO section now has content');
+    ok(/OK which two beats/.test(await page.locator('#cio-tmay').textContent()) && await page.locator('#cio-tmay .itemrow').count() === 0, 'TMAY held back until the stressed beats are OK\'d');
+    ok(await page.locator('#cio-operating-model .cchip.draft, #cio-portfolio-cases .cchip.draft, #cio-renewal-sim .cchip.draft, #cio-behavioral .cchip.draft').count() === 0, 'reviewed Phase 1 items carry no Draft label (Kristen, Nov 24)');
+    ok(await page.locator('#cio-economics .cchip.draft').count() === 5 && await page.locator('#cio-first-90 .cchip.draft').count() === 1 && await page.locator('#cio-cost-sim .cchip.draft').count() === 1 && await page.locator('#cio-role-plays .cchip.draft').count() === 3, 'new Phase 2 items carry Draft labels');
     // C-level only: the Director-only case and Director/VP items drop out
     await act(page, 'level', 'director'); await act(page, 'level', 'vp');
     const cases = await page.locator('#cio-portfolio-cases .itemrow b').allTextContents();
@@ -113,7 +120,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await act(page, 'level', 'director'); await act(page, 'level', 'vp');
     // lesson: answer one check right and one wrong
     await page.goto(URL + '#lesson-om-1'); await page.waitForSelector('[data-act="check-pick"]');
-    const c1 = BANK.opmodel.checks.find(c => c.id === 'OM-01'), c2 = BANK.opmodel.checks.find(c => c.id === 'OM-02');
+    const c1 = BANK.modules[0].checks.find(c => c.id === 'OM-01'), c2 = BANK.modules[0].checks.find(c => c.id === 'OM-02');
     await page.locator('[data-act="check-pick"][data-id="OM-01"][data-j="' + c1.answer + '"]').click(); await page.waitForTimeout(80);
     const wrong = (c2.answer + 1) % 4;
     await page.locator('[data-act="check-pick"][data-id="OM-02"][data-j="' + wrong + '"]').click(); await page.waitForTimeout(80);
@@ -128,7 +135,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await act(page, 'lane', 'cio'); await page.waitForSelector('.itemrow');
     ok(/#lane-cio$/.test(page.url()), 'lesson back button returns to the lane');
     // answer positions are spread
-    const pos = BANK.opmodel.checks.map(c => c.answer).concat(BANK.runs[0].steps.map(s => s.answer));
+    const pos = [].concat(...BANK.modules.map(m => m.checks.map(c => c.answer)), ...BANK.runs.map(r => r.steps.map(s => s.answer)));
     ok([0, 1, 2, 3].every(j => pos.filter(x => x === j).length >= 3), 'answer positions spread across A to D ' + pos.join(''));
     // prompts
     await page.goto(URL + '#prompts-cio'); await page.waitForSelector('.stem');
@@ -153,17 +160,60 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     const end = await page.locator('main').textContent();
     ok(/100(\.0)?%/.test(end) && /A renewal the CFO trusts/.test(end), 'sim best path: 100% and the top ending');
     await fit(page, '390 sim result');
+
+    // Phase 2a: economics checks, BR-7 tables, BRN-2 best path, role-plays without Claude, TMAY
+    await page.goto(URL + '#lesson-ec-5'); await page.waitForSelector('[data-act="check-pick"]');
+    ok(/Technology economics/.test(await page.locator('.playtop').textContent()), 'economics lesson header');
+    const ec10 = BANK.modules[1].checks.find(c => c.id === 'EC-10');
+    await page.locator('[data-act="check-pick"][data-id="EC-10"][data-j="' + ec10.answer + '"]').click(); await page.waitForTimeout(80);
+    ok(/Right/.test(await page.locator('#check-ec-10 .verdict').textContent()), 'EC-10 keyed answer marks right');
+    ok(await page.locator('.src a[href^="https://"]').count() === 1, 'lesson ec-5 lists its source');
+    const b7 = BANK.craft.find(p => p.id === 'BR-7');
+    ok(b7 && JSON.stringify(b7.sections).indexOf('Orderwell') !== -1 && JSON.stringify(b7.sections).indexOf('In house') !== -1, 'BR-7 tables rendered from data/br7.json');
+    ok(b7.stages[1].checklist.indexOf('Order management notice is due in 15 days') !== -1, 'BR-7 checklist numbers filled');
+    await page.goto(URL + '#run-brn-2'); await page.waitForSelector('.opts');
+    const st2 = BANK.runs.find(r => r.id === 'BRN-2').steps;
+    for (let i = 0; i < st2.length; i++) {
+      await page.locator('[data-act="run-pick"][data-j="' + st2[i].answer + '"]').click(); await page.waitForTimeout(120);
+      const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+    }
+    const end2 = await page.locator('main').textContent();
+    ok(/100(\.0)?%/.test(end2) && /Costs that scale with value/.test(end2), 'BRN-2 best path: 100% and the top ending');
+    await page.goto(URL + '#run-brn-2'); await page.waitForTimeout(150);
+    await page.locator('[data-act="run-replay"]').click(); await page.waitForTimeout(120);
+    await page.locator('[data-act="run-pick"][data-j="' + ((st2[0].answer + 1) % 4) + '"]').first().click(); await page.waitForTimeout(120);
+    ok(/BRN-2-01|Q1/.test(await page.locator('main').textContent()), 'BRN-2 replay and a wrong pick render');
+    for (const id of ['brl-1', 'brl-2', 'brl-3']) {
+      await page.goto(URL + '#rp-' + id); await page.waitForSelector('.fbblock');
+      ok(/opens with/.test(await page.locator('main').textContent()), 'role-play ' + id + ' shows the opening line without Claude');
+    }
+    await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
+    ok(await page.locator('#cio-role-plays .itemrow').count() === 3 && await page.locator('#cio-cost-sim .itemrow').count() === 1 && await page.locator('#cio-first-90 .itemrow').count() === 1 && await page.locator('#cio-economics .itemrow').count() === 5, 'lane lists the Phase 2a content');
+    await page.goto(URL + '#tmay-cio'); await page.waitForTimeout(150);
+    ok(/#lane-cio|#tmay-cio/.test(page.url()) && await page.locator('.beat').count() === 0, 'TMAY route stays closed while pending');
+    await page.evaluate(() => { BANK.tmay.pendingOk = false; location.hash = '#lane-cio'; }); await page.waitForTimeout(100);
+    await page.evaluate(() => { location.hash = '#tmay-cio'; }); await page.waitForSelector('.beat');
+    ok(await page.locator('.beat').count() === 5 && await page.locator('.beat.stressed').count() === 2, 'TMAY: five beats, two stressed');
+    const secs = await page.locator('.beat .secs').allTextContents();
+    const lo = secs.reduce((a, x) => a + +x.split(/\D+/)[0], 0), hi = secs.reduce((a, x) => a + +x.split(/\D+/)[1], 0);
+    ok(Math.abs(lo - 60) <= 1 && Math.abs(hi - 75) <= 1, 'TMAY budgets sum to about 60 and 75 seconds (' + lo + ', ' + hi + ')');
+    ok(await page.locator('a[href="https://claude.ai/artifact/J5TiiDwLanHF9oMU1UFPJ6#practice"]').count() === 1, 'TMAY links the bank’s career introduction');
+    ok(!/I started at Towers Watson/.test(JSON.stringify(BANK)), 'no Story Bank text is copied into the page');
     await ctx.close();
   }
 
   // ---- 3. idle-write check (study-kit's method): a database that returns keys sorted; no writes once idle
   {
-    const { ctx, page } = await newPage({}, () => {
+    // The stand-in database lives in the test process (exposeBinding), so it survives the reload that plays the
+    // second device. An earlier version kept it in sessionStorage, which came back empty after the file:// reload in
+    // 4 of 20 runs (Measured Nov 24); that was the intermittent "second device" failure.
+    const STORE = {};
+    const { ctx, page } = await newPage({ __bindings: { __dbGet: () => JSON.stringify(STORE), __dbPut: (src, p, d) => { STORE[p] = d; } } }, () => {
       const sortKeys = v => Array.isArray(v) ? v.map(sortKeys) : v && typeof v === 'object' ? Object.keys(v).sort().reduce((o, k) => { o[k] = sortKeys(v[k]); return o; }, {}) : v;
       // docs live in sessionStorage so a reload acts like a second device (localStorage cleared, account kept)
-      const docs = JSON.parse(sessionStorage.getItem('__docs') || '{}'), sets = {}; window.__docs = docs; window.__sets = sets;
+      const docs = {}, ready = window.__dbGet().then(j => Object.assign(docs, JSON.parse(j))), sets = {}; window.__docs = docs; window.__sets = sets;
       const mkRef = p => { const ls = []; const snap = () => ({ exists: !!docs[p], data: () => docs[p] ? JSON.parse(JSON.stringify(docs[p])) : undefined });
-        return { set: async d => { sets[p] = (sets[p] || 0) + 1; docs[p] = sortKeys(JSON.parse(JSON.stringify(d))); sessionStorage.setItem('__docs', JSON.stringify(docs)); setTimeout(() => ls.forEach(f => f(snap())), 5); }, onSnapshot: next => { ls.push(next); setTimeout(() => next(snap()), 30); return () => {}; } }; };
+        return { set: async d => { sets[p] = (sets[p] || 0) + 1; docs[p] = sortKeys(JSON.parse(JSON.stringify(d))); window.__dbPut(p, docs[p]); setTimeout(() => ls.forEach(f => f(snap())), 5); }, onSnapshot: next => { ls.push(next); ready.then(() => setTimeout(() => next(snap()), 30)); return () => {}; } }; };
       const refs = {}, db = { doc: p => refs[p] || (refs[p] = mkRef(p)) };
       window.claude = { use: async n => n === 'db' ? db : n === 'user' ? { id: async () => 'u_loop' } : null };
     });
