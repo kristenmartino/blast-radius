@@ -98,7 +98,8 @@ const MODS = [
   { id: 'operating-model', title: 'Operating model', prefix: 'om', data: require('./content/opmodel.js') },
   { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') },
   { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') },
-  { id: 'data-strategy', title: 'Data strategy and governance', prefix: 'dst', data: require('./content/dst.js') }
+  { id: 'data-strategy', title: 'Data strategy and governance', prefix: 'dst', data: require('./content/dst.js') },
+  { id: 'data-products', title: 'Data products and analytics value', prefix: 'dpv', data: require('./content/dpv.js') }
 ];
 const LINKS = require('./content/links.js');
 const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js'), TMAYD = require('./content/tmay-data.js');
