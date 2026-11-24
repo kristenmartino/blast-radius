@@ -298,7 +298,7 @@ tot = sum(usage)
 def saving(commit):                                             # pay 70% of the commitment every month, list price for usage above it
     paid = sum(D(commit) * D('0.7') + max(D(0), D(u) - commit) for u in usage)
     return c(tot - paid)
-put('dp.domains', 14); put('dp.datasets', 412); put('dp.boardDs', 38); put('dp.testsPer', 6); put('dp.daysPer', 3); put('dp.eng', 2)
+put('dp.workDays', 260); put('dp.domains', 14); put('dp.datasets', 412); put('dp.boardDs', 38); put('dp.testsPer', 6); put('dp.daysPer', 3); put('dp.eng', 2)
 put('dp.boardTests', 38 * 6); put('dp.boardDays', 38 * 3); put('dp.allDays', 412 * 3)
 put('dp.boardWeeks', c(D(38 * 3) / 2 / 5)); put('dp.allWeeks', c(D(412 * 3) / 2 / 5)); put('dp.allYears', c(D(412 * 3) / 2 / 5 / 52))
 put('dp.pctPay', 100 - 30); put('dp.monthsText', ', '.join(str(u) for u in usage)); put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)

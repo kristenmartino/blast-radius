@@ -151,7 +151,7 @@ const checks = [
     whyNot: { 0: 'Off by a factor of ten.', 2: 'Off by a factor of ten.', 3: 'The setup cost comes first.' } }
 ,
   { id: 'EC-15', lesson: 'ec-7', levels: ['vp', 'c-level'],
-    stem: t('A Medium warehouse (4 credits an hour) wakes {{ec7.wakes}} times a day for {{ec7.runSec}} seconds of work each time, for {{ec7.days}} days, at {{$ec7.credPrice}} a credit. Billing is per second with a 60-second minimum at each start. What does it cost a month?'),
+    stem: t('A Medium warehouse (4 credits an hour) wakes {{ec7.wakes}} times a day for {{ec7.runSec}} seconds of work each time, for {{ec7.days}} days, at {{$ec7.credPrice}} a credit. Billing is per second with a 60-second minimum at each start, and the warehouse suspends as soon as each job ends. What does it cost a month?'),
     options: [t('{{$ec7.noMinCost}}, the work seconds only'), t('{{$ec7.monthCost}}, one minute billed per wake'), t('{{$ec7.allDayCost}}, as if it ran all day'), t('{{$ec7.hourlyCost}}, one full hour billed per wake')],
     answer: 1, why: t('Each wake bills 60 seconds, so {{ec7.wakes}} wakes bill {{ec7.billedSec}} seconds, {{ec7.credDay}} credits a day and {{ec7.credMonth}} credits a month: {{$ec7.monthCost}}.'),
     whyNot: { 0: t('Counts the work seconds and ignores the minute billed at each start; that gives {{$ec7.noMinCost}}.'), 2: t('The always-on cost, {{$ec7.allDayCost}}, assumes it never suspends.'), 3: 'Bills a full hour for every wake; the minimum is one minute.' } },

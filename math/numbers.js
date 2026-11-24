@@ -293,7 +293,7 @@ function compute() {
     let optC = 0; for (let c = 0; c <= 100; c++) if (save(c) > save(optC)) optC = c;      // brute-force check on whole $k levels
     const board = 38, testsPer = 6, daysPer = 3, all = 412, eng = 2;
     const rev = 112000000, dupDays = 3, qDays = 91, over = r2(rev * dupDays / qDays), tol = 0.005;
-    N.dp = { domains: 14, datasets: all, boardDs: board, testsPer, daysPer, boardTests: board * testsPer, boardDays: board * daysPer, allDays: all * daysPer, eng,
+    N.dp = { workDays: 260, domains: 14, datasets: all, boardDs: board, testsPer, daysPer, boardTests: board * testsPer, boardDays: board * daysPer, allDays: all * daysPer, eng,
       boardWeeks: r2(board * daysPer / eng / 5), allWeeks: r2(all * daysPer / eng / 5), allYears: r2(all * daysPer / eng / 5 / 52),
       monthsText: months.join(', '), pctPay: 70, yrOnDemand: sum, avgMonth: mean, floorMonth: Math.min(...months), peakMonth: Math.max(...months), discPct: 30,
       cPeak: 95, cAvg: 62, cNine: cNine, cFloor: 40, optCommit: optC, headline: r2(sum * disc),

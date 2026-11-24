@@ -375,7 +375,7 @@ runs.push({
   id: 'BRN-5', status: 'Draft', lane: 'data-leadership', section: 'platform-sim', levels: ['vp', 'c-level'],
   title: 'Data platform, eight quarters', role: 'Chief Data Officer',
   blurb: 'Eight quarterly decisions on a retailer’s data platform: certification, commitments, definitions, showback, an incident, controls, spend and the board report. Figures are computed in code; the company is fictional.',
-  briefing: t('You are Chief Data Officer of Pennant Retail Group (fictional), 4,200 staff, {{dp.domains}} data domains and {{dp.datasets}} datasets. The CFO approved the platform on a promise of savings, the board sees {{dp.boardMetrics}} data metrics each quarter, and you have {{dp.eng}} engineers on data quality. Each quarter you make one call. Business value here is $k a year that Finance confirms: ${{dp.startK}}k today.'),
+  briefing: t('You are Chief Data Officer of Pennant Retail Group (fictional), 4,200 staff, {{dp.domains}} data domains and {{dp.datasets}} datasets. The CFO approved the platform on a promise of savings, the board sees {{dp.boardMetrics}} data metrics each quarter, and you have {{dp.eng}} engineers on data quality. Each quarter you make one call. Business value here is $k a year that Finance confirms: ${{dp.startK}}k today, and each saving Finance confirms later is added to it.'),
   meters: ['quality', 'trust', 'spend', 'adoption'],
   meterLabels: { quality: 'Data quality', trust: 'Trust in the numbers', spend: 'Spend control', adoption: 'Adoption' },
   start: { planned: DP.startK, actual: DP.startK },
@@ -383,7 +383,7 @@ runs.push({
   endLabel: 'See the result',
   steps: [
     { id: 'BRN-5-01', phase: 'Quarter 1',
-      stem: t('{{dp.boardDs}} of the {{dp.datasets}} datasets feed the board pack. Certifying a dataset takes {{dp.testsPer}} tests and {{dp.daysPer}} person-days. You have {{dp.eng}} engineers. Where do you start?'),
+      stem: t('{{dp.boardDs}} of the {{dp.datasets}} datasets feed the board pack. Certifying a dataset takes {{dp.testsPer}} tests and {{dp.daysPer}} person-days. You have {{dp.eng}} engineers working five-day weeks, {{dp.workDays}} working days a year. Where do you start?'),
       options: [t('Certify all {{dp.datasets}} for consistency: {{dp.allDays}} person-days, {{dp.allYears}} years for {{dp.eng}} engineers'), t('Certify the {{dp.boardDs}} datasets that feed the board pack: {{dp.boardDays}} person-days, {{dp.boardWeeks}} weeks'), 'Start with the largest tables first, since an error there would touch the most rows in the warehouse', 'Wait for a catalog tool to rank every dataset by how often it is queried, then certify in that order'],
       answer: 1,
       whyNot: { 0: t('Consistent coverage is the right end state, but the board numbers stay uncertified for {{dp.allYears}} years.'), 2: 'Table size says little about whether the board sees the data.', 3: 'Query counts show use; the board pack is the use that matters.' },
@@ -393,7 +393,7 @@ runs.push({
       lesson: 'Certify what the board sees first, and publish which datasets are certified.' },
 
     { id: 'BRN-5-02', phase: 'Quarter 2',
-      stem: t('Platform spend last year at list price, in $k a month: {{dp.monthsText}} (total ${{dp.yrOnDemand}}k, average ${{dp.avgMonth}}k; ${{dp.peakMonth}}k was a one-off launch month). A one-year commitment pays {{dp.pctPay}}% of the committed level every month and bills usage above it at list. What level do you commit to?'),
+      stem: t('Platform spend last year at list price, in $k a month: {{dp.monthsText}} (total ${{dp.yrOnDemand}}k, average ${{dp.avgMonth}}k; ${{dp.peakMonth}}k was a one-off launch month). A one-year commitment pays {{dp.pctPay}}% of the committed level every month and bills usage above it at list. Assume next year’s usage matches last year’s. What level do you commit to?'),
       options: [t('${{dp.cPeak}}k a month, the peak, so no month is billed at list price'), t('${{dp.cNine}}k a month, a level used in at least 9 of the 12 months'), t('${{dp.cAvg}}k a month, the yearly average'), t('${{dp.cFloor}}k a month, the quietest month, to avoid any risk')],
       answer: 1,
       whyNot: { 0: t('You pay for ${{dp.cPeak}}k in all twelve months. Against {{dp.discPct}}% off, the year’s saving is {{dp.sPeak}} (in $k), a loss, where the headline promise was ${{dp.headline}}k.'), 2: t('Saves ${{dp.sAvg}}k, less than the best level, because five months run below the average and you pay for the unused part.'), 3: t('Safe, and it saves ${{dp.sFloor}}k, but it leaves the steady usage above ${{dp.cFloor}}k at list price.') },
@@ -414,7 +414,7 @@ runs.push({
 
     { id: 'BRN-5-04', phase: 'Quarter 4',
       stem: t('The platform costs {{$ec8.total}} a month: {{$ec8.dSales}} tagged to Sales, {{$ec8.dMkt}} to Marketing, {{$ec8.dFin}} to Finance and {{$ec8.shared}} shared. Queries split {{ec8.shSales}}%, {{ec8.shMkt}}% and {{ec8.shFin}}%. The business units ask who pays. What do you set up?'),
-      update: 'The first quarter of certified numbers has reached the board.',
+      updateIf: { certified: 'The first quarter of certified numbers has reached the board.', uncertified: 'The first quarter of numbers has reached the board without certification.' },
       options: ['Charge each unit’s budget the full bill at once, using allocation rules that the data team writes alone, from next month', t('Monthly showback, shared cost allocated by queries ({{$ec8.lSales}}, {{$ec8.lMkt}}, {{$ec8.lFin}}), rules agreed with Finance'), t('Split the {{$ec8.shared}} shared cost evenly three ways, since every unit benefits from the platform in some way'), 'Keep all of the cost in the central budget and show the business units nothing, so they do not worry about it'],
       answer: 1,
       whyNot: { 0: 'Chargeback posts to official budgets, so Finance has to agree the rules first.', 2: t('An even split charges Marketing {{$ec8.evenMkt}} for a platform where it runs {{ec8.shMkt}}% of the queries.'), 3: 'Units that see no cost have no reason to use the platform carefully.' },
@@ -424,7 +424,7 @@ runs.push({
 
     { id: 'BRN-5-05', phase: 'Quarter 5',
       stem: t('A rerun duplicated {{dp.dupDays}} of the quarter’s {{dp.qDays}} days of orders. The board pack shows net revenue {{$dp.over}} too high, {{dp.overPct}}% of the {{$dp.rev}} on the ledger. The CFO has not seen it yet. What do you do first?'),
-      updateIf: { certified: t('The error entered through a team-built view over a certified table, so {{dp.metricsCert}} board metric is affected.'), uncertified: t('The feed has no tests, so the same duplicate reaches {{dp.metricsUncert}} of the {{dp.boardMetrics}} board metrics.'), contested: t('The board also sees active customers of {{dp.sSales}} on one slide and {{dp.sFin}} on another, so questions will multiply.') },
+      updateIf: { certified: t('The error entered through a team-built view over a certified table, so {{dp.metricsCert}} board metric is affected.'), uncertified: t('The feed has no tests, so the same duplicate reaches {{dp.metricsUncert}} of the {{dp.boardMetrics}} board metrics.'), contested: t('The board has seen active-customer counts of {{dp.sSales}} and {{dp.sFin}} in the same quarter, so questions will multiply.') },
       options: ['Fix the feed before the next pack goes out and describe the change in a footnote in the appendix', 'Tell the CFO and board chair now what you know and do not, freeze the feed, then correct it', 'Wait until the root cause is confirmed so that the message you send to the CFO is complete', 'Ask the sales operations team that owns the order feed to announce the error and the correction'],
       answer: 1,
       whyNot: { 0: 'The board relied on the wrong number for a quarter and hears about it from an appendix.', 2: 'A complete message that arrives after someone else spots the error costs more trust than a partial one now.', 3: 'The data leader owns the number the board saw, so the announcement is yours.' },
