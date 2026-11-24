@@ -301,7 +301,7 @@ def saving(commit):                                             # pay 70% of the
 put('dp.domains', 14); put('dp.datasets', 412); put('dp.boardDs', 38); put('dp.testsPer', 6); put('dp.daysPer', 3); put('dp.eng', 2)
 put('dp.boardTests', 38 * 6); put('dp.boardDays', 38 * 3); put('dp.allDays', 412 * 3)
 put('dp.boardWeeks', c(D(38 * 3) / 2 / 5)); put('dp.allWeeks', c(D(412 * 3) / 2 / 5)); put('dp.allYears', c(D(412 * 3) / 2 / 5 / 52))
-put('dp.monthsText', ', '.join(str(u) for u in usage)); put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)
+put('dp.pctPay', 100 - 30); put('dp.monthsText', ', '.join(str(u) for u in usage)); put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)
 c_nine = max(c for c in usage if sum(1 for u in usage if u >= c) >= 9)
 opt = max(range(0, 101), key=lambda c: (saving(c), -c))
 put('dp.cPeak', 95); put('dp.cAvg', 62); put('dp.cNine', c_nine); put('dp.cFloor', 40); put('dp.optCommit', opt); put('dp.sOpt', saving(opt)); put('dp.headline', c(D(tot) * D('0.3')))

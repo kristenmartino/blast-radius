@@ -368,10 +368,112 @@ runs.push({
   ]
 });
 
+// BRN-5: data platform, eight quarters. Value is $k a year that Finance confirms. Planned = what you promise the CFO; actual = what lands.
+// Company, usage and prices are fictional; every figure comes from math/numbers.js (N.dp, N.ec8).
+const DP = N.dp, E8 = N.ec8;
+runs.push({
+  id: 'BRN-5', status: 'Draft', lane: 'data-leadership', section: 'platform-sim', levels: ['vp', 'c-level'],
+  title: 'Data platform, eight quarters', role: 'Chief Data Officer',
+  blurb: 'Eight quarterly decisions on a retailer’s data platform: certification, commitments, definitions, showback, an incident, controls, spend and the board report. Figures are computed in code; the company is fictional.',
+  briefing: t('You are Chief Data Officer of Pennant Retail Group (fictional), 4,200 staff, {{dp.domains}} data domains and {{dp.datasets}} datasets. The CFO approved the platform on a promise of savings, the board sees {{dp.boardMetrics}} data metrics each quarter, and you have {{dp.eng}} engineers on data quality. Each quarter you make one call. Business value here is $k a year that Finance confirms: ${{dp.startK}}k today.'),
+  meters: ['quality', 'trust', 'spend', 'adoption'],
+  meterLabels: { quality: 'Data quality', trust: 'Trust in the numbers', spend: 'Spend control', adoption: 'Adoption' },
+  start: { planned: DP.startK, actual: DP.startK },
+  predNote: 'Here predictability is value Finance confirms ÷ value promised to the CFO.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-5-01', phase: 'Quarter 1',
+      stem: t('{{dp.boardDs}} of the {{dp.datasets}} datasets feed the board pack. Certifying a dataset takes {{dp.testsPer}} tests and {{dp.daysPer}} person-days. You have {{dp.eng}} engineers. Where do you start?'),
+      options: [t('Certify all {{dp.datasets}} for consistency: {{dp.allDays}} person-days, {{dp.allYears}} years for {{dp.eng}} engineers'), t('Certify the {{dp.boardDs}} datasets that feed the board pack: {{dp.boardDays}} person-days, {{dp.boardWeeks}} weeks'), 'Start with the largest tables first, since an error there would touch the most rows in the warehouse', 'Wait for a catalog tool to rank every dataset by how often it is queried, then certify in that order'],
+      answer: 1,
+      whyNot: { 0: t('Consistent coverage is the right end state, but the board numbers stay uncertified for {{dp.allYears}} years.'), 2: 'Table size says little about whether the board sees the data.', 3: 'Query counts show use; the board pack is the use that matters.' },
+      effects: eff({ quality: -5, spend: -10 }, { quality: 10, trust: 5 }, { quality: -5, trust: -5 }, { quality: -5, adoption: -5 }),
+      sets: { 0: 'uncertified', 2: 'uncertified', 3: 'uncertified', 1: 'certified' },
+      why: t('{{dp.boardDs}} datasets × {{dp.testsPer}} tests is {{dp.boardTests}} tests and {{dp.boardDays}} person-days, {{dp.boardWeeks}} weeks for {{dp.eng}} engineers. The board’s numbers are covered inside a quarter.'),
+      lesson: 'Certify what the board sees first, and publish which datasets are certified.' },
+
+    { id: 'BRN-5-02', phase: 'Quarter 2',
+      stem: t('Platform spend last year at list price, in $k a month: {{dp.monthsText}} (total ${{dp.yrOnDemand}}k, average ${{dp.avgMonth}}k; ${{dp.peakMonth}}k was a one-off launch month). A one-year commitment pays {{dp.pctPay}}% of the committed level every month and bills usage above it at list. What level do you commit to?'),
+      options: [t('${{dp.cPeak}}k a month, the peak, so no month is billed at list price'), t('${{dp.cNine}}k a month, a level used in at least 9 of the 12 months'), t('${{dp.cAvg}}k a month, the yearly average'), t('${{dp.cFloor}}k a month, the quietest month, to avoid any risk')],
+      answer: 1,
+      whyNot: { 0: t('You pay for ${{dp.cPeak}}k in all twelve months. Against {{dp.discPct}}% off, the year’s saving is {{dp.sPeak}} (in $k), a loss, where the headline promise was ${{dp.headline}}k.'), 2: t('Saves ${{dp.sAvg}}k, less than the best level, because five months run below the average and you pay for the unused part.'), 3: t('Safe, and it saves ${{dp.sFloor}}k, but it leaves the steady usage above ${{dp.cFloor}}k at list price.') },
+      effects: eff({ spend: -20, trust: -10 }, { spend: 10, trust: 5 }, { spend: 5 }, { spend: 5, adoption: -5 }),
+      pv: { 0: { planned: DP.pv.peakPlan, actual: DP.pv.peakAct }, 1: { planned: DP.pv.nine, actual: DP.pv.nine }, 2: { planned: DP.pv.avg, actual: DP.pv.avg }, 3: { planned: DP.pv.floor, actual: DP.pv.floor } },
+      why: t('A commitment pays when you use it more than {{dp.pctPay}}% of the time, which is at least 9 of 12 months. At ${{dp.cNine}}k it saves ${{dp.sNine}}k a year; a scan of every whole-dollar level found no better one.'),
+      lesson: 'Commit to the level you use most of the time, not to the peak.' },
+
+    { id: 'BRN-5-03', phase: 'Quarter 3',
+      stem: t('Three teams report different active-customer counts: Sales {{dp.sSales}}, Marketing {{dp.sMkt}}, Finance {{dp.sFin}}. The board will see one. How do you settle it?'),
+      options: ['Show all three on the slide, each footnoted with its team’s own definition of an active customer', 'Name one owner, write one definition (Finance’s paid-order rule), publish it, rename the others', 'Report the average of the three counts, so that no team feels that its number has been overruled', 'Let the CEO choose which of the three numbers goes on the slide each quarter, as the board prefers'],
+      answer: 1,
+      whyNot: { 0: 'The board then settles a definition dispute that your team should have settled.', 2: 'An average matches no definition and nobody can explain it.', 3: 'The number changes with the mood of the quarter, and so does trust in it.' },
+      effects: eff({ trust: -10, adoption: -5 }, { trust: 10, quality: 5 }, { trust: -10, quality: -5 }, { trust: -5, adoption: -10 }),
+      sets: { 0: 'contested', 2: 'contested', 3: 'contested', 1: 'defined' },
+      why: t('Marketing’s count is {{dp.overMkt}}% above Finance’s. One owner and one definition removes the argument; the other counts stay useful under names that say what they measure.'),
+      lesson: 'One accountable owner and one written definition for every board metric.' },
+
+    { id: 'BRN-5-04', phase: 'Quarter 4',
+      stem: t('The platform costs {{$ec8.total}} a month: {{$ec8.dSales}} tagged to Sales, {{$ec8.dMkt}} to Marketing, {{$ec8.dFin}} to Finance and {{$ec8.shared}} shared. Queries split {{ec8.shSales}}%, {{ec8.shMkt}}% and {{ec8.shFin}}%. The business units ask who pays. What do you set up?'),
+      update: 'The first quarter of certified numbers has reached the board.',
+      options: ['Charge each unit’s budget the full bill at once, using allocation rules that the data team writes alone, from next month', t('Monthly showback, shared cost allocated by queries ({{$ec8.lSales}}, {{$ec8.lMkt}}, {{$ec8.lFin}}), rules agreed with Finance'), t('Split the {{$ec8.shared}} shared cost evenly three ways, since every unit benefits from the platform in some way'), 'Keep all of the cost in the central budget and show the business units nothing, so they do not worry about it'],
+      answer: 1,
+      whyNot: { 0: 'Chargeback posts to official budgets, so Finance has to agree the rules first.', 2: t('An even split charges Marketing {{$ec8.evenMkt}} for a platform where it runs {{ec8.shMkt}}% of the queries.'), 3: 'Units that see no cost have no reason to use the platform carefully.' },
+      effects: eff({ trust: -5, adoption: -10 }, { spend: 10, trust: 5, adoption: 5 }, { trust: -10 }, { spend: -10, adoption: -5 }),
+      why: t('Marketing’s {{$ec8.dMkt}} tagged plus {{$ec8.aMkt}} of the shared cost is {{$ec8.lMkt}}. The FinOps Foundation treats showback as the required step and chargeback as depending on accounting policy.'),
+      lesson: 'Show each unit its cost first; charge back only when Finance’s policy needs it.' },
+
+    { id: 'BRN-5-05', phase: 'Quarter 5',
+      stem: t('A rerun duplicated {{dp.dupDays}} of the quarter’s {{dp.qDays}} days of orders. The board pack shows net revenue {{$dp.over}} too high, {{dp.overPct}}% of the {{$dp.rev}} on the ledger. The CFO has not seen it yet. What do you do first?'),
+      updateIf: { certified: t('The error entered through a team-built view over a certified table, so {{dp.metricsCert}} board metric is affected.'), uncertified: t('The feed has no tests, so the same duplicate reaches {{dp.metricsUncert}} of the {{dp.boardMetrics}} board metrics.'), contested: t('The board also sees active customers of {{dp.sSales}} on one slide and {{dp.sFin}} on another, so questions will multiply.') },
+      options: ['Fix the feed before the next pack goes out and describe the change in a footnote in the appendix', 'Tell the CFO and board chair now what you know and do not, freeze the feed, then correct it', 'Wait until the root cause is confirmed so that the message you send to the CFO is complete', 'Ask the sales operations team that owns the order feed to announce the error and the correction'],
+      answer: 1,
+      whyNot: { 0: 'The board relied on the wrong number for a quarter and hears about it from an appendix.', 2: 'A complete message that arrives after someone else spots the error costs more trust than a partial one now.', 3: 'The data leader owns the number the board saw, so the announcement is yours.' },
+      effects: eff({ trust: -20 }, { trust: 15, quality: 5 }, { trust: -15 }, { trust: -15, adoption: -5 }),
+      why: t('A {{dp.overPct}}% error is large against a revenue number. Telling the CFO and the chair first turns a discovery by someone else into a disclosure by you.'),
+      lesson: 'Tell the people relying on a wrong number before they find out.' },
+
+    { id: 'BRN-5-06', phase: 'Quarter 6',
+      stem: t('What control stops the next duplicate before a pack goes out?'),
+      options: ['Add a second analyst who reviews every board dashboard by eye before each pack goes to the board', t('Reconcile revenue to the ledger within {{dp.tolPct}}% ({{$dp.tol}}) before each pack, test order ids for uniqueness'), 'Put a “preliminary” banner on every board number until the quarter has been closed for a month', 'Move the revenue feed to a different tool that the data engineers say handles reruns more cleanly'],
+      answer: 1,
+      whyNot: { 0: t('Nobody spots {{$dp.over}} by eye in a dashboard; the check has to compare to the ledger.'), 2: 'A banner warns the reader without fixing the number.', 3: 'A new tool carries the same duplicate unless a test stops it.' },
+      effects: eff({ quality: -5, spend: -5 }, { quality: 10, trust: 10 }, { trust: -5 }, { spend: -10, quality: -5 }),
+      why: t('A reconciliation to the ledger with a {{dp.tolPct}}% tolerance would have flagged the {{dp.overPct}}% gap, and a uniqueness test on order ids catches the duplicate at its source.'),
+      lesson: 'Reconcile to the system of record before release, with a named owner.' },
+
+    { id: 'BRN-5-07', phase: 'Quarter 7',
+      stem: t('You have {{$dp.budget}} to spend. Option A: monitoring and contracts on the {{dp.boardMetrics}} board metrics, {{$dp.monCost}}; Finance confirms {{dp.reconHours}} reconciliation hours a year at {{$dp.rate}} an hour, a contractor not renewed. Option B: a customer-360 pipeline, {{$dp.pipeCost}}, promised to return {{$dp.pipePlan}} a year; Finance confirms {{$dp.pipeConf}}. Where does the budget go first?'),
+      options: [t('The customer-360 pipeline, because its promised return of {{$dp.pipePlan}} a year is the larger of the two'), t('Monitoring and contracts on the board metrics: {{$dp.monCost}} for {{$dp.monSave}} a year that Finance confirms'), 'Split the budget evenly between the two, so that neither team feels that it was passed over', 'Hold the whole budget until the next planning cycle, when more evidence of both returns is in'],
+      answer: 1,
+      whyNot: { 0: t('Finance confirms {{$dp.pipeConf}} of the {{$dp.pipePlan}} promised, and the build costs {{$dp.pipeCost}}.'), 2: 'An even split funds the weaker case at the same level as the stronger one.', 3: 'The board metrics stay exposed for another cycle while the money waits.' },
+      effects: eff({ spend: -10, trust: -5 }, { spend: 10, trust: 5, quality: 5 }, { spend: -5 }, { quality: -5, adoption: -5 }),
+      pv: { 0: { planned: DP.pv.pipePlan, actual: DP.pv.pipeAct }, 1: { planned: DP.pv.mon, actual: DP.pv.mon } },
+      why: t('{{$dp.monCost}} returns {{$dp.monSave}} a year that Finance can see; the pipeline returns {{$dp.pipeConf}} on {{$dp.pipeCost}}. Fund what has a confirmed return first.'),
+      lesson: 'Fund the option with a confirmed return, not the largest promise.' },
+
+    { id: 'BRN-5-08', phase: 'Quarter 8',
+      stem: t('The board asks for the year’s data report. The team claims {{dp.claimHours}} hours saved at {{$dp.rate}} an hour, {{$dp.claim}}; Finance confirms {{$dp.licSave}} ({{dp.lic}} retired licences at {{$dp.licPrice}}). There was one incident and one definition change. What do you present?'),
+      options: [t('The {{$dp.claim}} saving, the largest figure that the team can show with its own time records'), 'Confirmed against promised value, the incident and fix, unit cost, and decisions needed', 'Dashboards launched, reports retired and the number of people trained during the year', 'The platform roadmap for next year, with the vendor commitments and the hiring plan'],
+      answer: 1,
+      whyNot: { 0: t('Finance confirms {{$dp.licSave}}; the rest is capacity, and the board will find the gap.'), 2: 'Activity measures, with no value or risk.', 3: 'Your plan, not results.' },
+      effects: eff({ trust: -15 }, { trust: 10, adoption: 5, spend: 5 }, { trust: -5, adoption: 5 }, { trust: -5 }),
+      pv: { 0: { planned: DP.pv.claim, actual: DP.pv.conf }, 1: { planned: DP.pv.conf, actual: DP.pv.conf } },
+      why: t('On the planned path value rose from ${{dp.startK}}k to ${{dp.bestK}}k a year. Showing the confirmed figure beside the claim is what lets the board trust the next one.'),
+      lesson: 'Report confirmed value against promised, with incidents, unit cost and decisions.' }
+  ],
+  endings: [
+    { min: 75, title: 'A platform the board can rely on', text: 'The board’s numbers were certified first, commitments matched use, definitions had owners, and the report showed confirmed value beside the promise.' },
+    { min: 55, title: 'Trusted by some', text: 'Parts of the platform earned trust, but ownership, controls or reporting left gaps that the board and the CFO noticed.' },
+    { min: 0, title: 'Dashboards without trust', text: 'Spend and dashboards grew, a wrong number reached the board, and the promised value was not the value Finance confirmed.' }
+  ]
+});
+
 runs[0].steps.forEach((st, i) => place(st, POS[i]));
 const POS2 = [3, 0, 2, 1, 0, 3];
 runs[1].steps.forEach((st, i) => place(st, POS2[i]));
 const POS3 = [2, 0, 3, 1, 0, 2, 3, 1], POS4 = [1, 3, 0, 2, 3, 1, 2, 0];
 runs[2].steps.forEach((st, i) => place(st, POS3[i]));
 runs[3].steps.forEach((st, i) => place(st, POS4[i]));
+const POS5 = [3, 1, 0, 2, 1, 3, 0, 2];
+runs[4].steps.forEach((st, i) => place(st, POS5[i]));
 module.exports = runs;
