@@ -301,9 +301,11 @@ def saving(commit):                                             # pay 70% of the
 put('dp.domains', 14); put('dp.datasets', 412); put('dp.boardDs', 38); put('dp.testsPer', 6); put('dp.daysPer', 3); put('dp.eng', 2)
 put('dp.boardTests', 38 * 6); put('dp.boardDays', 38 * 3); put('dp.allDays', 412 * 3)
 put('dp.boardWeeks', c(D(38 * 3) / 2 / 5)); put('dp.allWeeks', c(D(412 * 3) / 2 / 5)); put('dp.allYears', c(D(412 * 3) / 2 / 5 / 52))
-put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)
-put('dp.cPeak', 95); put('dp.cAvg', 62); put('dp.cNine', 47); put('dp.cFloor', 40); put('dp.headline', c(D(tot) * D('0.3')))
-put('dp.sPeak', saving(95)); put('dp.sAvg', saving(62)); put('dp.sNine', saving(47)); put('dp.sFloor', saving(40))
+put('dp.monthsText', ', '.join(str(u) for u in usage)); put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)
+c_nine = max(c for c in usage if sum(1 for u in usage if u >= c) >= 9)
+opt = max(range(0, 101), key=lambda c: (saving(c), -c))
+put('dp.cPeak', 95); put('dp.cAvg', 62); put('dp.cNine', c_nine); put('dp.cFloor', 40); put('dp.optCommit', opt); put('dp.sOpt', saving(opt)); put('dp.headline', c(D(tot) * D('0.3')))
+put('dp.sPeak', saving(95)); put('dp.sAvg', saving(62)); put('dp.sNine', saving(c_nine)); put('dp.sFloor', saving(40))
 act = {'sales': D(48200), 'mkt': D(61500), 'fin': D(39800)}
 put('dp.sSales', 48200); put('dp.sMkt', 61500); put('dp.sFin', 39800)
 put('dp.overSales', c(100 * (act['sales'] - act['fin']) / act['fin'])); put('dp.overMkt', c(100 * (act['mkt'] - act['fin']) / act['fin']))
@@ -313,9 +315,9 @@ put('dp.tolPct', D('0.5')); put('dp.tol', c(rev * D('0.005'))); put('dp.boardMet
 put('dp.budget', 400000); put('dp.monCost', 160000); put('dp.reconHours', 1600); put('dp.rate', 45); put('dp.monSave', 1600 * 45)
 put('dp.pipeCost', 400000); put('dp.pipePlan', 600000); put('dp.pipeConf', 150000)
 put('dp.claimHours', 12000); put('dp.claim', 12000 * 45); put('dp.lic', 190); put('dp.licPrice', 500); put('dp.licSave', 190 * 500); put('dp.startK', 120)
-put('dp.pv.peakPlan', c(D(tot) * D('0.3'))); put('dp.pv.peakAct', saving(95)); put('dp.pv.avg', saving(62)); put('dp.pv.nine', saving(47)); put('dp.pv.floor', saving(40))
+put('dp.pv.peakPlan', c(D(tot) * D('0.3'))); put('dp.pv.peakAct', saving(95)); put('dp.pv.avg', saving(62)); put('dp.pv.nine', saving(c_nine)); put('dp.pv.floor', saving(40))
 put('dp.pv.mon', k(1600 * 45)); put('dp.pv.pipePlan', k(600000)); put('dp.pv.pipeAct', k(150000)); put('dp.pv.claim', k(12000 * 45)); put('dp.pv.conf', k(190 * 500))
-put('dp.bestK', c(120 + saving(47) + k(1600 * 45) + k(190 * 500)))
+put('dp.bestK', c(120 + saving(c_nine) + k(1600 * 45) + k(190 * 500)))
 
 # ---- BR-12: Ashgrove Outfitters' inventory and customer extract (data/br12.json), counted with plain loops
 B12 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br12.json')))

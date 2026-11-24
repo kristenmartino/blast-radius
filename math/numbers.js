@@ -289,19 +289,21 @@ function compute() {
     const sum = months.reduce((a, b) => a + b, 0), mean = sum / 12;
     const cost = c => months.reduce((a, u) => a + c * (1 - disc) + Math.max(u - c, 0), 0);   // commit c ($k a month, paid every month) at 30% off, the rest at list
     const save = c => r2(sum - cost(c));
+    const asc = months.slice().sort((a, b) => a - b), cNine = asc[12 - 9];                 // the level used in at least 9 of the 12 months
+    let optC = 0; for (let c = 0; c <= 100; c++) if (save(c) > save(optC)) optC = c;      // brute-force check on whole $k levels
     const board = 38, testsPer = 6, daysPer = 3, all = 412, eng = 2;
     const rev = 112000000, dupDays = 3, qDays = 91, over = r2(rev * dupDays / qDays), tol = 0.005;
     N.dp = { domains: 14, datasets: all, boardDs: board, testsPer, daysPer, boardTests: board * testsPer, boardDays: board * daysPer, allDays: all * daysPer, eng,
       boardWeeks: r2(board * daysPer / eng / 5), allWeeks: r2(all * daysPer / eng / 5), allYears: r2(all * daysPer / eng / 5 / 52),
-      yrOnDemand: sum, avgMonth: mean, floorMonth: Math.min(...months), peakMonth: Math.max(...months), discPct: 30,
-      cPeak: 95, cAvg: 62, cNine: 47, cFloor: 40, headline: r2(sum * disc),
-      sPeak: save(95), sAvg: save(62), sNine: save(47), sFloor: save(40),
+      monthsText: months.join(', '), yrOnDemand: sum, avgMonth: mean, floorMonth: Math.min(...months), peakMonth: Math.max(...months), discPct: 30,
+      cPeak: 95, cAvg: 62, cNine: cNine, cFloor: 40, optCommit: optC, headline: r2(sum * disc),
+      sPeak: save(95), sAvg: save(62), sNine: save(cNine), sFloor: save(40), sOpt: save(optC),
       sSales: 48200, sMkt: 61500, sFin: 39800, overSales: r2(100 * (48200 - 39800) / 39800), overMkt: r2(100 * (61500 - 39800) / 39800),
       rev, dupDays, qDays, over, overPct: r2(100 * over / rev), tolPct: 0.5, tol: r2(rev * tol), boardMetrics: 11, metricsCert: 1, metricsUncert: 3,
       budget: 400000, monCost: 160000, reconHours: 1600, rate: 45, monSave: r2(1600 * 45), pipeCost: 400000, pipePlan: 600000, pipeConf: 150000,
       claimHours: 12000, claim: r2(12000 * 45), lic: 190, licPrice: 500, licSave: r2(190 * 500), startK: 120 };
     const D = N.dp;
-    D.pv = { peakPlan: k2(D.headline * 1000), peakAct: save(95) < 0 ? save(95) : save(95), avg: save(62), nine: save(47), floor: save(40),
+    D.pv = { peakPlan: k2(D.headline * 1000), peakAct: save(95) < 0 ? save(95) : save(95), avg: save(62), nine: save(cNine), floor: save(40),
       mon: k2(D.monSave), pipePlan: k2(D.pipePlan), pipeAct: k2(D.pipeConf), claim: k2(D.claim), conf: k2(D.licSave) };
     D.bestK = r2(D.startK + D.pv.nine + D.pv.mon + D.pv.conf); }
 

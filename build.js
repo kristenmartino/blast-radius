@@ -21,7 +21,7 @@ for (const ln of L.lanes) {
   claim(ln.id, 'lane'); laneIds.push(ln.id);
   if (!ln.name || !ln.blurb || !ln.short) errors.push('lane ' + ln.id + ': name, short and blurb required');
 }
-if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership') errors.push('Phase 2b: the CIO and AI leadership lanes are active');
+if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership,data-leadership') errors.push('Phase 3a: the CIO, AI leadership and Data leadership lanes are active');
 const ACTIVE = L.lanes.filter(l => l.active);
 for (const ln of ACTIVE) if (!Array.isArray(ln.roles) || !ln.roles.length || !(L.sections[ln.id] || []).length) errors.push('active lane ' + ln.id + ': roles and sections required');
 for (const lane in L.sections) {
@@ -89,7 +89,8 @@ for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) {
 const MODS = [
   { id: 'operating-model', title: 'Operating model', prefix: 'om', data: require('./content/opmodel.js') },
   { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') },
-  { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') }
+  { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') },
+  { id: 'data-strategy', title: 'Data strategy and governance', prefix: 'dst', data: require('./content/dst.js') }
 ];
 const LINKS = require('./content/links.js');
 const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js');
