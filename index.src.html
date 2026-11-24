@@ -27,6 +27,8 @@ __KIT_CSS__
 .soon { font-family: var(--f-mono); font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
 .roles { display: flex; flex-wrap: wrap; gap: 6px; }
 .items { display: grid; gap: 8px; margin-top: 6px; }
+.lgroup { display: grid; gap: 6px; }
+.lgroup + .lgroup { margin-top: 8px; }
 .itemrow { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--board); color: var(--ink); text-decoration: none; min-height: 44px; }
 .itemrow:hover { border-color: var(--marker); }
 .itemrow .top { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; justify-content: space-between; }
@@ -55,7 +57,7 @@ __KIT_CSS__
   const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   const LANES = BANK.lanes, LEVELS = BANK.levels, SECTIONS = BANK.sections;
   const laneById = id => LANES.find(l => l.id === id);
-  let SCREEN = 'home', VIEW = {}, SAMPLE = null;
+  let SCREEN = 'home', VIEW = {}, SAMPLE = null, LAST_LANE = 'cio';
 
   // ---- preferences (level filter, last lane): one small document, data/users/<uid>/prefs, saved with study-kit's store
   const PREF_KEYS = ['levels', 'lane'];
@@ -100,7 +102,8 @@ __KIT_CSS__
   // Engines: role-play rules and scoring options all on, as in Inspect & Adapt V34.
   const craft = K.craft.create({ packets: BANK.craft, appKey: APP, keyStyle: 'slug', domain: 'technology leadership', factsSubject: 'business, systems, vendors or people', host });
   const sims = K.sims.create({ runs: BANK.runs, roleplays: BANK.roleplays, appKey: APP, runNoun: 'Simulation', rpHeading: 'Role-plays', host,
-    roleplay: { learner: 'CIO', rules: ['guarded', 'noCoaching', 'noUnpromptedOffer'], scoring: ['outcomeAgreesWithScore', 'verifiedQuotes'] } });
+    // learner is one label for every role-play (study-kit v0.2.0 has no per-role-play label); each persona names who you are.
+    roleplay: { learner: 'technology leader', rules: ['guarded', 'noCoaching', 'noUnpromptedOffer'], scoring: ['outcomeAgreesWithScore', 'verifiedQuotes'] } });
 
   const lvChips = ids => '<span class="lvchips">' + ids.map(id => '<span class="lvchip">' + esc((LEVELS.find(l => l.id === id) || {}).name || id) + '</span>').join('') + '</span>';
   function levelFilter() {
@@ -114,7 +117,7 @@ __KIT_CSS__
     app.innerHTML = '<header class="mast"><div class="wrap"><div class="brand">Blast Radius</div><p class="sub">Technology leadership: the executive layer, by role and level.</p>' +
       '<div class="pills"><span class="pill">study-kit <b>' + esc(BANK.kitVersion) + '</b></span><span class="pill" id="prefs-saved">' + esc(prefs.statusText()) + '</span></div></div></header>' +
       '<main class="wrap">' + levelFilter() +
-      '<section aria-labelledby="ln-h"><div class="section-h"><h2 id="ln-h">Lanes</h2><span class="hint">CIO first; the rest follow in build order</span></div><div class="lanelist">' +
+      '<section aria-labelledby="ln-h"><div class="section-h"><h2 id="ln-h">Lanes</h2><span class="hint">Built in order: CIO, AI leadership, then the rest</span></div><div class="lanelist">' +
       LANES.map(l => '<button class="lanebtn" style="--deck:var(' + l.color + ')" data-act="lane" data-id="' + l.id + '"' + (l.active ? '' : ' disabled aria-disabled="true"') + '>' +
         '<span class="nm">' + esc(l.name) + '</span><span class="bl">' + esc(l.blurb) + '</span>' +
         '<span class="st">' + (l.active ? (last && last.v === l.id ? 'Open · last visited' : 'Open') : 'Later') + '</span></button>').join('') +
@@ -130,39 +133,52 @@ __KIT_CSS__
     return '<a class="itemrow" href="' + esc(href) + '"><span class="top"><b>' + esc(title) + '</b>' + draftChip({ status }) + '</span>' +
       (meta ? '<span class="k">' + esc(meta) + '</span>' : '') + lvChips(lv) + '</a>';
   }
-  // What each built section lists. Unbuilt sections show their phase.
-  const SECTION_ITEMS = {
-    behavioral: () => { const n = PROMPTS.filter(showFor).length; return itemRow('#prompts-cio', 'CIO-family behavioral prompts', n + ' of ' + PROMPTS.length + ' at your levels · mapped to the Master Story Bank', ALL, PROMPTS.some(p => p.status === 'Draft') ? 'Draft' : ''); },
-    tmay: () => TMAY.pendingOk ? '<p class="note">Built; shown once you OK which two beats it stresses (IBM and RealPage).</p>' : itemRow('#tmay-cio', 'Tell me about yourself: CIO-family version', 'Five beats · ' + TMAY.targetSec.join(' to ') + ' seconds · four closes', ALL, TMAY.status)
-  };
-  // Modules list their lessons; packets, runs and role-plays list under the section they name.
-  for (const m of MODS) SECTION_ITEMS[m.id] = () => { const ls = m.lessons.filter(showFor); return ls.map(l => itemRow('#lesson-' + l.id, l.title, 'Lesson · ' + m.checks.filter(c => c.lesson === l.id).length + ' checks', l.levels, l.status)).join('') + hidden(m.lessons.length - ls.length); };
-  const listOf = (arr, sec, href, meta) => () => { const all = arr.filter(x => x.lane === 'cio' && x.section === sec), on = all.filter(showFor); return on.map(x => itemRow(href(x), x.title, meta(x), x.levels, x.status)).join('') + hidden(all.length - on.length); };
-  for (const sec of ['portfolio-cases', 'first-90']) if (BANK.craft.some(p => p.section === sec)) SECTION_ITEMS[sec] = listOf(BANK.craft, sec, p => '#packet-' + p.id.toLowerCase(), p => 'Craft packet · ' + p.stages.length + ' stages · you are the ' + p.role);
-  for (const sec of ['renewal-sim', 'cost-sim']) if (BANK.runs.some(r => r.section === sec)) SECTION_ITEMS[sec] = listOf(BANK.runs, sec, r => '#run-' + r.id.toLowerCase(), r => 'Simulation · ' + r.steps.length + ' steps · numbers computed in code');
-  if (BANK.roleplays.some(r => r.section === 'role-plays')) SECTION_ITEMS['role-plays'] = listOf(BANK.roleplays, 'role-plays', r => '#rp-' + r.id.toLowerCase(), r => 'Role-play · Claude plays ' + r.role);
+  // What each built section lists, per lane. Unbuilt sections show their phase.
+  const inLane = (x, lane) => (x.lane || 'cio') === lane || (x.alsoIn || []).indexOf(lane) !== -1;
+  const promptsOf = lane => PROMPTS.filter(p => (p.lane || 'cio') === lane);
+  const LINKS = BANK.links || {};
+  const listOf = (arr, href, meta) => (lane, sec) => { const all = arr.filter(x => inLane(x, lane) && x.section === sec), on = all.filter(showFor); return all.length ? on.map(x => itemRow(href(x), x.title, meta(x), x.levels, x.status)).join('') + hidden(all.length - on.length) : null; };
+  const SOURCES = [
+    listOf(BANK.craft, p => '#packet-' + p.id.toLowerCase(), p => 'Craft packet · ' + p.stages.length + ' stages · you are the ' + p.role),
+    listOf(BANK.runs, r => '#run-' + r.id.toLowerCase(), r => 'Simulation · ' + r.steps.length + ' steps · numbers computed in code'),
+    listOf(BANK.roleplays, r => '#rp-' + r.id.toLowerCase(), r => 'Role-play · Claude plays ' + r.role)
+  ];
+  function sectionItems(lane, sec) {
+    const m = MODS.find(x => x.id === sec);
+    if (m) { const ls = m.lessons.filter(showFor); return ls.map(l => itemRow('#lesson-' + l.id, l.title, 'Lesson · ' + m.checks.filter(c => c.lesson === l.id).length + ' checks', l.levels, l.status)).join('') + hidden(m.lessons.length - ls.length); }
+    if (sec === 'behavioral') { const ps = promptsOf(lane); if (!ps.length) return null; const n = ps.filter(showFor).length, l = laneById(lane);
+      return itemRow('#prompts-' + lane, lane === 'cio' ? 'CIO-family behavioral prompts' : l.short + ' behavioral prompts', n + ' of ' + ps.length + ' at your levels · mapped to the Master Story Bank', ALL, ps.some(p => p.status === 'Draft') ? 'Draft' : ''); }
+    if (sec === 'tmay' && lane === 'cio') return TMAY.pendingOk ? '<p class="note">Built; shown once you OK which two beats it stresses (IBM and RealPage).</p>' : itemRow('#tmay-cio', 'Tell me about yourself: CIO-family version', 'Five beats · ' + TMAY.targetSec.join(' to ') + ' seconds · four closes', ALL, TMAY.status);
+    if (sec === 'links' && LINKS[lane]) return LINKS[lane].map(g => '<div class="lgroup"><p class="k">' + esc(g.group) + '</p>' + g.items.map(x =>
+      '<a class="itemrow" href="' + esc(x.url) + '" target="_blank" rel="noopener"><span class="top"><b>' + esc(x.title) + '</b></span><span class="k">' + esc(x.app + ' · ' + x.note) + '</span></a>').join('') + '</div>').join('');
+    for (const f of SOURCES) { const h = f(lane, sec); if (h !== null) return h; }
+    return null;
+  }
   function renderLane() {
     const l = laneById(VIEW.id);
     if (!l || !l.active) return host.go('home', {});
     const on = levels(), secs = SECTIONS[l.id] || [];
+    LAST_LANE = l.id;
     app.innerHTML = host.header(l.short + ' lane', 'home', '', 'Back to lanes', on.length === ALL.length ? 'All levels' : on.map(levelName).join(' · ')) +
       '<main class="wrap"><section class="card" style="display:grid;gap:10px"><h2 class="ttl" style="font-size:19px">' + esc(l.name) + '</h2><p class="note">' + esc(l.blurb) + '</p>' +
       (l.roles ? '<div class="roles" aria-label="Role titles">' + l.roles.map(r => '<span class="pill">' + esc(r) + '</span>').join('') + '</div>' : '') + '</section>' +
       levelFilter() +
       '<section aria-labelledby="sc-h"><div class="section-h"><h2 id="sc-h">Sections</h2><span class="hint">Draft items are not yet reviewed</span></div><div class="card" style="padding-block:4px">' +
-      secs.map(s => { const fn = SECTION_ITEMS[s.id];
-        return '<div class="secrow" id="' + esc(l.id + '-' + s.id) + '"><div class="top"><b>' + esc(s.title) + '</b>' + (fn ? '<span class="k">' + esc(s.kind) + '</span>' : '<span class="soon">Phase ' + s.phase + '</span>') + '</div>' +
-          (fn ? '<div class="items">' + fn() + '</div>' : '<span class="k">' + esc(s.kind) + ' · not built yet</span>') + '</div>'; }).join('') +
+      secs.map(s => { const h = sectionItems(l.id, s.id);
+        return '<div class="secrow" id="' + esc(l.id + '-' + s.id) + '"><div class="top"><b>' + esc(s.title) + '</b>' + (h !== null ? '<span class="k">' + esc(s.kind) + '</span>' : '<span class="soon">Phase ' + s.phase + '</span>') + '</div>' +
+          (h !== null ? '<div class="items">' + h + '</div>' : '<span class="k">' + esc(s.kind) + ' · not built yet</span>') + '</div>'; }).join('') +
       '</div></section>' + foot() + '</main>';
   }
   // Operating model lesson with its two checks. Answers are kept for this visit only.
   const PICKS = {};
   function renderLesson() {
     const M = modOf(VIEW.id), l = M && M.lessons.find(x => x.id === VIEW.id);
-    if (!l) return host.go('lane', { id: 'cio' });
+    if (!l) return host.go('lane', { id: LAST_LANE });
     const i = M.lessons.indexOf(l), next = M.lessons[i + 1];
+    const has = id => (SECTIONS[id] || []).some(s => s.id === M.id) && (laneById(id) || {}).active;
+    const back = laneById(has(LAST_LANE) ? LAST_LANE : LANES.find(x => has(x.id)).id);
     const checks = M.checks.filter(c => c.lesson === l.id);
-    app.innerHTML = host.header(M.title, 'lane', 'cio', 'Back to the CIO lane', (i + 1) + ' of ' + M.lessons.length) +
+    app.innerHTML = host.header(M.title, 'lane', back.id, 'Back to the ' + back.short + ' lane', (i + 1) + ' of ' + M.lessons.length) +
       '<main class="wrap"><article class="card prose" style="display:grid;gap:12px"><div class="row">' + draftChip(l) + lvChips(l.levels) + '</div><h2 class="ttl" style="font-size:20px">' + esc(l.title) + '</h2>' +
       l.body.map(p => '<p>' + esc(p) + '</p>').join('') +
       (l.sources.length ? '<h3 class="k">Sources</h3><ul class="src">' + l.sources.map(s => '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a> <span class="lvchip">' + esc(s[2]) + '</span></li>').join('') + '</ul>' : '<p class="note">No single source: tagged Inferred.</p>') +
@@ -173,7 +189,7 @@ __KIT_CSS__
             return '<button class="opt' + cls + '" data-act="check-pick" data-id="' + esc(c.id) + '" data-j="' + j + '"' + (done ? ' disabled' : '') + ' aria-pressed="' + (pick === j) + '"><span class="key">' + 'ABCD'[j] + '</span><span>' + esc(o) +
               (done && j === c.answer ? '<span class="tag">Answer</span>' : done && j === pick ? '<span class="tag">Your pick</span>' : '') + '</span></button>'; }).join('') + '</div>' +
           (done ? '<p class="verdict ' + (pick === c.answer ? 'ok' : 'bad') + '">' + (pick === c.answer ? 'Right' : 'Not quite') + '</p><p>' + esc(c.why) + '</p>' + (pick !== c.answer ? '<p class="note">' + esc(c.whyNot[pick]) + '</p>' : '') : '') + '</section>'; }).join('') +
-      '<div class="row">' + (next ? '<a class="btn btn-primary" href="#lesson-' + esc(next.id) + '">Next: ' + esc(next.title) + '</a>' : '') + '<a class="btn" href="#lane-cio">Back to the CIO lane</a></div>' + foot() + '</main>';
+      '<div class="row">' + (next ? '<a class="btn btn-primary" href="#lesson-' + esc(next.id) + '">Next: ' + esc(next.title) + '</a>' : '') + '<a class="btn" href="#lane-' + esc(back.id) + '">Back to the ' + esc(back.short) + ' lane</a></div>' + foot() + '</main>';
   }
   // Tell me about yourself: beats with a job and a time budget; the words open in the Story Bank.
   function renderTmay() {
@@ -187,14 +203,14 @@ __KIT_CSS__
       '<section class="card" style="display:grid;gap:8px"><h2 class="ttl" style="font-size:17px">Close for the role</h2>' + T.closes.map(c => '<p><b>' + esc(c.role) + ':</b> ' + esc(c.text) + '</p>').join('') + '</section>' + foot() + '</main>';
   }
   function renderPrompts() {
-    const ps = PROMPTS.filter(showFor);
-    app.innerHTML = host.header('Behavioral prompts', 'lane', 'cio', 'Back to the CIO lane', ps.length + ' of ' + PROMPTS.length) +
+    const ln = laneById(VIEW.lane) || laneById('cio'), all = promptsOf(ln.id), ps = all.filter(showFor);
+    app.innerHTML = host.header('Behavioral prompts', 'lane', ln.id, 'Back to the ' + ln.short + ' lane', ps.length + ' of ' + all.length) +
       '<main class="wrap"><p class="note">Practise each prompt aloud with the stories listed. Story links open your Master Story Bank (copy of ' + esc(BANK.storyBankVersion) + '); this app only reads it.</p>' +
       ps.map(p => '<section class="card" style="display:grid;gap:8px" id="prompt-' + esc(p.id.toLowerCase()) + '"><div class="row"><span class="qid">' + esc(p.id) + '</span>' + draftChip(p) + lvChips(p.levels) + '</div>' +
         '<p class="stem">' + esc(p.prompt) + '</p><div class="roles">' + p.roles.map(r => '<span class="pill">' + esc(r) + '</span>').join('') + '</div>' +
         '<p><b>Tests:</b> ' + esc(p.tests) + '</p><p class="note"><b>By level:</b> ' + esc(p.level) + '</p>' +
         '<ul class="src">' + p.stories.map(st => '<li><a href="' + esc(st.url) + '" target="_blank" rel="noopener">' + esc(st.ref + ': ' + st.title) + '</a></li>').join('') + '</ul></section>').join('') +
-      hidden(PROMPTS.length - ps.length) + levelFilter() + foot() + '</main>';
+      hidden(all.length - ps.length) + levelFilter() + foot() + '</main>';
   }
   function foot() {
     const t = theme();
@@ -217,7 +233,8 @@ __KIT_CSS__
     let lm = /^#lesson-([a-z]+-\d+)$/.exec(h || '');
     if (lm && modOf(lm[1])) { host.go('lesson', { id: lm[1] }); return true; }
     if (h === '#tmay-cio') { host.go(TMAY.pendingOk ? 'lane' : 'tmay', TMAY.pendingOk ? { id: 'cio' } : {}); return true; }
-    if (h === '#prompts-cio') { host.go('prompts', {}); return true; }
+    const pm = /^#prompts-([a-z0-9-]+)$/.exec(h || '');
+    if (pm) { const l = laneById(pm[1]); if (l && l.active && promptsOf(l.id).length) { host.go('prompts', { lane: l.id }); return true; } host.go('home', {}); return true; }
     const m = /^#lane-([a-z0-9-]+)$/.exec(h || '');
     if (m) { const l = laneById(m[1]); if (l && l.active) { host.go('lane', { id: l.id }); return true; } host.go('home', {}); return true; }
     return craft.route(h) || sims.route(h);

@@ -44,7 +44,11 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await fit(page, tag + ' home');
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
     await fit(page, tag + ' CIO lane');
-    for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#lesson-ec-1', '#lesson-ec-3', '#lesson-ec-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#packet-br-7', '#stage-br-1-2', '#stage-br-6-1', '#stage-br-7-2', '#run-brn-1', '#run-brn-2', '#rp-brl-1', '#rp-brl-3']) {
+    await page.goto(URL + '#lane-ai-leadership'); await page.waitForSelector('.secrow');
+    await fit(page, tag + ' AI leadership lane');
+    for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#lesson-ec-1', '#lesson-ec-3', '#lesson-ec-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#packet-br-7', '#stage-br-1-2', '#stage-br-6-1', '#stage-br-7-2', '#run-brn-1', '#run-brn-2', '#rp-brl-1', '#rp-brl-3',
+      // Phase 2b: AI leadership lane
+      '#lesson-as-1', '#lesson-as-5', '#lesson-ec-6', '#prompts-ai-leadership', '#packet-br-8', '#packet-br-9', '#packet-br-10', '#packet-br-11', '#stage-br-8-2', '#stage-br-9-2', '#stage-br-10-2', '#stage-br-11-1', '#run-brn-3', '#run-brn-4', '#rp-brl-4', '#rp-brl-6']) {
       await page.goto(URL + h); await page.waitForTimeout(150); await fit(page, tag + ' ' + h);
     }
     await page.goto(URL + '#lesson-om-3'); await page.waitForSelector('[data-act="check-pick"]');
@@ -68,7 +72,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await page.goto(URL); await page.waitForSelector('.lanebtn');
     const lanes = await page.locator('.lanebtn').evaluateAll(b => b.map(x => ({ id: x.dataset.id, off: x.disabled, t: x.textContent })));
     ok(lanes.map(l => l.id).join() === 'cio,ai-leadership,data-leadership,cto,ciso', 'lane order ' + lanes.map(l => l.id).join());
-    ok(lanes.filter(l => !l.off).map(l => l.id).join() === 'cio', 'only CIO active');
+    ok(lanes.filter(l => !l.off).map(l => l.id).join() === 'cio,ai-leadership', 'CIO and AI leadership active');
     ok(lanes.every(l => !/\b(CDO|CRO|CPO|CCO)\b/.test(l.t)), 'no colliding bare acronyms in lane names');
     await page.locator('.lanebtn[data-id="cto"]').click({ force: true }); await page.waitForTimeout(100);
     ok(await page.locator('.lanebtn').count() === 5, 'a disabled lane does not open');
@@ -110,7 +114,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.locator('.secrow .soon').count() === 0, 'every CIO section now has content');
     ok(/OK which two beats/.test(await page.locator('#cio-tmay').textContent()) && await page.locator('#cio-tmay .itemrow').count() === 0, 'TMAY held back until the stressed beats are OK\'d');
     ok(await page.locator('#cio-operating-model .cchip.draft, #cio-portfolio-cases .cchip.draft, #cio-renewal-sim .cchip.draft, #cio-behavioral .cchip.draft').count() === 0, 'reviewed Phase 1 items carry no Draft label (Kristen, Nov 24)');
-    ok(await page.locator('#cio-economics .cchip.draft').count() === 5 && await page.locator('#cio-first-90 .cchip.draft').count() === 1 && await page.locator('#cio-cost-sim .cchip.draft').count() === 1 && await page.locator('#cio-role-plays .cchip.draft').count() === 3, 'new Phase 2 items carry Draft labels');
+    ok(await page.locator('#cio-economics .cchip.draft').count() === 6 && await page.locator('#cio-first-90 .cchip.draft').count() === 1 && await page.locator('#cio-cost-sim .cchip.draft').count() === 1 && await page.locator('#cio-role-plays .cchip.draft').count() === 3, 'new Phase 2 items carry Draft labels');
     // C-level only: the Director-only case and Director/VP items drop out
     await act(page, 'level', 'director'); await act(page, 'level', 'vp');
     const cases = await page.locator('#cio-portfolio-cases .itemrow b').allTextContents();
@@ -144,7 +148,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(hrefs.length >= 13 && hrefs.every(h => /^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(h)), 'story links point at Story Bank cards (' + hrefs.length + ')');
     for (const r of ['CIO', 'Director of IT', 'VP Business Systems', 'Head of Enterprise Applications']) ok((await page.locator('.roles .pill').allTextContents()).indexOf(r) !== -1, 'prompts cover ' + r);
     // packets and stages: numbers filled, no placeholders anywhere in the page data
-    ok(!/\{\{/.test(JSON.stringify(BANK)), 'no unfilled {{placeholders}} in the page data');
+    ok(!/\{\{/.test(JSON.stringify(BANK)) && !/NaN/.test(JSON.stringify(BANK)), 'no unfilled {{placeholders}} or NaN in the page data');
     await page.goto(URL + '#packet-br-1'); await page.waitForTimeout(200);
     ok(/Two ERPs after an acquisition/.test(await page.locator('main').textContent()), 'packet BR-1 opens');
     await page.goto(URL + '#stage-br-1-2'); await page.waitForSelector('#craft-text');
@@ -188,7 +192,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       ok(/opens with/.test(await page.locator('main').textContent()), 'role-play ' + id + ' shows the opening line without Claude');
     }
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
-    ok(await page.locator('#cio-role-plays .itemrow').count() === 3 && await page.locator('#cio-cost-sim .itemrow').count() === 1 && await page.locator('#cio-first-90 .itemrow').count() === 1 && await page.locator('#cio-economics .itemrow').count() === 5, 'lane lists the Phase 2a content');
+    ok(await page.locator('#cio-role-plays .itemrow').count() === 3 && await page.locator('#cio-cost-sim .itemrow').count() === 1 && await page.locator('#cio-first-90 .itemrow').count() === 1 && await page.locator('#cio-economics .itemrow').count() === 6, 'lane lists the Phase 2a content (economics now has ec-6)');
     await page.goto(URL + '#tmay-cio'); await page.waitForTimeout(150);
     ok(/#lane-cio|#tmay-cio/.test(page.url()) && await page.locator('.beat').count() === 0, 'TMAY route stays closed while pending');
     await page.evaluate(() => { BANK.tmay.pendingOk = false; location.hash = '#lane-cio'; }); await page.waitForTimeout(100);
@@ -199,6 +203,94 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(Math.abs(lo - 60) <= 1 && Math.abs(hi - 75) <= 1, 'TMAY budgets sum to about 60 and 75 seconds (' + lo + ', ' + hi + ')');
     ok(await page.locator('a[href="https://claude.ai/artifact/J5TiiDwLanHF9oMU1UFPJ6#practice"]').count() === 1, 'TMAY links the bank’s career introduction');
     ok(!/I started at Towers Watson/.test(JSON.stringify(BANK)), 'no Story Bank text is copied into the page');
+    await ctx.close();
+  }
+
+  // ---- 2c. Phase 2b: AI leadership lane
+  {
+    const { ctx, page } = await newPage();
+    await page.goto(URL); await page.waitForSelector('.lanebtn');
+    const BANK = await page.evaluate(() => BANK);
+    await act(page, 'lane', 'ai-leadership'); await page.waitForSelector('.secrow');
+    ok(/#lane-ai-leadership$/.test(page.url()), 'opening AI leadership sets #lane-ai-leadership');
+    ok(await page.locator('.secrow').count() === 11 && await page.locator('.secrow .soon').count() === 0, 'AI lane lists 11 sections, all built');
+    const roles = await page.locator('.roles .pill').allTextContents();
+    ok(roles.join('|') === 'Director of AI Enablement|AI Program Lead|AI Governance Lead|Head of AI Transformation|VP/SVP Enterprise AI|Head of AI|Chief AI Officer (CAIO)', 'AI lane shows its seven titles');
+    const n = sel => page.locator(sel + ' .itemrow').count();
+    ok(await n('#ai-leadership-strategy') === 6 && await n('#ai-leadership-operating-model') === 6 && await n('#ai-leadership-economics') === 6, 'AI lane: 6 strategy lessons, shared operating model (6) and economics (6)');
+    ok(await n('#ai-leadership-cost-sim') === 1 && await n('#ai-leadership-rollout-sim') === 1 && await n('#ai-leadership-intake-sim') === 1, 'AI lane: BRN-2 cross-listed, rollout and intake sims');
+    ok(await n('#ai-leadership-packets') === 3 && await n('#ai-leadership-first-90') === 1 && await n('#ai-leadership-role-plays') === 3 && await n('#ai-leadership-behavioral') === 1, 'AI lane: 3 packets, first 90 days, 3 role-plays, prompts');
+    ok(await page.locator('#ai-leadership-cost-sim a[href="#run-brn-2"]').count() === 1, 'BRN-2 listed in the AI lane under its own id');
+    const links = await page.locator('#ai-leadership-links a.itemrow').evaluateAll(a => a.map(x => x.getAttribute('href')));
+    ok(links.length === 13 && links.every(h => /^https:\/\/claude\.ai\/artifact\/(QYnRq1waW4tqzRKHHVBD7H|1kZMmGtxwBPidFEo3Uwfea)#[a-z0-9-]+$/.test(h)), 'links section: 13 links to Inspect & Adapt and Dry Run routes (' + links.length + ')');
+    ok(['#deck-aigp', '#deck-aigov', '#deck-ab731', '#packet-cf-6', '#ai-c-en-01'].every(r => links.some(h => h.endsWith(r))), 'links include the AIGP, AI governance and AB-731 decks, CF-6 and AIPM-EN-01');
+    ok(await page.locator('#ai-leadership-strategy .cchip.draft').count() === 6 && await page.locator('#ai-leadership-packets .cchip.draft').count() === 3 && await page.locator('#ai-leadership-role-plays .cchip.draft').count() === 3, 'Phase 2b items labelled Draft');
+    ok(await page.locator('#ai-leadership-operating-model .cchip.draft').count() === 0, 'shared reviewed lessons stay unlabelled in the AI lane');
+    // a shared lesson opened from the AI lane returns to the AI lane; from the CIO lane, to the CIO lane
+    await page.locator('#ai-leadership-economics a[href="#lesson-ec-6"]').click(); await page.waitForSelector('[data-act="check-pick"]');
+    ok(/Back to the AI leadership lane/.test(await page.locator('main').textContent()), 'ec-6 opened from the AI lane links back to it');
+    ok(await page.locator('[data-act="check-pick"][data-id^="EC-1"]').count() === 16, 'ec-6 shows four checks');
+    const ec11 = BANK.modules[1].checks.find(c => c.id === 'EC-11');
+    await page.locator('[data-act="check-pick"][data-id="EC-11"][data-j="' + ec11.answer + '"]').click(); await page.waitForTimeout(80);
+    ok(/Right/.test(await page.locator('#check-ec-11 .verdict').textContent()) && /\$3\.86/.test(await page.locator('#check-ec-11').textContent()), 'EC-11 keyed answer $3.86 marks right');
+    await page.locator('.playtop [data-act="lane"]').click(); await page.waitForSelector('.secrow');
+    ok(/#lane-ai-leadership$/.test(page.url()) || await page.locator('#ai-leadership-strategy').count() === 1, 'lesson back button returns to the AI lane');
+    await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
+    await page.locator('#cio-economics a[href="#lesson-ec-1"]').click(); await page.waitForSelector('[data-act="check-pick"]');
+    ok(/Back to the CIO lane/.test(await page.locator('main').textContent()), 'ec-1 opened from the CIO lane links back to it');
+    await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
+    ok(await page.locator('#cio-economics .itemrow').count() === 6 && await page.locator('#cio-cost-sim .itemrow').count() === 1, 'CIO lane now lists 6 economics lessons, BRN-2 still once');
+    // strategy lesson and checks
+    await page.goto(URL + '#lesson-as-5'); await page.waitForSelector('[data-act="check-pick"]');
+    ok(/AI strategy and portfolio/.test(await page.locator('.playtop').textContent()) && await page.locator('.src a[href^="https://metr.org/"]').count() === 1, 'as-5 opens with its METR source');
+    const as9 = BANK.modules[2].checks.find(c => c.id === 'AS-09');
+    await page.locator('[data-act="check-pick"][data-id="AS-09"][data-j="' + as9.answer + '"]').click(); await page.waitForTimeout(80);
+    ok(/Right/.test(await page.locator('#check-as-09 .verdict').textContent()), 'AS-09 keyed answer marks right');
+    ok(BANK.modules[2].lessons.every(l => l.body.every(p => /\((Read|Relayed|Inferred)/.test(p))), 'every strategy paragraph carries a tier tag');
+    // prompts
+    await page.goto(URL + '#prompts-ai-leadership'); await page.waitForSelector('.stem');
+    ok(await page.locator('.stem').count() === 12, '12 AI leadership prompts');
+    ok(/Back to the AI leadership lane/.test(await page.locator('.playtop [data-act="lane"]').getAttribute('aria-label')), 'prompts screen links back to the AI lane');
+    const ph = await page.locator('.src a').evaluateAll(a => a.map(x => x.getAttribute('href')));
+    ok(ph.length === 24 && ph.every(h => /^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(h)), 'AI prompts link Story Bank cards (' + ph.length + ')');
+    await page.goto(URL + '#prompts-cio'); await page.waitForSelector('.stem');
+    ok(await page.locator('.stem').count() === 10, 'CIO prompts unchanged at 10');
+    // packets: numbers and tables from the data files
+    const pk = id => BANK.craft.find(p => p.id === id);
+    { const t8 = JSON.stringify(pk('BR-8').sections); ok(t8.indexOf('Auto-deny low-value claims') !== -1 && t8.indexOf('R-020') !== -1 && t8.indexOf('R-021') === -1 && /Total[^0-9]+200[^0-9]+11/.test(t8), 'BR-8 tables: the 20 shown rows and the category totals (200, 11 high risk) from data/br8.json'); }
+    ok(pk('BR-8').stages[1].checklist.indexOf('Top five: R-003, R-020, R-006, R-018, R-010') !== -1, 'BR-8 top five filled from the math module');
+    ok(pk('BR-9').stages[1].checklist.indexOf('Measured capacity $4,305,600 a year') !== -1, 'BR-9 measured case filled');
+    ok(pk('BR-10').stages[1].checklist.indexOf('Total $894,000, $298 a person') !== -1, 'BR-10 full cost filled');
+    ok(pk('BR-11').stages[1].checklist.indexOf('Home underwriting notice is due in 10 days') !== -1 && JSON.stringify(pk('BR-11').sections).indexOf('Quarrel Labs') !== -1, 'BR-11 notice date and tables filled');
+    await page.goto(URL + '#stage-br-8-2'); await page.waitForSelector('#craft-text');
+    ok(/Corrected ranking/.test(await page.locator('main').textContent()), 'stage BR-8.2 opens');
+    // sims: best path to 100% and the top ending
+    for (const [rid, top] of [['BRN-3', 'Adoption the CFO can count'], ['BRN-4', 'A queue people trust']]) {
+      await page.goto(URL + '#run-' + rid.toLowerCase()); await page.waitForSelector('.opts');
+      const st = BANK.runs.find(r => r.id === rid).steps;
+      for (let i = 0; i < st.length; i++) {
+        await page.locator('[data-act="run-pick"][data-j="' + st[i].answer + '"]').click(); await page.waitForTimeout(120);
+        const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+      }
+      const end = await page.locator('main').textContent();
+      ok(/100(\.0)?%/.test(end) && end.indexOf(top) !== -1, rid + ' best path: 100% and the top ending');
+    }
+    // a promising-the-survey path on BRN-3 lands below 100%
+    await page.goto(URL + '#run-brn-3'); await page.waitForTimeout(150);
+    await page.locator('[data-act="run-replay"]').click(); await page.waitForTimeout(120);
+    { const st = BANK.runs.find(r => r.id === 'BRN-3').steps;
+      for (let i = 0; i < st.length; i++) {
+        const j = i === 3 ? st[i].options.findIndex(o => /survey’s/.test(o)) : st[i].answer;
+        await page.locator('[data-act="run-pick"][data-j="' + j + '"]').click(); await page.waitForTimeout(120);
+        const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+      }
+      const m = /Predictability\s*(\d+(\.\d)?)%/.exec(await page.locator('main').textContent());
+      ok(m && +m[1] < 100, 'BRN-3: promising survey hours lowers predictability (' + (m && m[1]) + '%)'); }
+    for (const id of ['brl-4', 'brl-5', 'brl-6']) {
+      await page.goto(URL + '#rp-' + id); await page.waitForSelector('.fbblock');
+      ok(/opens with/.test(await page.locator('main').textContent()), 'role-play ' + id + ' shows the opening line without Claude');
+    }
+    ok(BANK.roleplays.every(r => /^You are talking with /.test(r.persona)), 'every role-play persona names who the learner is');
     await ctx.close();
   }
 
