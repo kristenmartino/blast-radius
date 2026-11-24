@@ -1,0 +1,12 @@
+{
+  "name": "blast-radius",
+  "private": true,
+  "description": "Blast Radius: a phone-first study app for technology leadership roles (CIO, AI leadership, Data leadership, CTO, CISO) at Director, VP and C-level, published as a claude.ai artifact. Engines from study-kit.",
+  "scripts": {
+    "build": "node build.js",
+    "record": "node build.js --record",
+    "test": "node build.js && node test.js"
+  },
+  "devDependencies": { "playwright": "1.63.0" },
+  "engines": { "node": ">=20" }
+}
