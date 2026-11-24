@@ -12,6 +12,12 @@ Technology leadership study app (executive layer). Plan of record: `claude/tech-
 - Master Story Bank is read-only.
 - Work on a branch and open a pull request; never push to main or force-push.
 
+## Content layout
+- `math/numbers.js` computes every number; `math/numbers.py` recomputes them with decimals; `build.js` fails on any difference over half a cent. Text gets numbers only through `{{placeholders}}` (`{{$x}}` prints money).
+- `craft-src/*.md` + `craft-stages.js`: Craft packets BR-n (filled into `build/craft/`). `sims-runs.js`: BRN-1. `content/opmodel.js`: lessons om-n and checks OM-nn. `content/prompts.js`: BP-nn, linked to Master Story Bank cards.
+- `content/place.js` moves each keyed answer to a set position (POS arrays) and remaps index-keyed fields.
+- Blind-check records: `docs/blind-check-*.md`.
+
 ## Build and test
 ```sh
 node build.js        # build/index.html
