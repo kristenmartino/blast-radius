@@ -2,6 +2,7 @@
 // BRN-1: vendor and license renewal. Every number comes from math/numbers.js through {{placeholders}}
 // ({{$x}} prints money). Companies, products and prices are fictional. Business value (pv) is in $k of savings:
 // planned = savings promised to the CFO, actual = savings that land.
+// BRN-1 reviewed by Kristen Nov 24, 2026 (00:16 ET).
 'use strict';
 const { compute, flat, fill } = require('./math/numbers.js');
 const N = compute(), F = flat(N), t = s => fill(s, F);
@@ -12,7 +13,7 @@ const { place } = require('./content/place.js');
 const POS = [2, 0, 3, 1, 3, 0];
 
 const runs = [{
-  id: 'BRN-1', status: 'Draft', lane: 'cio', levels: ['director', 'vp'],
+  id: 'BRN-1', status: '', lane: 'cio', levels: ['director', 'vp'],
   title: 'Three renewals, one CFO', role: 'CIO',
   blurb: 'Six decisions across three software renewals. Every figure is computed in code; the prices and companies are fictional.',
   briefing: t('You are CIO of Halvorsen Supply, a 1,800-person distributor (fictional). Three renewals land this year: the Corvane office suite ({{entitled}} seats), the Pipeline CRM ({{crmLicensed}} seats at {{$crmPrice}} a seat a year) and Tallyhouse, the CRM that came with last year’s acquisition ({{tallySeats}} seats at {{$tallyPrice}}). The CFO wants savings and counts the ${{startK}}k last year’s cleanup already delivered. Business value here is savings in $k: what you promise the CFO, and what lands.'),

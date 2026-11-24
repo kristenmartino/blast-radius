@@ -88,6 +88,7 @@ for (const p of BP.prompts) {
   if (!Array.isArray(p.levels) || !p.levels.length || p.levels.some(v => !levelIds.has(v))) errors.push(p.id + ': bad levels');
   for (const st of p.stories) if (!/^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(st.url)) errors.push(p.id + ': bad story link');
 }
+for (const x of [].concat(OM.lessons, OM.checks, BP.prompts, craftDefs, sims.runs)) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
 for (const r of ROLES) if (!BP.prompts.some(p => p.roles.indexOf(r) !== -1)) errors.push('no prompt for role ' + r);
 if (BP.prompts.length !== 10) errors.push('Phase 1 has 10 behavioral prompts');
 

@@ -103,7 +103,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.locator('#cio-portfolio-cases .itemrow').count() === 6, 'lane lists 6 cases');
     ok(await page.locator('#cio-renewal-sim .itemrow').count() === 1 && await page.locator('#cio-behavioral .itemrow').count() === 1, 'lane lists the sim and the prompts');
     ok(await page.locator('#cio-first-90 .soon').count() === 1, 'Phase 2 sections still marked');
-    ok(await page.locator('.itemrow .cchip.draft').count() === 14, 'every built item carries a Draft label');
+    ok(await page.locator('.cchip.draft').count() === 0, 'reviewed Phase 1 items carry no Draft label (Kristen, Nov 24)');
     // C-level only: the Director-only case and Director/VP items drop out
     await act(page, 'level', 'director'); await act(page, 'level', 'vp');
     const cases = await page.locator('#cio-portfolio-cases .itemrow b').allTextContents();
