@@ -3,8 +3,8 @@
 Technology leadership study app (executive layer). Plan of record: `claude/tech-leadership-app-plan.md` in the claude.ai Project "Interview, Cert Exam, and Career Prep Apps". Status and handoffs: `claude/blast-radius-status.md`. Shared rules: `claude/study-apps-index.md`.
 
 ## Rules
-- Engines come from study-kit, pinned in `vendor/study-kit/VERSION` (v0.2.0, ba9cff8). Never edit `vendor/study-kit/` by hand: engine fixes go to study-kit, get a new tag, and are copied in.
-- Routes use the dash form only (`#lane-cio`, `#stage-br-1-1`, `#run-brn-1`). study-kit v0.2.0's `craft.route` rejects dots.
+- Engines come from study-kit, pinned in `vendor/study-kit/VERSION` (v0.2.2, 2d9c534). Never edit `vendor/study-kit/` by hand: engine fixes go to study-kit, get a new tag, and are copied in.
+- Routes use the dash form only (`#lane-cio`, `#stage-br-1-1`, `#run-brn-1`). Published links keep the dash form (study-kit accepts dots too since v0.2.1).
 - Never rename or drop a published id. `build.js` refuses to build if an id in `published-ids.json` is missing. After a publish, run `node build.js --record`.
 - Every content item carries `lane` and `levels` (director, vp, c-level). Lane names use full titles; no bare colliding acronyms (CDO, CRO, CPO, CCO).
 - Role-plays: rules `guarded`, `noCoaching`, `noUnpromptedOffer` and scoring `outcomeAgreesWithScore`, `verifiedQuotes` are on (as in Inspect & Adapt V34).
