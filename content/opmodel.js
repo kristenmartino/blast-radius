@@ -126,4 +126,6 @@ const checks = [
 const { place } = require('./place.js');
 const POS = [3, 0, 2, 1, 0, 3, 1, 2, 3, 0, 2, 1];
 checks.forEach((c, i) => place(c, POS[i]));
+// Reviewed by Kristen Nov 24, 2026 (00:16 ET). New lessons and checks start as status 'Draft'.
+for (const x of lessons.concat(checks)) if (x.status === undefined) x.status = '';
 module.exports = { lessons, checks };

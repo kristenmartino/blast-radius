@@ -57,4 +57,6 @@ const prompts = [
     stories: [[36, 'The ID field OMS didn’t have'], [17, 'The HighRadius migration']] }
 ];
 for (const p of prompts) p.stories = p.stories.map(([n, title]) => ({ ref: typeof n === 'number' ? 'Story ' + n : n.toUpperCase(), title, url: SB + (typeof n === 'number' ? 'story-' + n : n) }));
+// Reviewed by Kristen Nov 24, 2026 (00:16 ET). New prompts start as status 'Draft'.
+for (const p of prompts) if (p.status === undefined) p.status = '';
 module.exports = { prompts, storyBankVersion: '1794287102-8e21 (copy of Nov 10, 2026)' };
