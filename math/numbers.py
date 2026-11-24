@@ -263,6 +263,96 @@ for kk, v in [('toolCount', len(tl)), ('toolCost', sum(x['cost'] for x in tl)), 
               ('contractTotal', sum(x['value'] for x in ct.values()))]:
     put('b11.' + kk, v)
 
+# ---- ec-7: warehouse and lakehouse billing (credits per second with a 60-second minimum at each start; BigQuery slot-hours vs TiB)
+cph, cprice, wakes, runs, minimum, dim = D(4), D(3), 30, 10, 60, 30
+billed = wakes * max(runs, minimum)
+cred_day = c(cph * billed / D(3600))
+for kk, v in [('credPerHr', 4), ('credPrice', 3), ('wakes', wakes), ('runSec', runs), ('minSec', minimum), ('days', dim), ('billedSec', billed), ('credDay', cred_day),
+              ('credMonth', c(cred_day * dim)), ('monthCost', c(cred_day * dim * cprice)), ('noMinCost', c(cph * wakes * runs / D(3600) * dim * cprice)),
+              ('allDayCost', c(cph * 24 * dim * cprice)), ('hourlyCost', c(cph * wakes * dim * cprice))]:
+    put('ec7.' + kk, v)
+tib, slots, srate, hrs = D('6.25'), 100, D('0.04'), 720
+slot_month = c(slots * hrs * srate)
+for kk, v in [('tibRate', tib), ('slots', slots), ('slotRate', srate), ('hrs', hrs), ('slotMonth', slot_month), ('breakTib', c(slot_month / tib)),
+              ('wrongTib', c(slot_month / (tib / 10))), ('tenthTib', c(slot_month / tib / 10))]:
+    put('ec7.' + kk, v)
+
+# ---- ec-8: unit cost and chargeback
+direct = {'Sales': D(70000), 'Mkt': D(40000), 'Fin': D(30000)}
+queries = {'Sales': D(1200000), 'Mkt': D(720000), 'Fin': D(480000)}
+shared_pool = D(40000)
+qsum = sum(queries.values()); plat = sum(direct.values()) + shared_pool
+for g, key in [('Sales', 'Sales'), ('Mkt', 'Mkt'), ('Fin', 'Fin')]:
+    alloc = c(shared_pool * queries[g] / qsum)
+    put('ec8.d' + key, direct[g]); put('ec8.q' + key, queries[g]); put('ec8.sh' + key, c(100 * queries[g] / qsum))
+    put('ec8.a' + key, alloc); put('ec8.l' + key, c(direct[g] + alloc))
+put('ec8.shared', shared_pool); put('ec8.total', plat); put('ec8.qTot', qsum)
+put('ec8.evenMkt', c(direct['Mkt'] + shared_pool / 3)); put('ec8.thirds', c(plat / 3))
+u1 = 1000 * plat / qsum; u6 = D(1000) * 210000 / 3500000
+put('ec8.unit1', c(u1)); put('ec8.m6cost', 210000); put('ec8.m6q', 3500000); put('ec8.unit6', c(u6))
+put('ec8.costUpPct', c(100 * (D(210000) - plat) / plat)); put('ec8.qUpPct', c(100 * (D(3500000) - qsum) / qsum)); put('ec8.unitDownPct', c(100 * (u1 - u6) / u1))
+
+# ---- BRN-5: data platform, eight quarters
+usage = [40, 44, 47, 52, 58, 61, 64, 66, 70, 76, 95, 71]       # $k a month at list price
+tot = sum(usage)
+def saving(commit):                                             # pay 70% of the commitment every month, list price for usage above it
+    paid = sum(D(commit) * D('0.7') + max(D(0), D(u) - commit) for u in usage)
+    return c(tot - paid)
+put('dp.domains', 14); put('dp.datasets', 412); put('dp.boardDs', 38); put('dp.testsPer', 6); put('dp.daysPer', 3); put('dp.eng', 2)
+put('dp.boardTests', 38 * 6); put('dp.boardDays', 38 * 3); put('dp.allDays', 412 * 3)
+put('dp.boardWeeks', c(D(38 * 3) / 2 / 5)); put('dp.allWeeks', c(D(412 * 3) / 2 / 5)); put('dp.allYears', c(D(412 * 3) / 2 / 5 / 52))
+put('dp.yrOnDemand', tot); put('dp.avgMonth', c(D(tot) / 12)); put('dp.floorMonth', min(usage)); put('dp.peakMonth', max(usage)); put('dp.discPct', 30)
+put('dp.cPeak', 95); put('dp.cAvg', 62); put('dp.cNine', 47); put('dp.cFloor', 40); put('dp.headline', c(D(tot) * D('0.3')))
+put('dp.sPeak', saving(95)); put('dp.sAvg', saving(62)); put('dp.sNine', saving(47)); put('dp.sFloor', saving(40))
+act = {'sales': D(48200), 'mkt': D(61500), 'fin': D(39800)}
+put('dp.sSales', 48200); put('dp.sMkt', 61500); put('dp.sFin', 39800)
+put('dp.overSales', c(100 * (act['sales'] - act['fin']) / act['fin'])); put('dp.overMkt', c(100 * (act['mkt'] - act['fin']) / act['fin']))
+rev = D(112000000); over_amt = c(rev * 3 / 91)
+put('dp.rev', rev); put('dp.dupDays', 3); put('dp.qDays', 91); put('dp.over', over_amt); put('dp.overPct', c(100 * over_amt / rev))
+put('dp.tolPct', D('0.5')); put('dp.tol', c(rev * D('0.005'))); put('dp.boardMetrics', 11); put('dp.metricsCert', 1); put('dp.metricsUncert', 3)
+put('dp.budget', 400000); put('dp.monCost', 160000); put('dp.reconHours', 1600); put('dp.rate', 45); put('dp.monSave', 1600 * 45)
+put('dp.pipeCost', 400000); put('dp.pipePlan', 600000); put('dp.pipeConf', 150000)
+put('dp.claimHours', 12000); put('dp.claim', 12000 * 45); put('dp.lic', 190); put('dp.licPrice', 500); put('dp.licSave', 190 * 500); put('dp.startK', 120)
+put('dp.pv.peakPlan', c(D(tot) * D('0.3'))); put('dp.pv.peakAct', saving(95)); put('dp.pv.avg', saving(62)); put('dp.pv.nine', saving(47)); put('dp.pv.floor', saving(40))
+put('dp.pv.mon', k(1600 * 45)); put('dp.pv.pipePlan', k(600000)); put('dp.pv.pipeAct', k(150000)); put('dp.pv.claim', k(12000 * 45)); put('dp.pv.conf', k(190 * 500))
+put('dp.bestK', c(120 + saving(47) + k(1600 * 45) + k(190 * 500)))
+
+# ---- BR-12: Ashgrove Outfitters' inventory and customer extract (data/br12.json), counted with plain loops
+B12 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br12.json')))
+inv, cu = B12['inventory'], B12['customers']
+def sales_def(x):
+    if x['status'] != 'open': return False
+    return x['lastOrder'] != -1 and x['lastOrder'] <= 730
+def mkt_def(x):
+    emailed = x['engage'] != -1 and x['engage'] <= 90
+    ordered = x['lastOrder'] != -1 and x['lastOrder'] <= 90
+    return emailed or ordered
+def fin_def(x): return x['test'] == 0 and x['orders12'] >= 1
+def tally(rows, fn):
+    t = 0
+    for r in rows:
+        if fn(r): t += 1
+    return t
+brd = [r for r in inv if r['feedsBoard']]
+unused = [r for r in inv if r['q30'] == 0]
+for kk, v in [('invTotal', len(inv)), ('noOwner', tally(inv, lambda r: r['owner'] == '')), ('board', len(brd)), ('boardNoOwner', tally(brd, lambda r: r['owner'] == '')),
+              ('zeroTests', tally(inv, lambda r: r['tests'] == 0)), ('boardStale', max(r['refreshDays'] for r in brd)), ('unusedN', len(unused)),
+              ('unusedMonth', sum(r['cost'] for r in unused)), ('invMonth', sum(r['cost'] for r in inv)),
+              ('custTables', tally(inv, lambda r: r['name'] == 'Customer master' or r['name'].startswith('cust_main'))),
+              ('dupMonth', [r['cost'] for r in inv if r['name'] == 'cust_main_v2'][0]),
+              ('cust', len(cu)), ('sales', tally(cu, sales_def)), ('mkt', tally(cu, mkt_def)), ('fin', tally(cu, fin_def)),
+              ('all3', tally(cu, lambda x: sales_def(x) and mkt_def(x) and fin_def(x))), ('any', tally(cu, lambda x: sales_def(x) or mkt_def(x) or fin_def(x))),
+              ('none', tally(cu, lambda x: not (sales_def(x) or mkt_def(x) or fin_def(x)))), ('testAcc', tally(cu, lambda x: x['test'] == 1)),
+              ('salesTest', tally(cu, lambda x: sales_def(x) and x['test'] == 1)), ('salesNotFin', tally(cu, lambda x: sales_def(x) and not fin_def(x))),
+              ('shown', B12['shown'])]:
+    put('b12.' + kk, v)
+shn = cu[:B12['shown']]
+for kk, fn in [('shS', sales_def), ('shM', mkt_def), ('shF', fin_def)]:
+    put('b12.' + kk, tally(shn, fn))
+put('b12.shAll', tally(shn, lambda x: sales_def(x) and mkt_def(x) and fin_def(x))); put('b12.shAny', tally(shn, lambda x: sales_def(x) or mkt_def(x) or fin_def(x)))
+put('b12.unusedYear', sum(r['cost'] for r in unused) * 12); put('b12.invYear', sum(r['cost'] for r in inv) * 12)
+put('b12.salesOver', c(100 * D(tally(cu, sales_def) - tally(cu, fin_def)) / tally(cu, fin_def)))
+
 # ---- TMAY: each beat's share of 60 and 75 seconds by word count, stressed beats (RealPage, IBM) weighted 1.5
 words, stressed = [20, 19, 17, 26, 24], {2, 3}
 w = [D(x) * (D('1.5') if i in stressed else 1) for i, x in enumerate(words)]

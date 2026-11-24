@@ -16,8 +16,11 @@ module.exports = {
       // Level per title (Inferred, approved Nov 24): Director: Director of AI Enablement, AI Program Lead; Director or VP: AI Governance Lead;
       // VP: Head of AI Transformation, VP/SVP Enterprise AI; VP or C-level: Head of AI; C-level: CAIO.
       roles: ['Director of AI Enablement', 'AI Program Lead', 'AI Governance Lead', 'Head of AI Transformation', 'VP/SVP Enterprise AI', 'Head of AI', 'Chief AI Officer (CAIO)'] },
-    { id: 'data-leadership', name: 'Data leadership (Chief Data, Chief Analytics and Chief Data Science Officer)', short: 'Data leadership', active: false, color: '--s-mint',
-      blurb: 'Data strategy and operating model, governance and quality, data products and platform economics.' },
+    { id: 'data-leadership', name: 'Data leadership (Chief Data, Chief Analytics and Chief Data Science Officer)', short: 'Data leadership', active: true, color: '--s-mint',
+      blurb: 'Data strategy and operating model, governance and quality, data products and platform economics.',
+      // Level per title (Inferred, approved Nov 24): Chief Data Officer: C-level; Chief Analytics Officer: VP or C-level;
+      // Chief Data Science Officer: C-level; VP Data: VP; Head of Data Science: Director or VP; Director of Data Governance: Director.
+      roles: ['Chief Data Officer', 'Chief Analytics Officer', 'Chief Data Science Officer', 'VP Data', 'Head of Data Science', 'Director of Data Governance'] },
     { id: 'cto', name: 'Chief Technology Officer (CTO)', short: 'CTO', active: false, color: '--s-orange',
       blurb: 'Technology strategy, architecture and tech-debt governance, engineering org and delivery.' },
     { id: 'ciso', name: 'Chief Information Security Officer (CISO)', short: 'CISO', active: false, color: '--s-coral',
@@ -49,6 +52,19 @@ module.exports = {
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 2 },
       { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 2 },
       { id: 'links', title: 'Law, exams and practitioner cases', kind: 'Links to other apps', phase: 2 }
+    ],
+    // Phase 3a (approved Nov 24). Shared modules and BRN-2-style reuse follow the AI lane: same lesson ids, nothing copied.
+    'data-leadership': [
+      { id: 'data-strategy', title: 'Data strategy and governance', kind: 'Module', phase: 3 },
+      { id: 'data-products', title: 'Data products and analytics value', kind: 'Module', phase: 3 },
+      { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
+      { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'platform-sim', title: 'Data platform, eight quarters', kind: 'Simulation', phase: 3 },
+      { id: 'first-90', title: 'First 90 days as Chief Data Officer', kind: 'Craft packet', phase: 3 },
+      { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 3 },
+      { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 3 },
+      { id: 'links', title: 'Certifications, practice and platform pages', kind: 'Links to other apps', phase: 3 },
+      { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 3 }
     ]
   }
 };
