@@ -99,7 +99,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.evaluate(() => document.documentElement.getAttribute('data-theme')) === 'dark', 'theme survives a reload');
     await act(page, 'theme', 'system');
     ok(await page.evaluate(() => document.documentElement.hasAttribute('data-theme')) === false, 'system theme clears the override');
-    ok(await page.evaluate(() => window.StudyKit.version) === 'v0.2.0' || await page.evaluate(() => /0\.2\.0/.test(window.StudyKit.version)), 'study-kit v0.2.0 loaded');
+    ok(await page.evaluate(() => /^v?0\.2\.2$/.test(window.StudyKit.version)), 'study-kit v0.2.2 loaded');
     await ctx.close();
   }
 
