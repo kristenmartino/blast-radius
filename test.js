@@ -30,11 +30,28 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     if (init) await ctx.addInitScript(init);
     const page = await ctx.newPage(); page.setDefaultTimeout(6000);
     page.on('pageerror', e => errs.push(e.message));
+    page.on('dialog', d => { errs.push('native ' + d.type() + ' dialog: ' + d.message()); d.dismiss(); });   // the artifact frame refuses these
     page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     return { ctx, page };
   };
   const fit = async (page, label) => { const r = await overflow(page); ok(r.ok, 'overflow ' + label + ' ' + JSON.stringify(r)); };
   const act = (page, a, id) => page.locator('[data-act="' + a + '"]' + (id ? '[data-id="' + id + '"]' : '')).first().click();
+
+  // ---- 0. confirm dialog: in-page, since the artifact frame refuses window.confirm (live finding, Nov 24)
+  for (const w of WIDTHS) for (const scheme of SCHEMES) {
+    const { ctx, page } = await newPage({ viewport: { width: w, height: 800 }, colorScheme: scheme });
+    await page.goto(URL); await page.waitForFunction(() => window.__br);
+    await page.evaluate(() => { window.__cfm = 0; window.__br.host.confirm('Clear feedback history?', 'Your answer is kept.', 'Clear', () => { window.__cfm++; }); });
+    await page.waitForSelector('.cfm');
+    ok(await page.locator('.cfm').getAttribute('role') === 'alertdialog' && await page.evaluate(() => document.activeElement.dataset.cfm) === 'cancel', w + ' ' + scheme + ': confirm is an in-page alertdialog, focus on Cancel');
+    await fit(page, w + ' ' + scheme + ' confirm dialog');
+    await page.keyboard.press('Escape');
+    ok(await page.locator('.cfm').count() === 0 && await page.evaluate(() => window.__cfm) === 0, w + ' ' + scheme + ': Escape cancels');
+    await page.evaluate(() => window.__br.host.confirm('Clear?', 'Body', 'Clear', () => { window.__cfm++; }));
+    await page.locator('[data-cfm="ok"]').click();
+    ok(await page.locator('.cfm').count() === 0 && await page.evaluate(() => window.__cfm) === 1, w + ' ' + scheme + ': OK runs the action');
+    await ctx.close();
+  }
 
   // ---- 1. every screen, every width, both themes
   for (const w of WIDTHS) for (const scheme of SCHEMES) {
