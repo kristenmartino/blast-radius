@@ -96,7 +96,7 @@ const runs = [{
 
 const I = N.i, IP = N.i.pv;
 runs.push({
-  id: 'BRN-2', status: 'Draft', lane: 'cio', section: 'cost-sim', levels: ['vp', 'c-level'],
+  id: 'BRN-2', status: 'Draft', lane: 'cio', alsoIn: ['ai-leadership'], section: 'cost-sim', levels: ['vp', 'c-level'],
   title: 'Inference at scale', role: 'CIO',
   blurb: 'Six quarters of an AI assistant’s costs as usage grows tenfold. Every figure is computed in code; prices are fictional but follow the published per-token model.',
   briefing: t('Halvorsen Supply (fictional) runs a customer-service assistant on a hosted model. Each request sends {{i.fixedTok}} tokens of fixed instructions and about {{i.varTok}} tokens of question, and gets about {{i.outTok}} tokens back. The model costs ${{i.pin}} per million input tokens and ${{i.pout}} per million output tokens, so {{$i.cBase}} a request today. Usage will grow from {{i.v1}} to {{i.v6}} requests a month over six quarters. Business value here is monthly savings in $k against the starting price; ${{i.startK}}k was saved last year.'),
@@ -167,7 +167,211 @@ runs.push({
     { min: 0, title: 'A bill nobody can explain', text: 'Spend grew faster than value, and the board heard a total with no story behind it.' }
   ]
 });
+// ---------------------------------------------------------------- Phase 2b, AI leadership lane (Draft)
+// BRN-3: value is counted in hours a week saved. Planned = hours you put in the business case or board pack;
+// actual = hours measured by time study. Predictability = measured ÷ promised.
+const RO = N.ro, RP = N.ro.pv;
+runs.push({
+  id: 'BRN-3', status: 'Draft', lane: 'ai-leadership', section: 'rollout-sim', levels: ['director', 'vp', 'c-level'],
+  title: 'AI assistant rollout', role: 'Head of AI Enablement',
+  blurb: 'Four quarters, eight decisions, rolling an AI assistant out at a 5,000-person company. Every figure is computed in code; the product and prices are fictional.',
+  briefing: t('You lead AI enablement at Larkfield Group, a {{ro.staff}}-person company (fictional). The board approved an AI assistant at {{$ro.price}} a user a month. Over four quarters you decide who gets it, how people learn it, how you measure it and what you report. Business value here is hours a week saved: what you promise in the business case and board pack, and what a time study measures. Last year’s small pilot saves a measured {{ro.startH}} hours a week.'),
+  meters: ['adoption', 'value', 'risk', 'trust'],
+  meterLabels: { adoption: 'Adoption', value: 'Measured value', risk: 'Risk control', trust: 'CFO and board trust' },
+  start: { planned: RO.startH, actual: RO.startH },
+  predNote: 'Here predictability is hours measured ÷ hours promised.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-3-01', phase: 'Q1 licences',
+      stem: t('The CFO would like everyone on the assistant this year: {{$ro.yrAll}} a year for {{ro.staff}} people. Claims, finance, customer service and sales have named the tasks they want help with; together they are {{ro.L1}} people. Who gets licences first?'),
+      options: [t('All {{ro.staff}} people at once'), t('The {{ro.L1}} people in the four functions with named use cases ({{$ro.yrL1}} a year), expanding on measured use'), t('{{ro.vol}} volunteers from anywhere ({{$ro.yrVol}} a year)'), 'Nobody yet; wait a year for prices to fall'],
+      answer: 1,
+      whyNot: { 0: t('{{$ro.yrAll}} a year before anyone knows which jobs it helps; unused licences are the usual result.'), 2: 'Volunteers are keen but scattered; you learn little about any one job.', 3: 'People use consumer tools in the meantime, with your data.' },
+      effects: eff({ value: -10, adoption: 5, risk: -5 }, { adoption: 5, value: 10, trust: 5 }, { adoption: -5, value: -5 }, { adoption: -15, risk: -10 }),
+      why: t('Starting where the work is named gives you a measurable first group for {{$ro.yrL1}} a year, against {{$ro.yrAll}} for everyone.'),
+      lesson: 'License where the use cases are named, then expand on measured use.' },
+
+    { id: 'BRN-3-02', phase: 'Q1 launch',
+      stem: t('The assistant can read any file its user can open. A sample check finds HR and finance folders shared with everyone in the company. A permissions review costs {{$ro.permReview}} and takes six weeks. Launch is planned for next week.'),
+      options: ['Launch next week and fix permissions afterwards', 'Publish the acceptable-use policy and fix permissions on the four functions’ sites first; launch each function when its sites are clean', 'Block the assistant from all internal files', 'Rely on the vendor’s default settings'],
+      answer: 1,
+      whyNot: { 0: 'The assistant will surface those folders to anyone who asks the right question.', 2: 'Most of the value comes from working with internal documents.', 3: 'Default settings follow your permissions; your permissions are the problem.' },
+      effects: eff({ adoption: 5, risk: -20 }, { risk: 15, trust: 5 }, { value: -15, adoption: -10, risk: 5 }, { risk: -15 }),
+      sets: { 0: 'noperm', 3: 'noperm' },
+      why: 'An assistant exposes whatever your permissions already allow. Fixing the sites it will read before it reads them is cheaper than an incident.',
+      lesson: 'Clean up file permissions before an assistant can search them.' },
+
+    { id: 'BRN-3-03', phase: 'Q2 training',
+      stem: t('Licences are live. You have budget for one of these. Which?'),
+      options: ['One all-hands webinar on what the assistant can do', t('Two hours of role-based training, {{ro.champions}} champions (one per 50 users) with 10% of their time, and a library of use cases by function'), 'The vendor’s e-learning course', 'Nothing; the assistant is easy to use'],
+      answer: 1,
+      whyNot: { 0: 'A webinar shows features, not how to use them in a claims or finance job.', 2: 'Generic courses teach the product, not the work.', 3: 'Easy to open is not the same as useful in a given job.' },
+      effects: eff({ adoption: -5 }, { adoption: 15, value: 5 }, { adoption: -5 }, { adoption: -15 }),
+      sets: { 0: 'thin', 1: 'trained', 2: 'thin', 3: 'thin' },
+      why: 'People adopt a tool when they see it do their own work. Champions in each team answer the next question when the trainer has gone.',
+      lesson: 'Train by role, with champions in the teams, not by feature.' },
+
+    { id: 'BRN-3-04', phase: 'Q2 business case',
+      stem: t('A survey of weekly users says the assistant saves them {{ro.claimH}} hours a week each. A time study on {{ro.studyN}} of them measures {{ro.measH}} hours. The CFO asks what to put in next year’s business case.'),
+      updateIf: { trained: t('Weekly use reached {{ro.actPct}}% of licences: {{ro.A2}} people.'), thin: t('Weekly use reached only {{ro.thinPct}}% of licences: {{ro.A2thin}} people.') },
+      options: [t('The survey’s {{ro.claimH}} hours a week per weekly user'), t('The measured {{ro.measH}} hours per weekly user, with the survey shown beside it, and a comparison group to keep measuring'), t('A midpoint of {{ro.midH}} hours per weekly user'), t('{{ro.claimH}} hours for every licence issued')],
+      answer: 1,
+      whyNot: { 0: 'A survey is what people believe; the time study is what happened.', 2: 'A midpoint between a claim and a measurement is neither.', 3: 'Licences are not users, and the hours are the survey’s.' },
+      effects: eff({ trust: -10, value: -5 }, { trust: 10, value: 5 }, { trust: -5 }, { trust: -15, value: -5 }),
+      pv: { 0: { planned: RP.q2.claim, actual: RP.q2.meas }, 1: { planned: RP.q2.meas, actual: RP.q2.meas }, 2: { planned: RP.q2.mid, actual: RP.q2.meas }, 3: { planned: RP.q2.lic, actual: RP.q2.meas } },
+      pvIf: { thin: { 0: { planned: RP.thin.claim, actual: RP.thin.meas }, 1: { planned: RP.thin.meas, actual: RP.thin.meas }, 2: { planned: RP.thin.mid, actual: RP.thin.meas }, 3: { actual: RP.thin.meas } } },
+      why: t('With {{ro.A2}} weekly users, the survey promises {{ro.h2claim}} hours a week; the time study measures {{ro.h2meas}}. Only the measured figure will still be true when finance checks it.'),
+      lesson: 'Promise the measured number; show the survey as what people believe.' },
+
+    { id: 'BRN-3-05', phase: 'Q3 incident',
+      stem: 'An employee asks the assistant about pay bands and gets a summary of a salary spreadsheet from an HR folder shared with everyone. She reports it.',
+      updateIf: { noperm: 'This is one of the folders the sample check found before launch.' },
+      options: ['Switch the assistant off for everyone until every permission is reviewed', 'Lock the folder now, fix HR and finance permissions this week, bring in HR and legal, tell the people whose pay was exposed, and keep the assistant running elsewhere', 'Fix the folder quietly and say nothing', 'Remind the employee of the acceptable-use policy'],
+      answer: 1,
+      whyNot: { 0: 'Stops all the value to fix one class of problem you can fix directly.', 2: 'People whose pay was exposed have a right to know, and silence costs trust when it comes out.', 3: 'She did nothing wrong; the folder did.' },
+      effects: eff({ adoption: -15, risk: 5, value: -10 }, { risk: 10, trust: 5 }, { risk: -5, trust: -15 }, { trust: -10, risk: -10 }),
+      why: 'The assistant did what the permissions allowed. Contain the data, fix the cause, tell the people affected, and keep the rest of the rollout running.',
+      lesson: 'An oversharing incident is a permissions problem: contain, fix, tell, continue.' },
+
+    { id: 'BRN-3-06', phase: 'Q3 expansion',
+      stem: t('Business units ask for licences for the {{ro.unlicensed}} people not yet covered. Usage data shows {{ro.unused}} current licences unused for 60 days. Teams with a named use case and a trained champion total {{ro.E}} people.'),
+      options: [t('License all {{ro.unlicensed}} now'), t('Add {{ro.E}} licences for the teams with a use case and a champion, and reclaim the {{ro.unused}} unused ones: {{ro.L3}} licences, {{$ro.yrL3}} a year'), 'Freeze licences until next year', 'Give licences to whichever teams ask first'],
+      answer: 1,
+      whyNot: { 0: 'Repeats the mistake the first wave avoided: licences ahead of use.', 2: 'Teams that are ready wait, and some buy their own tools.', 3: 'Asking first is not evidence of use.' },
+      effects: eff({ value: -10, adoption: 5 }, { adoption: 10, value: 5 }, { adoption: -10, trust: -5 }, { value: -5, trust: -5 }),
+      why: t('Expanding where the conditions for use exist and reclaiming idle licences gives {{ro.L3}} licences for {{$ro.yrL3}} a year.'),
+      lesson: 'Expand to teams that meet the conditions for use; reclaim idle licences as you go.' },
+
+    { id: 'BRN-3-07', phase: 'Q4 renewal',
+      stem: t('The vendor offers all {{ro.staff}} seats for three years at {{ro.disc3}}% off, {{$ro.allYr}} a year and {{$ro.all3yr}} in all, if you sign this quarter. You hold {{ro.L3}} licences.'),
+      updateIf: { trained: t('{{ro.A4}} people use it weekly.'), thin: t('{{ro.A4thin}} people use it weekly.') },
+      options: [t('Sign the three-year deal for {{ro.staff}} seats'), t('Renew {{ro.L3}} seats for one year at list ({{$ro.yrL3}}), with the right to add seats at the list price of {{$ro.price}} as teams qualify'), 'Cut to the people active last week only', 'Let it lapse and see who complains'],
+      answer: 1,
+      whyNot: { 0: t('On the planned path that is {{$ro.perActiveAll}} a year per weekly user, against {{$ro.perActiveL3}}.'), 2: 'Leaves no room for the teams qualifying next quarter.', 3: 'People move to consumer tools with your data.' },
+      effects: eff({ value: -15, trust: -5 }, { value: 10, trust: 5 }, { adoption: -10, value: 5 }, { adoption: -20, risk: -15 }),
+      why: t('With {{ro.A4}} weekly users, the three-year deal costs {{$ro.perActiveAll}} a year for each of them; renewing what you use costs {{$ro.perActiveL3}}, and the add-on right keeps the price for growth.'),
+      lesson: 'Buy for measured use with a price-protected way up, not for headcount.' },
+
+    { id: 'BRN-3-08', phase: 'Q4 board',
+      stem: t('The board asks what the assistant delivered this year. Finance confirms one cash saving: {{$ro.cash}} of claims contractor spend not renewed.'),
+      options: ['Survey hours times the loaded rate, reported as savings', t('Measured hours a week, use by function, licence cost, the incident and its fix, and {{$ro.cash}} as the only cash saving'), 'Licences issued and training completions', 'The vendor’s published customer results'],
+      answer: 1,
+      whyNot: { 0: 'Prices claimed hours as cash; finance will not find it in any budget.', 2: 'Inputs; the board asked what it delivered.', 3: 'Another company’s results are not yours.' },
+      effects: eff({ trust: -15 }, { trust: 10, value: 5 }, { trust: -5, value: -5 }, { trust: -10 }),
+      pv: { 0: { planned: RP.q4.claim, actual: RP.q4.meas }, 1: { planned: RP.q4.meas, actual: RP.q4.meas }, 2: { planned: RP.q4.meas, actual: RP.q4.meas }, 3: { planned: RP.q4.claim, actual: RP.q4.meas } },
+      why: t('Measured savings rose to {{ro.h4meas}} hours a week on the planned path. Hours are capacity; the {{$ro.cash}} is the cash. Keeping them apart is what makes next year’s number believable.'),
+      lesson: 'Report measured hours as capacity and only budget cuts as cash.' }
+  ],
+  endings: [
+    { min: 75, title: 'Adoption the CFO can count', text: 'Licences followed use, the incident was contained and fixed, and every number in the board pack was measured.' },
+    { min: 55, title: 'Usage without proof', text: 'People use the assistant, but some of what was promised came from surveys, or licences ran ahead of use.' },
+    { min: 0, title: 'Licences, not value', text: 'Spend rose, the numbers came from belief, and the next renewal will be a fight.' }
+  ]
+});
+
+// BRN-4: value is $k a year from AI work in production. Planned = what you promise sponsors; actual = what lands.
+const IQ = N.iq;
+runs.push({
+  id: 'BRN-4', status: 'Draft', lane: 'ai-leadership', section: 'intake-sim', levels: ['director', 'vp'],
+  title: 'Intake queue', role: 'AI Program Lead',
+  blurb: 'Eight weeks of triage on a queue of 200 AI requests with a fixed team. Counts and values are computed in code; the company is fictional.',
+  briefing: t('You run the AI program at Brightwater Logistics (fictional). {{iq.total}} requests are waiting. Your team is six people in {{iq.pods}} pods of two: {{iq.podWeeks}} pod-weeks of build capacity over the next {{iq.weeks}} weeks. Each week the triage group makes one call. Business value here is $k a year from AI work in production: ${{iq.startK}}k today.'),
+  meters: ['backlog', 'satisfaction', 'value', 'load'],
+  meterLabels: { backlog: 'Backlog health', satisfaction: 'Stakeholder satisfaction', value: 'Delivered value', load: 'Team capacity' },
+  start: { planned: IQ.startK, actual: IQ.startK },
+  predNote: 'Here predictability is value delivered ÷ value promised to sponsors.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-4-01', phase: 'Week 1',
+      stem: 'Requests arrive by email, chat and corridor. How will the triage group rank them?',
+      options: ['First come, first served', 'Score value, feasibility and risk on written scales, in a weekly triage group that includes the business; send high-risk requests to governance review', 'By the seniority of the sponsor', 'By value alone'],
+      answer: 1,
+      whyNot: { 0: 'Arrival order is not value.', 2: 'Seniority ranks people, not work.', 3: 'Ignores whether it can be built and what could go wrong.' },
+      effects: eff({ value: -10, satisfaction: 5 }, { value: 10, backlog: 5 }, { satisfaction: -10, value: -10 }, { value: 5, backlog: -5 }),
+      why: 'Written scales let anyone check a ranking, and a weekly cadence gives requesters a date for an answer.',
+      lesson: 'A published rubric and a fixed cadence make every decision explainable.' },
+
+    { id: 'BRN-4-02', phase: 'Week 2',
+      stem: t('{{iq.self}} requests ask for help drafting, summarizing or translating documents. The company already licenses an AI assistant that does this.'),
+      options: [t('Build a small tool for each of the {{iq.self}}'), 'Send them to the existing assistant with a prompt library and weekly office hours', 'Reject them', 'Defer them to next quarter'],
+      answer: 1,
+      whyNot: { 0: t('{{iq.self}} builds would use far more than the {{iq.podWeeks}} pod-weeks you have.'), 2: 'The need is real and already paid for.', 3: 'They wait for something they can have today.' },
+      effects: eff({ load: -25, backlog: 5 }, { backlog: 15, satisfaction: 5 }, { satisfaction: -15, backlog: 10 }, { backlog: -10, satisfaction: -5 }),
+      sets: { 0: 'swamped' },
+      why: t('Self-service closes {{iq.self}} requests in a week: {{iq.after2}} left.'),
+      lesson: 'Route what existing tools can do to self-service, with help.' },
+
+    { id: 'BRN-4-03', phase: 'Week 3',
+      stem: t('{{iq.dup}} of the remaining requests describe the same {{iq.dupDistinct}} needs, raised separately by different business units.'),
+      options: ['Treat each as its own request', t('Merge them into {{iq.dupDistinct}} shared requests with one sponsor each, and tell every requester'), 'Keep the first of each and close the rest without notice', 'Let each unit build its own'],
+      answer: 1,
+      whyNot: { 0: 'The team would build the same thing several times.', 2: 'Requesters who hear nothing assume the worst.', 3: 'Duplicate tools cost more to run and support.' },
+      effects: eff({ backlog: -10, load: -10 }, { backlog: 10, satisfaction: 5 }, { satisfaction: -15 }, { backlog: 5, value: -10 }),
+      why: t('{{iq.after2}} − {{iq.dup}} + {{iq.dupDistinct}} = {{iq.after3}} requests, and each shared need now has one owner.'),
+      lesson: 'Merge duplicates into one request with one sponsor, and say so.' },
+
+    { id: 'BRN-4-04', phase: 'Week 4',
+      stem: t('{{iq.vendor}} requests ask to buy an AI tool from a vendor. Each would take about one pod-week to evaluate.'),
+      options: [t('Have the team evaluate all {{iq.vendor}}'), 'Route them to procurement and security with a standard AI vendor checklist; the team advises when asked', 'Approve them all', 'Reject them all'],
+      answer: 1,
+      whyNot: { 0: t('{{iq.vendorPw}} pod-weeks is more than the {{iq.podWeeks}} you have; nothing else gets built.'), 2: 'Unchecked tools may train on your data or duplicate what you own.', 3: 'People buy them on a card anyway.' },
+      effects: eff({ load: -25, value: -10 }, { backlog: 10, load: 5 }, { satisfaction: 5, value: -10 }, { satisfaction: -15 }),
+      sets: { 0: 'swamped' },
+      why: t('A checklist lets procurement and security handle buying decisions; the queue falls to {{iq.after4}} and the team keeps its {{iq.podWeeks}} pod-weeks for building.'),
+      lesson: 'Buying decisions go through procurement with an AI checklist, not through the build team.' },
+
+    { id: 'BRN-4-05', phase: 'Week 5',
+      stem: t('The VP of Sales asks you to build an AI sales-coaching avatar now. It scores 2 of 5 on value and 2 on feasibility, needs {{iq.vpPw}} pod-weeks, and has no measured outcome. The VP says it will be worth ${{iq.vpPlanK}}k a year.'),
+      options: ['Build it now', 'Defer it, show the VP the score, say what would raise it (a measured outcome and a business owner), and give the next review date', 'Reject it without explanation', 'Put it at the top of the queue ahead of claims triage'],
+      answer: 1,
+      whyNot: { 0: 'Spends capacity on the lowest-scoring work because of who asked.', 2: 'A VP who gets no reason escalates.', 3: 'Delays the highest-value request in the queue.' },
+      effects: eff({ load: -10, value: -5, satisfaction: 5 }, { satisfaction: 5, value: 5 }, { satisfaction: -15 }, { value: -15, satisfaction: -5 }),
+      pv: { 0: { planned: IQ.vpPlanK, actual: IQ.vpActK }, 3: { planned: IQ.vpPlanK, actual: IQ.vpActK } },
+      why: 'Deferring with the score and a path to a higher one keeps the rubric credible and the VP engaged.',
+      lesson: 'Say no with the score, what would change it, and when you will look again.' },
+
+    { id: 'BRN-4-06', phase: 'Week 6',
+      stem: t('Claims triage scores highest in the queue: ${{iq.claimsK}}k a year, {{iq.claimsPods}} pods for {{iq.claimsWeeks}} weeks ({{iq.claimsPw}} pod-weeks), and the claims director will own it.'),
+      updateIf: { swamped: t('The team has spent its pod-weeks on earlier work; anything accepted now cannot be built this quarter.') },
+      options: ['Ask for a full business case first', t('Accept it now and build it with the claims team'), 'Accept it with one pod working on it part-time', 'Hand it to a vendor without the claims data'],
+      answer: 1,
+      whyNot: { 0: 'It already has a scored case and an owner; more paperwork delays the value.', 2: 'Half the team for twice as long delays the value and risks the quality.', 3: 'A model without the claims data cannot learn your claims.' },
+      effects: eff({ value: -10 }, { value: 15, satisfaction: 5 }, { load: -5, value: 5 }, { value: -10, satisfaction: -5 }),
+      pv: { 1: { planned: IQ.claimsK, actual: IQ.claimsK }, 2: { planned: IQ.claimsK, actual: IQ.claimsK / 2 }, 3: { planned: IQ.claimsK, actual: 0 } },
+      pvIf: { swamped: { 1: { actual: -IQ.claimsK }, 2: { actual: -IQ.claimsK / 2 } } },
+      why: t('The top-scoring request with an owner gets the capacity: ${{iq.claimsK}}k a year for {{iq.claimsPw}} of your {{iq.podWeeks}} pod-weeks.'),
+      lesson: 'Give the highest-scoring request with an owner the capacity it needs.' },
+
+    { id: 'BRN-4-07', phase: 'Week 7',
+      stem: t('A pilot started before you arrived is {{iq.pilotWeeks}} weeks in. Accuracy is {{iq.pilotAcc}}% against a {{iq.pilotTarget}}% gate, and the sponsor, who promised ${{iq.pilotPlanK}}k a year, missed the last three reviews.'),
+      options: ['Extend it four more weeks', 'Stop it at the gate, release the pod, tell the sponsor with the data, and record what was learned', 'Launch it anyway at 71%', 'Hand it to a vendor to finish'],
+      answer: 1,
+      whyNot: { 0: 'No sign that four weeks closes a 19-point gap, and no engaged owner.', 2: 'Launching below the gate moves the errors to customers.', 3: 'Moves the problem; the missing owner stays missing.' },
+      effects: eff({ load: -10, value: -5 }, { load: 10, value: 5 }, { value: -10, satisfaction: -5 }, { value: -5 }),
+      pv: { 0: { planned: IQ.pilotPlanK, actual: 0 }, 2: { planned: IQ.pilotPlanK, actual: IQ.pilotLaunchK }, 3: { planned: IQ.pilotPlanK, actual: 0 } },
+      why: 'The gate was agreed before the pilot. Stopping releases a pod for scored work, and the sponsor gets the data to try again later.',
+      lesson: 'Stop at the gate; release the capacity; keep the lessons.' },
+
+    { id: 'BRN-4-08', phase: 'Week 8',
+      stem: 'The steering group asks for the quarter’s intake report.',
+      options: ['Value delivered only', t('{{iq.after6}} requests still waiting (claims triage left the queue for build), what was redirected, merged, routed and deferred and why, capacity used, and value delivered against promised'), 'The number of requests received', 'How busy the team was'],
+      answer: 1,
+      whyNot: { 0: 'Hides the decisions that made the value possible.', 2: 'Counts demand, not decisions.', 3: 'Effort is not outcome.' },
+      effects: eff({ satisfaction: -5 }, { satisfaction: 10, backlog: 5 }, { satisfaction: -10 }, { satisfaction: -5 }),
+      why: t('On the planned path {{iq.total}} requests became {{iq.after6}} open ones, and value in production rose from ${{iq.startK}}k to ${{iq.bestK}}k a year. Showing each decision and its reason is what makes the next ranking accepted.'),
+      lesson: 'Report the decisions and their reasons, not just the output.' }
+  ],
+  endings: [
+    { min: 75, title: 'A queue people trust', text: 'Most requests got an answer within weeks, the team built what scored highest, and the report showed every call and its reason.' },
+    { min: 55, title: 'Busy, not better', text: 'Some value landed, but capacity went to low scorers, duplicates or evaluations, and sponsors saw why only part of the time.' },
+    { min: 0, title: 'The queue ran the team', text: 'Requests were handled by arrival or rank of sponsor, the build team was swamped, and promised value did not land.' }
+  ]
+});
+
 runs[0].steps.forEach((st, i) => place(st, POS[i]));
 const POS2 = [3, 0, 2, 1, 0, 3];
 runs[1].steps.forEach((st, i) => place(st, POS2[i]));
+const POS3 = [2, 0, 3, 1, 0, 2, 3, 1], POS4 = [1, 3, 0, 2, 3, 1, 2, 0];
+runs[2].steps.forEach((st, i) => place(st, POS3[i]));
+runs[3].steps.forEach((st, i) => place(st, POS4[i]));
 module.exports = runs;

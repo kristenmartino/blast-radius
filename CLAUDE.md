@@ -15,9 +15,13 @@ Technology leadership study app (executive layer). Plan of record: `claude/tech-
 ## Content layout
 - `math/numbers.js` computes every number; `math/numbers.py` recomputes them with decimals; `build.js` fails on any difference over half a cent. Text gets numbers only through `{{placeholders}}` (`{{$x}}` prints money).
 - `craft-src/*.md` + `craft-stages.js`: Craft packets BR-n (filled into `build/craft/`; `{{table:...}}` renders tables from `data/*.json`). `sims-runs.js`: BRN-1, BRN-2. `sims-roleplay.js`: BRL-n. Shared modules in `content/` (`opmodel.js` om-n/OM-nn, `economics.js` ec-n/EC-nn), registered in `build.js` MODS. `content/prompts.js`: BP-nn, linked to Master Story Bank cards. `content/tmay.js`: CIO-family TMAY (beats and budgets only; bank text is never copied in). Every packet, run and role-play names its lane `section`.
+- Lanes: `lanes.js` (active: CIO, AI leadership). A run can be listed in a second lane with `alsoIn` (BRN-2); shared modules appear in any lane whose sections name them, under the same lesson ids. Prompts carry `lane` (default 'cio'); routes `#prompts-<lane>`.
+- AI leadership (Phase 2b): `content/strategy.js` (as-n/AS-nn), ec-6 in `content/economics.js`, BRN-3/BRN-4 in `sims-runs.js`, BR-8..BR-11 (data in `data/br8.json`, made by `tools/make-br8.py`, and `data/br11.json`), BRL-4..6, BP-11..22, links out in `content/links.js` (to other apps' published routes only).
+- Role-play learner label is 'technology leader' for every role-play; each persona says who the learner is.
+- `{{placeholders}}` print text values as they are (ids, lists) and numbers formatted; `{{$x}}` on text is an error.
 - Draft labels come from each item's `status` ('Draft' or empty).
 - `content/place.js` moves each keyed answer to a set position (POS arrays) and remaps index-keyed fields.
-- Blind-check records: `docs/blind-check-*.md`.
+- Blind-check records: `docs/blind-check-*.md`. Export for Phase 2b: `node tools/export-blind-2b.js <dir>` (reads `build/bank.json`).
 
 ## Build and test
 ```sh

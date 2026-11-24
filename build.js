@@ -21,7 +21,9 @@ for (const ln of L.lanes) {
   claim(ln.id, 'lane'); laneIds.push(ln.id);
   if (!ln.name || !ln.blurb || !ln.short) errors.push('lane ' + ln.id + ': name, short and blurb required');
 }
-if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio') errors.push('Phase 0/1: only the CIO lane is active');
+if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership') errors.push('Phase 2b: the CIO and AI leadership lanes are active');
+const ACTIVE = L.lanes.filter(l => l.active);
+for (const ln of ACTIVE) if (!Array.isArray(ln.roles) || !ln.roles.length || !(L.sections[ln.id] || []).length) errors.push('active lane ' + ln.id + ': roles and sections required');
 for (const lane in L.sections) {
   if (laneIds.indexOf(lane) === -1) errors.push('sections for unknown lane ' + lane);
   for (const s of L.sections[lane]) { const id = lane + '-' + s.id; if (!ID.test(id)) errors.push('section ' + id + ': bad id'); claim(id, 'section'); sectionIds.push(id); }
@@ -40,6 +42,19 @@ const TABLES = {
   'b7.contracts': ['| Contract | Vendor | Annual value | Renews in | Notice | Auto-renews for |', '|---|---|---|---|---|---|']
     .concat(D7.contracts.map(c => '| ' + c.id + ' | ' + c.vendor + ' | ' + money(c.value) + ' | ' + c.renewDays + ' days | ' + c.noticeDays + ' days | ' + c.autoYears + (c.autoYears === 1 ? ' year' : ' years') + ' |')).join('\n')
 };
+// Phase 2b tables: BR-8 (shown rows and category counts over all 200) and BR-11 (inventory and contracts).
+{ const D8 = require('./data/br8.json'), D11 = require('./data/br11.json');
+  const CAT = { self: 'Drafting or summarizing', dup: 'Duplicate of another request', vendor: 'Buy an AI tool', low: 'No owner or measurable outcome', build: 'Process automation', risk: 'Decision about customers or staff' };
+  const RISK = { L: 'Low', M: 'Medium', H: 'High' };
+  TABLES['b8.shown'] = ['| Id | Request | Unit | Council’s category | Value | Feasibility | Risk | Pod-weeks |', '|---|---|---|---|---|---|---|---|']
+    .concat(D8.rows.slice(0, D8.shown).map(r => '| ' + r.id + ' | ' + r.title + (r.dupOf ? ' (same need as ' + r.dupOf + ')' : '') + ' | ' + r.unit + ' | ' + CAT[r.cat] + ' | ' + r.value + ' | ' + r.feas + ' | ' + RISK[r.risk] + ' | ' + (r.pw || '—') + ' |')).join('\n');
+  TABLES['b8.cats'] = ['| Council’s category | Requests (all 200) | High risk |', '|---|---|---|']
+    .concat(Object.keys(CAT).map(k => '| ' + CAT[k] + ' | ' + D8.rows.filter(r => r.cat === k).length + ' | ' + D8.rows.filter(r => r.cat === k && r.risk === 'H').length + ' |'))
+    .concat(['| Total | ' + D8.rows.length + ' | ' + D8.rows.filter(r => r.risk === 'H').length + ' |']).join('\n');
+  TABLES['b11.tools'] = ['| Tool | Use | Owner | Source | Decides for customers | Tested | Annual cost | Contract |', '|---|---|---|---|---|---|---|---|']
+    .concat(D11.tools.map(x => '| ' + x.name + ' | ' + x.use + ' | ' + (x.owner || '—') + ' | ' + x.source + ' | ' + (x.customerDecision ? 'Yes' : 'No') + ' | ' + (x.tested ? 'Yes' : 'No') + ' | ' + (x.cost ? money(x.cost) : 'In house') + ' | ' + (x.contract || '—') + ' |')).join('\n');
+  TABLES['b11.contracts'] = ['| Contract | Vendor | Annual value | Renews in | Notice | Vendor may train on our data |', '|---|---|---|---|---|---|']
+    .concat(D11.contracts.map(c => '| ' + c.id + ' | ' + c.vendor + ' | ' + money(c.value) + ' | ' + c.renewDays + ' days | ' + c.noticeDays + ' days | ' + (c.trainsOnData ? 'Yes' : 'No') + ' |')).join('\n'); }
 const tables = t => t.replace(/\{\{table:([a-z0-9.]+)\}\}/g, (m, k) => { if (!TABLES[k]) throw new Error('unknown table ' + m); return TABLES[k]; });
 
 // Content. Every item carries level tags from L.levels.
@@ -73,21 +88,23 @@ for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) {
 // Shared modules: lessons and two keyed checks per lesson. Lesson ids <prefix>-n, check ids <PREFIX>-nn.
 const MODS = [
   { id: 'operating-model', title: 'Operating model', prefix: 'om', data: require('./content/opmodel.js') },
-  { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') }
+  { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') },
+  { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') }
 ];
+const LINKS = require('./content/links.js');
 const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js');
 const allLessons = [].concat(...MODS.map(m => m.data.lessons)), allChecks = [].concat(...MODS.map(m => m.data.checks));
 const lessonIds = allLessons.map(l => l.id), checkIds = allChecks.map(c => c.id), promptIds = BP.prompts.map(p => p.id);
 const words = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
 for (const m of MODS) {
-  if (!sectionIds.some(x => x === 'cio-' + m.id)) errors.push('module ' + m.id + ' has no CIO section');
+  if (!laneIds.some(ln => sectionIds.indexOf(ln + '-' + m.id) !== -1)) errors.push('module ' + m.id + ' has no section in any lane');
   for (const l of m.data.lessons) {
     claim(l.id, 'lesson');
     if (!new RegExp('^' + m.prefix + '-\\d+$').test(l.id) || !l.title || !Array.isArray(l.body) || !l.body.length) errors.push(l.id + ': id ' + m.prefix + '-n, title and body required');
     if (!Array.isArray(l.levels) || !l.levels.length || l.levels.some(v => !levelIds.has(v))) errors.push(l.id + ': bad levels');
     for (const src of l.sources) if (!/^https:\/\//.test(src[1]) || !/^(Read|Relayed|Inferred)/.test(src[2])) errors.push(l.id + ': source needs an https link and a tier');
     for (const p of l.body) if (!/\((Read|Relayed|Inferred)/.test(p) && !/Going Concern|later phase|In an interview|At Director level/.test(p)) errors.push(l.id + ': every paragraph needs a tier tag: ' + p.slice(0, 50));
-    if (m.data.checks.filter(c => c.lesson === l.id).length !== 2) errors.push(l.id + ': needs exactly two checks');
+    { const n = m.data.checks.filter(c => c.lesson === l.id).length; if (n !== 2 && !(l.id === 'ec-6' && n === 4)) errors.push(l.id + ': needs two checks (ec-6: four, approved Nov 24)'); }
   }
   for (const c of m.data.checks) {
     claim(c.id, 'check');
@@ -99,23 +116,29 @@ for (const m of MODS) {
   }
 }
 // Every lane-tagged run, packet and role-play names one of its lane's sections.
-for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) if (sectionIds.indexOf(x.lane + '-' + x.section) === -1) errors.push(x.id + ': unknown section ' + x.section);
+for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) for (const ln of [x.lane].concat(x.alsoIn || [])) if (sectionIds.indexOf(ln + '-' + x.section) === -1) errors.push(x.id + ': unknown section ' + ln + '-' + x.section);
+// Links out: https only, to another app's published id; every active lane with a links section has a list.
+for (const ln in LINKS) { if (sectionIds.indexOf(ln + '-links') === -1) errors.push('links for ' + ln + ' but no links section');
+  for (const g of LINKS[ln]) for (const x of g.items) if (!/^https:\/\/claude\.ai\/artifact\/[A-Za-z0-9]+#[a-z0-9-]+$/.test(x.url) || !x.title || !x.app || !x.note) errors.push('link ' + (x.title || '?') + ': artifact URL with a route, title, app and note required'); }
+for (const id of sectionIds) if (/-links$/.test(id) && !LINKS[id.replace(/-links$/, '')]) errors.push(id + ': no links listed');
 // TMAY: five beats with budgets that add up to the target range (rounding allowed: one second each way).
 { const lo = TMAY.beats.reduce((a, b) => a + b.lo, 0), hi = TMAY.beats.reduce((a, b) => a + b.hi, 0);
   if (TMAY.beats.length !== 5 || Math.abs(lo - 60) > 1 || Math.abs(hi - 75) > 1) errors.push('TMAY: five beats summing to 60 and 75 seconds (got ' + lo + ', ' + hi + ')');
   if (TMAY.beats.filter(b => b.stressed).length !== 2) errors.push('TMAY: two stressed beats');
   if (TMAY.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'cio').roles)).sort().join()) errors.push('TMAY: one close per CIO-family title'); }
-const ROLES = new Set(L.lanes.find(l => l.id === 'cio').roles);
+const ROLES = {}; for (const ln of ACTIVE) ROLES[ln.id] = new Set(ln.roles);
 for (const p of BP.prompts) {
+  if (!p.lane) p.lane = 'cio';
+  if (!ROLES[p.lane]) errors.push(p.id + ': lane ' + p.lane + ' is not active');
   claim(p.id, 'prompt');
   if (!/^BP-\d\d$/.test(p.id) || !p.prompt || !p.tests || !p.level || !p.stories.length) errors.push(p.id + ': id, prompt, tests, level and stories required');
-  if (p.roles.some(r => !ROLES.has(r))) errors.push(p.id + ': unknown role');
+  if (p.roles.some(r => !(ROLES[p.lane] && ROLES[p.lane].has(r)))) errors.push(p.id + ': role not in lane ' + p.lane);
   if (!Array.isArray(p.levels) || !p.levels.length || p.levels.some(v => !levelIds.has(v))) errors.push(p.id + ': bad levels');
   for (const st of p.stories) if (!/^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(st.url)) errors.push(p.id + ': bad story link');
 }
 for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
-for (const r of ROLES) if (!BP.prompts.some(p => p.roles.indexOf(r) !== -1)) errors.push('no prompt for role ' + r);
-if (BP.prompts.length !== 10) errors.push('Phase 1 has 10 behavioral prompts');
+for (const ln in ROLES) for (const r of ROLES[ln]) if (!BP.prompts.some(p => p.lane === ln && p.roles.indexOf(r) !== -1)) errors.push('no prompt for ' + ln + ' role ' + r);
+if (BP.prompts.filter(p => p.lane === 'cio').length !== 10) errors.push('the CIO lane keeps its 10 behavioral prompts');
 
 // Published link ids: the build refuses to drop any.
 const PUB = path.join(here, 'published-ids.json');
@@ -135,7 +158,7 @@ const kitVersion = read('vendor/study-kit/VERSION').split('\n')[0].trim();
 // study-kit drops fields it does not know; carry lane and level tags across for the lane screen.
 for (const p of craft.packets) { const d = craftDefs.find(x => x.id === p.id); p.lane = d.lane; p.levels = d.levels; p.section = d.section; p.stages.forEach((s, i) => { s.level = d.stages[i].level; }); }
 const bank = { lanes: L.lanes, levels: L.levels, sections: L.sections, craft: craft.packets, runs: sims.runs, roleplays: sims.roleplays, kitVersion,
-  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY };
+  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY, links: LINKS };
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
 const json = JSON.stringify(bank).replace(/<\//g, '<\\/').split(LS).join('\\u2028').split(PS).join('\\u2029');
 const tpl = read('index.src.html');
@@ -145,4 +168,5 @@ const out = tpl.replace('__SHELL_CSS__', () => read('vendor/study-kit/shell.css'
   .replace('__STUDY_KIT__', () => kit).replace('__BANK__', () => json);
 fs.mkdirSync(path.join(here, 'build'), { recursive: true });
 fs.writeFileSync(path.join(here, 'build', 'index.html'), out);
+fs.writeFileSync(path.join(here, 'build', 'bank.json'), JSON.stringify(bank));   // for blind-check exports; not published
 console.log('study-kit', kitVersion, '· lanes', laneIds.length, '(active: ' + L.lanes.filter(l => l.active).map(l => l.id).join(', ') + ') · sections', sectionIds.length, '· craft', craft.packets.length, '(' + craft.packets.reduce((n, p) => n + p.stages.length, 0) + ' stages)', '· lessons', lessonIds.length, '· checks', checkIds.length, '· prompts', promptIds.length, '· math', mc.n + ' values, JS = Python', '· runs', sims.runs.length, '· role-plays', sims.roleplays.length, '· bytes', Buffer.byteLength(out));

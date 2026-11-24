@@ -1,0 +1,25 @@
+{
+ "note": "Tamsin Mutual Insurance (fictional): AI inventory and contracts left by the previous owner. Days are from the new Chief AI Officer's first Monday.",
+ "tools": [
+  { "name": "Claims fraud score", "use": "Flags claims for investigation", "owner": "Head of Claims", "source": "Vendor (Sentra)", "customerDecision": true, "tested": true, "cost": 210000, "contract": "A-01" },
+  { "name": "Auto pricing model", "use": "Sets motor premiums at quote", "owner": "Chief Actuary", "source": "In house", "customerDecision": true, "tested": true, "cost": 0, "contract": "" },
+  { "name": "Home underwriting triage", "use": "Declines or refers home applications", "owner": "", "source": "Vendor (Quarrel Labs)", "customerDecision": true, "tested": false, "cost": 95000, "contract": "A-03" },
+  { "name": "Website chat assistant", "use": "Answers policy questions for customers", "owner": "Head of Digital", "source": "Vendor (Tellwise)", "customerDecision": false, "tested": true, "cost": 64000, "contract": "A-04" },
+  { "name": "Claims letter drafting", "use": "Drafts settlement letters for handlers", "owner": "Head of Claims", "source": "Vendor (Tellwise)", "customerDecision": false, "tested": false, "cost": 38000, "contract": "A-04" },
+  { "name": "Office assistant pilot", "use": "Email and document help, 250 staff", "owner": "CIO", "source": "Vendor (Wingmate)", "customerDecision": false, "tested": true, "cost": 90000, "contract": "A-06" },
+  { "name": "Meeting notes tool", "use": "Bought on a card by the sales team", "owner": "", "source": "Vendor (Notely)", "customerDecision": false, "tested": false, "cost": 7200, "contract": "" },
+  { "name": "Document extraction", "use": "Reads medical reports for injury claims", "owner": "Head of Claims", "source": "Vendor (Docuvane)", "customerDecision": false, "tested": true, "cost": 120000, "contract": "A-08" },
+  { "name": "Agent commission forecast", "use": "Forecasts broker commissions", "owner": "CFO", "source": "In house", "customerDecision": false, "tested": true, "cost": 0, "contract": "" },
+  { "name": "Subrogation finder", "use": "Finds claims where a third party should pay", "owner": "", "source": "In house", "customerDecision": false, "tested": false, "cost": 0, "contract": "" },
+  { "name": "Marketing image generator", "use": "Makes social media images", "owner": "Head of Marketing", "source": "Vendor (Pixelorn)", "customerDecision": false, "tested": false, "cost": 4800, "contract": "" },
+  { "name": "Collections call scoring", "use": "Decides which overdue customers get a payment plan", "owner": "CFO", "source": "Vendor (Sentra)", "customerDecision": true, "tested": false, "cost": 56000, "contract": "A-01" }
+ ],
+ "contracts": [
+  { "id": "A-01", "vendor": "Sentra", "value": 266000, "renewDays": 210, "noticeDays": 90, "trainsOnData": false },
+  { "id": "A-03", "vendor": "Quarrel Labs", "value": 95000, "renewDays": 40, "noticeDays": 30, "trainsOnData": true },
+  { "id": "A-04", "vendor": "Tellwise", "value": 102000, "renewDays": 300, "noticeDays": 60, "trainsOnData": false },
+  { "id": "A-06", "vendor": "Wingmate", "value": 90000, "renewDays": 75, "noticeDays": 30, "trainsOnData": false },
+  { "id": "A-08", "vendor": "Docuvane", "value": 120000, "renewDays": 150, "noticeDays": 60, "trainsOnData": false }
+ ],
+ "regulatorDays": 120
+}

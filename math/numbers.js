@@ -178,6 +178,88 @@ function compute() {
   I.pv = { s1: k2(I.save1), cheapPlan: k2(I.cheapPlanned), s2: k2(I.save2),
     p80: k2(I.plan80), a80: k2(I.save80), p100: k2(I.plan100), a100: k2(I.save100), p150: k2(I.plan150), a150: k2(I.save150), self: -k2(I.selfGap) };
 
+  // ================================================================ Phase 2b: AI leadership lane (all fictional)
+  // ---------------------------------------------------------------- ec-6 cost per task, EC-11..EC-14
+  { const att = 0.04, tries = 1.5, revMin = 4, rate = 45, escPct = 2, escCost = 40, ftSetup = 18000, ftAtt = 0.02;
+    const model = r2(att * tries), review = r2(rate * revMin / 60), esc = r2(escPct / 100 * escCost), total = r2(model + review + esc);
+    const ftModel = r2(ftAtt * tries);
+    N.ec6 = { att, tries, revMin, rate, escPct, escCost, model, review, esc, total,
+      noEsc: r2(model + review), noReview: r2(model + esc),
+      reviewSharePct: Math.round(1000 * review / total) / 10,
+      halfReviewSave: r2(review / 2), halfModelSave: r2(model / 2), oneTrySave: r2(att * (tries - 1)), halfEscSave: r2(esc / 2),
+      ftSetup, ftAtt, ftModel, ftSaveEach: r2(model - ftModel), ftBreakEven: Math.round(ftSetup / (model - ftModel)) }; }
+
+  // ---------------------------------------------------------------- BRN-3 AI assistant rollout (hours a week = value)
+  { const staff = 5000, price = 28, L1 = 1200, vol = 300, actRate = 0.70, thinRate = 0.45, claimH = 5.0, measH = 1.6, midH = 3.3, E = 600, R = 150, disc3 = 15;
+    const A2 = Math.round(L1 * actRate), A2thin = Math.round(L1 * thinRate), L3 = L1 + E - R, A4 = A2 + Math.round(E * actRate);
+    const yr = n => r2(n * price * 12);
+    N.ro = { staff, price, L1, vol, actPct: 70, thinPct: 45, claimH, measH, midH, E, R, L3, A2, A2thin, A4, champions: L1 / 50, disc3,
+      yrL1: yr(L1), yrAll: yr(staff), yrVol: yr(vol), yrL3: yr(L3), yrA4: yr(A4), restAll: staff - L1 - E,
+      all3yr: r2(staff * price * 12 * (1 - disc3 / 100) * 3), allYr: r2(staff * price * 12 * (1 - disc3 / 100)),
+      perActiveAll: r2(staff * price * 12 * (1 - disc3 / 100) / A4), perActiveL3: r2(yr(L3) / A4),
+      h2meas: r2(A2 * measH), h2claim: r2(A2 * claimH), h2mid: r2(A2 * midH), h2lic: r2(L1 * claimH),
+      h4meas: r2(A4 * measH), h4claim: r2(A4 * claimH), inc4meas: r2((A4 - A2) * measH), inc4claim: r2((A4 - A2) * claimH),
+      thinDelta: A2thin - A2, cash: 180000, permReview: 60000, unlicensed: staff - L1, studyN: 40, unused: R, startH: 120, A4thin: A2thin + Math.round(E * actRate) };
+    const O = N.ro, d = O.thinDelta;
+    O.pv = { q2: { meas: O.h2meas, claim: O.h2claim, mid: O.h2mid, lic: O.h2lic },
+      thin: { meas: r2(d * measH), claim: r2(d * claimH), mid: r2(d * midH) },
+      q4: { meas: O.inc4meas, claim: O.inc4claim } };
+    O.best = r2(O.startH + O.h2meas + O.inc4meas); }
+
+  // ---------------------------------------------------------------- BRN-4 intake queue ($k a year of value)
+  { const total = 200, self = 60, dup = 40, dupDistinct = 8, vendor = 35, low = 25, build = 30, risk = 10, pods = 3, weeks = 8;
+    const after2 = total - self, after3 = after2 - dup + dupDistinct, after4 = after3 - vendor, after6 = after4 - 1;
+    N.iq = { total, self, dup, dupDistinct, vendor, low, build, risk, pods, weeks, podWeeks: pods * weeks,
+      after2, after3, after4, after6, claimsPods: 2, claimsWeeks: 4, claimsPw: 8, claimsK: 420, vpPw: 6, vpPlanK: 150, vpActK: 30,
+      vendorPw: vendor, pilotPlanK: 300, pilotLaunchK: 90, pilotWeeks: 6, pilotAcc: 71, pilotTarget: 90, startK: 200,
+      dupPairs: dup - dupDistinct };
+    N.iq.bestK = N.iq.startK + N.iq.claimsK; }
+
+  // ---------------------------------------------------------------- BR-8 triage 200 requests (data in data/br8.json)
+  { const D8 = require('../data/br8.json'), rows = D8.rows, shown = rows.slice(0, D8.shown);
+    const pen = { L: 0, M: 1, H: 4 };
+    const draft = r => 2 * r.value + r.feas, fixed = r => 2 * r.value + r.feas - pen[r.risk];
+    const cnt = c => rows.filter(r => r.cat === c).length;
+    const rank = (list, f) => list.slice().sort((a, b) => f(b) - f(a) || (a.id < b.id ? -1 : 1));
+    const draftTop = rank(shown, draft)[0];
+    const eligible = shown.filter(r => r.risk !== 'H' && (r.cat === 'build'));
+    const top = rank(eligible, fixed).slice(0, 5);
+    N.b8 = { total: rows.length, shown: shown.length, self: cnt('self'), dup: cnt('dup'), vendor: cnt('vendor'), low: cnt('low'), build: cnt('build'), risk: cnt('risk'),
+      high: rows.filter(r => r.risk === 'H').length, highShown: shown.filter(r => r.risk === 'H').length,
+      draftTopId: draftTop.id, draftTopScore: draft(draftTop), draftTopFixed: fixed(draftTop),
+      topIds: top.map(r => r.id).join(', '), topScores: top.map(r => fixed(r)).join(', '), topPw: top.reduce((a, r) => a + r.pw, 0),
+      buildPwAll: rows.filter(r => r.cat === 'build' && r.risk !== 'H').reduce((a, r) => a + r.pw, 0), capacityPw: 3 * 13 };
+    N.b8.afterRoute = N.b8.total - N.b8.self - N.b8.dup - N.b8.vendor - N.b8.low; }
+
+  // ---------------------------------------------------------------- BR-9 assistant business case (claimed vs measured)
+  { const seats = 2000, price = 30, pilot = 400, pilotActive = 260, surveyH = 4.5, studyN = 60, studyH = 1.2, weeks = 46, rate = 60, cash = 250000;
+    const actPct = Math.round(100 * pilotActive / pilot), active = Math.round(seats * pilotActive / pilot);
+    N.b9 = { seats, price, pilot, pilotActive, actPct, active, surveyH, studyN, studyH, weeks, rate, cash,
+      licence: r2(seats * price * 12), vendorCase: r2(seats * surveyH * weeks * rate), measCase: r2(active * studyH * weeks * rate),
+      measHours: r2(active * studyH), claimHours: r2(seats * surveyH),
+      breakEvenH: Math.round(100 * seats * price * 12 / (active * weeks * rate)) / 100,
+      overstateX: Math.round(10 * (seats * surveyH) / (active * studyH)) / 10 };
+    N.b9.cashGap = r2(N.b9.licence - N.b9.cash); }
+
+  // ---------------------------------------------------------------- BR-10 AI literacy program, 3,000 people
+  { const g = { exec: 40, mgr: 360, know: 1900, front: 700 }, rate = 50, delivery = 180000, champs = 60;
+    const staff = g.exec + g.mgr + g.know + g.front;
+    const h = { basics: staff * 1, role: (g.mgr + g.know) * 4, front: g.front * 2, champ: champs * 12, exec: g.exec * 3 };
+    const hours = h.basics + h.role + h.front + h.champ + h.exec;
+    N.b10 = { staff, exec: g.exec, mgr: g.mgr, know: g.know, front: g.front, champs, rate, delivery,
+      hBasics: h.basics, hRole: h.role, hFront: h.front, hChamp: h.champ, hExec: h.exec, hours,
+      timeCost: r2(hours * rate), total: r2(hours * rate + delivery), perHead: r2((hours * rate + delivery) / staff),
+      timeSharePct: Math.round(1000 * hours * rate / (hours * rate + delivery)) / 10 }; }
+
+  // ---------------------------------------------------------------- BR-11 first 90 days as CAIO (data in data/br11.json)
+  { const D = require('../data/br11.json'), T = D.tools, C = {}; D.contracts.forEach(c => { C[c.id] = c; });
+    const qa = C['A-03'], wm = C['A-06'];
+    N.b11 = { toolCount: T.length, toolCost: r2(T.reduce((a, x) => a + x.cost, 0)), decisions: T.filter(x => x.customerDecision).length,
+      decisionsUntested: T.filter(x => x.customerDecision && !x.tested).length, noOwner: T.filter(x => !x.owner).length,
+      noContract: T.filter(x => !x.contract && x.source !== 'In house').length, inHouse: T.filter(x => x.source === 'In house').length,
+      regDays: D.regulatorDays, qaNotice: qa.renewDays - qa.noticeDays, qaValue: qa.value, wmNotice: wm.renewDays - wm.noticeDays,
+      trains: D.contracts.filter(c => c.trainsOnData).length, contractTotal: r2(D.contracts.reduce((a, c) => a + c.value, 0)) }; }
+
   // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
   const W = [20, 19, 17, 26, 24], stress = [3, 2];
   const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);
@@ -193,6 +275,7 @@ function flat(o, p, out) { out = out || {}; for (const k in o) { const v = o[k],
 function fill(text, F) {
   return String(text).replace(/\{\{(\$?)([a-zA-Z0-9_.]+)\}\}/g, (m, d, k) => {
     if (!(k in F)) throw new Error('unknown placeholder ' + m);
+    if (typeof F[k] === 'string') { if (d) throw new Error('money placeholder on text ' + m); return F[k]; }   // ids and lists (BR-8)
     return d ? money(F[k]) : Number(F[k]).toLocaleString('en-US', { maximumFractionDigits: 2 });
   });
 }

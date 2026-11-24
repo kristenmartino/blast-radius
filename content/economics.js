@@ -1,4 +1,5 @@
-// Shared module: Technology economics. Five lessons and ten keyed checks (two per lesson). Draft until Kristen reviews.
+// Shared module: Technology economics. Six lessons and fourteen keyed checks (two per lesson; four for ec-6, approved Nov 24).
+// Draft until Kristen reviews. ec-6 and EC-11..EC-14 were added in Phase 2b for the AI leadership lane.
 // Tiers: Read (opened Nov 23-24, 2026), Relayed (search-result text, page not opened), Inferred (general practice).
 // Budgeting mechanics (NPV, IRR, payback) live in Going Concern; this module covers the decisions.
 'use strict';
@@ -10,7 +11,8 @@ const SRC = {
   azure: ['Microsoft Learn, Save compute costs with Azure Reservations', 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/save-compute-costs-reservations', 'Read'],
   finopsUnit: ['FinOps Foundation, Unit Economics capability', 'https://www.finops.org/framework/capabilities/unit-economics/', 'Relayed (search result text)'],
   claude: ['Claude API pricing (as an example of per-token pricing)', 'https://docs.claude.com/en/docs/about-claude/pricing', 'Relayed (search result text, Nov 24)'],
-  finopsCharge: ['FinOps Foundation, Invoicing & Chargeback capability', 'https://www.finops.org/framework/capabilities/invoicing-chargeback/', 'Read']
+  finopsCharge: ['FinOps Foundation, Invoicing & Chargeback capability', 'https://www.finops.org/framework/capabilities/invoicing-chargeback/', 'Read'],
+  claudePrompt: ['Claude docs, Prompt engineering overview: when to prompt engineer', 'https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview', 'Relayed (search result text, Nov 24; the page fetch needed approval)']
 };
 const lessons = [
   { id: 'ec-1', title: 'Total cost of ownership', levels: ['vp', 'c-level'],
@@ -47,7 +49,15 @@ const lessons = [
       'The order of savings usually runs: stop sending repeated input (caching), send work that can wait through batch, measure cost per unit of work, then commit to a baseline. (Inferred.)',
       'Fine-tuning and self-hosting change the cost shape from per-request to fixed: GPUs and staff cost money before the first request. Compute the break-even volume before switching, and set a trigger to revisit. The inference cost simulation in this lane works one through. (Inferred.)'
     ],
-    sources: [SRC.claude] }
+    sources: [SRC.claude] },
+  { id: 'ec-6', title: 'Cost per task: tokens, review and failures', levels: ['director', 'vp', 'c-level'],
+    body: [
+      t('Price an AI task the way the business pays for it: model cost per attempt times attempts, plus the time a person spends checking the output, plus the cost of errors that get through. With {{$ec6.att}} an attempt, {{ec6.tries}} attempts, {{ec6.revMin}} minutes of review at {{$ec6.rate}} an hour and {{ec6.escPct}}% of tasks escaping with a {{$ec6.escCost}} error, a task costs {{$ec6.total}}; review is {{ec6.reviewSharePct}}% of it (Inferred; figures are an invented example computed in this app).'),
+      'So the cheapest saving is often in the workflow: better prompts or retrieval that cut review time, or routing only uncertain cases to a person, before any change of model. (Inferred.)',
+      'Anthropic’s documentation lists reasons to try prompt engineering before fine-tuning: it uses the base model, which is typically cheaper; it gives results quickly; and it needs little labelled data, where fine-tuning needs task-specific data and incurs significant cost (Relayed, Claude docs, search result text).',
+      'Retrieval adds your own documents to each request, so the model can answer from current policy without retraining. Fine-tuning changes the model itself: it can lower the cost per call at high volume, but it has a setup cost and must be redone when the base model changes. Compute the break-even volume before choosing it. (Inferred.)'
+    ],
+    sources: [SRC.claudePrompt] }
 ];
 const checks = [
   { id: 'EC-01', lesson: 'ec-1', levels: ['vp', 'c-level'],
@@ -99,10 +109,30 @@ const checks = [
     stem: t('Self-hosting would cost {{$ec.selfFixed}} a month in GPUs and staff. The hosted model costs about {{$ec.perReq}} a request. Roughly where does self-hosting break even?'),
     options: ['About 870,000 requests a month', t('About {{ec.breakEvenM}} million requests a month'), 'About 87 million requests a month', 'It never breaks even'],
     answer: 1, why: t('{{$ec.selfFixed}} ÷ {{$ec.perReq}} is about {{ec.breakEvenM}} million requests a month, ignoring self-hosting’s own running costs.'),
-    whyNot: { 0: 'Off by a factor of ten.', 2: 'Off by a factor of ten.', 3: 'A fixed cost always breaks even at some volume.' } }
+    whyNot: { 0: 'Off by a factor of ten.', 2: 'Off by a factor of ten.', 3: 'A fixed cost always breaks even at some volume.' } },
+  { id: 'EC-11', lesson: 'ec-6', levels: ['director', 'vp', 'c-level'],
+    stem: t('A model call costs {{$ec6.att}} and a task takes {{ec6.tries}} attempts on average. A person reviews the final output once, for {{ec6.revMin}} minutes, at {{$ec6.rate}} an hour, and {{ec6.escPct}}% of tasks still go out with an error that costs {{$ec6.escCost}} to fix. What does one task cost?'),
+    options: [t('{{$ec6.model}}'), t('{{$ec6.total}}'), t('{{$ec6.noEsc}}'), t('{{$ec6.noReview}}')],
+    answer: 1, why: t('{{$ec6.model}} model + {{$ec6.review}} review + {{$ec6.esc}} errors = {{$ec6.total}} a task.'),
+    whyNot: { 0: 'Model cost only; the person’s time and the errors are left out.', 2: 'Leaves out the errors that get through.', 3: 'Leaves out the review time, the largest part.' } },
+  { id: 'EC-12', lesson: 'ec-6', levels: ['director', 'vp', 'c-level'],
+    stem: 'Same task. Which single change cuts the cost per task the most?',
+    options: ['Halve the model price', 'Halve the review time', 'Get every task right in one attempt', 'Halve the error rate'],
+    answer: 1, why: t('Halving review saves {{$ec6.halfReviewSave}} a task; halving the model price saves {{$ec6.halfModelSave}}, one attempt saves {{$ec6.oneTrySave}}, and halving errors saves {{$ec6.halfEscSave}}.'),
+    whyNot: { 0: t('Saves {{$ec6.halfModelSave}} a task.'), 2: t('Saves {{$ec6.oneTrySave}} a task.'), 3: t('Saves {{$ec6.halfEscSave}}: worth doing, but less than review.') } },
+  { id: 'EC-13', lesson: 'ec-6', levels: ['director', 'vp', 'c-level'],
+    stem: 'An assistant gives out-of-date answers about your returns policy, which changes every quarter. What is the first fix to try?',
+    options: ['Fine-tune the model on the policy', 'Retrieve the current policy document into each request', 'Switch to a larger model', 'Add a disclaimer to every answer'],
+    answer: 1, why: 'Retrieval answers from the current document; a fine-tune would need redoing every quarter.',
+    whyNot: { 0: 'The policy changes quarterly, so the fine-tune goes stale.', 2: 'A larger model still does not know your current policy.', 3: 'Warns about the problem without fixing it.' } },
+  { id: 'EC-14', lesson: 'ec-6', levels: ['vp', 'c-level'],
+    stem: t('Fine-tuning a smaller model costs {{$ec6.ftSetup}} once and cuts the model cost per task from {{$ec6.model}} to {{$ec6.ftModel}}. Review time does not change. How many tasks before it pays back?'),
+    options: ['60,000', t('{{ec6.ftBreakEven}}'), '6,000,000', 'It pays back on the first task'],
+    answer: 1, why: t('{{$ec6.ftSetup}} ÷ {{$ec6.ftSaveEach}} saved a task = {{ec6.ftBreakEven}} tasks, and the count restarts if a base-model change forces a new fine-tune.'),
+    whyNot: { 0: 'Off by a factor of ten.', 2: 'Off by a factor of ten.', 3: 'The setup cost comes first.' } }
 ];
 const { place } = require('./place.js');
-const POS = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1];
+const POS = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1, 3, 2, 0, 1];
 checks.forEach((c, i) => place(c, POS[i]));
 for (const x of lessons.concat(checks)) if (x.status === undefined) x.status = 'Draft';
 module.exports = { lessons, checks };
