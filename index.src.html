@@ -26,6 +26,14 @@ __KIT_CSS__
 .secrow .k { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
 .soon { font-family: var(--f-mono); font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
 .roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.items { display: grid; gap: 8px; margin-top: 6px; }
+.itemrow { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--board); color: var(--ink); text-decoration: none; min-height: 44px; }
+.itemrow:hover { border-color: var(--marker); }
+.itemrow .top { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; justify-content: space-between; }
+.itemrow b { font-size: 15.5px; overflow-wrap: anywhere; }
+.itemrow .k { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.prose p { font-size: 16px; line-height: 1.55; }
+.stem { font-size: 17px; font-weight: 600; line-height: 1.4; }
 .foot { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
 </style>
 </head>
@@ -107,17 +115,65 @@ __KIT_CSS__
         '<span class="st">' + (l.active ? (last && last.v === l.id ? 'Open · last visited' : 'Open') : 'Later') + '</span></button>').join('') +
       '</div></section>' + foot() + '</main>';
   }
+  const OM = BANK.opmodel, PROMPTS = BANK.prompts;
+  const showFor = item => { const on = levels(); return (item.levels || ALL).some(v => on.indexOf(v) !== -1); };
+  const levelName = id => (LEVELS.find(l => l.id === id) || {}).name || id;
+  const draftChip = '<span class="cchip draft">Draft</span>';
+  const hidden = n => n ? '<p class="note">' + n + ' more hidden by the level filter.</p>' : '';
+  function itemRow(href, title, meta, lv, extra) {
+    return '<a class="itemrow" href="' + esc(href) + '"><span class="top"><b>' + esc(title) + '</b>' + draftChip + '</span>' +
+      (meta ? '<span class="k">' + esc(meta) + '</span>' : '') + lvChips(lv) + (extra || '') + '</a>';
+  }
+  // What each built section lists. Unbuilt sections show their phase.
+  const SECTION_ITEMS = {
+    'operating-model': () => { const ls = OM.lessons.filter(showFor); return ls.map(l => itemRow('#lesson-' + l.id, l.title, 'Lesson · ' + OM.checks.filter(c => c.lesson === l.id).length + ' checks', l.levels)).join('') + hidden(OM.lessons.length - ls.length); },
+    'portfolio-cases': () => { const ps = BANK.craft.filter(p => p.lane === 'cio' && showFor(p)); return ps.map(p => itemRow('#packet-' + p.id.toLowerCase(), p.title, 'Craft packet · ' + p.stages.length + ' stages · you are the ' + p.role, p.levels)).join('') + hidden(BANK.craft.filter(p => p.lane === 'cio').length - ps.length); },
+    'renewal-sim': () => { const rs = BANK.runs.filter(r => r.lane === 'cio' && showFor(r)); return rs.map(r => itemRow('#run-' + r.id.toLowerCase(), r.title, 'Simulation · ' + r.steps.length + ' steps · numbers computed in code', r.levels)).join('') + hidden(BANK.runs.filter(r => r.lane === 'cio').length - rs.length); },
+    'behavioral': () => { const n = PROMPTS.filter(showFor).length; return itemRow('#prompts-cio', 'CIO-family behavioral prompts', n + ' of ' + PROMPTS.length + ' at your levels · mapped to the Master Story Bank', ALL); }
+  };
   function renderLane() {
     const l = laneById(VIEW.id);
     if (!l || !l.active) return host.go('home', {});
     const on = levels(), secs = SECTIONS[l.id] || [];
-    app.innerHTML = host.header(l.short + ' lane', 'home', '', 'Back to lanes', on.length === ALL.length ? 'All levels' : on.map(x => LEVELS.find(v => v.id === x).name).join(' · ')) +
+    app.innerHTML = host.header(l.short + ' lane', 'home', '', 'Back to lanes', on.length === ALL.length ? 'All levels' : on.map(levelName).join(' · ')) +
       '<main class="wrap"><section class="card" style="display:grid;gap:10px"><h2 class="ttl" style="font-size:19px">' + esc(l.name) + '</h2><p class="note">' + esc(l.blurb) + '</p>' +
       (l.roles ? '<div class="roles" aria-label="Role titles">' + l.roles.map(r => '<span class="pill">' + esc(r) + '</span>').join('') + '</div>' : '') + '</section>' +
       levelFilter() +
-      '<section aria-labelledby="sc-h"><div class="section-h"><h2 id="sc-h">Sections</h2><span class="hint">Draft content shows a Draft label</span></div><div class="card" style="padding-block:4px">' +
-      secs.map(s => '<div class="secrow" id="' + esc(l.id + '-' + s.id) + '"><div class="top"><b>' + esc(s.title) + '</b><span class="soon">Phase ' + s.phase + '</span></div><span class="k">' + esc(s.kind) + ' · not built yet</span></div>').join('') +
+      '<section aria-labelledby="sc-h"><div class="section-h"><h2 id="sc-h">Sections</h2><span class="hint">Everything here is Draft until reviewed</span></div><div class="card" style="padding-block:4px">' +
+      secs.map(s => { const fn = SECTION_ITEMS[s.id];
+        return '<div class="secrow" id="' + esc(l.id + '-' + s.id) + '"><div class="top"><b>' + esc(s.title) + '</b>' + (fn ? '<span class="k">' + esc(s.kind) + '</span>' : '<span class="soon">Phase ' + s.phase + '</span>') + '</div>' +
+          (fn ? '<div class="items">' + fn() + '</div>' : '<span class="k">' + esc(s.kind) + ' · not built yet</span>') + '</div>'; }).join('') +
       '</div></section>' + foot() + '</main>';
+  }
+  // Operating model lesson with its two checks. Answers are kept for this visit only.
+  const PICKS = {};
+  function renderLesson() {
+    const l = OM.lessons.find(x => x.id === VIEW.id);
+    if (!l) return host.go('lane', { id: 'cio' });
+    const i = OM.lessons.indexOf(l), next = OM.lessons[i + 1];
+    const checks = OM.checks.filter(c => c.lesson === l.id);
+    app.innerHTML = host.header('Operating model', 'lane', 'cio', 'Back to the CIO lane', (i + 1) + ' of ' + OM.lessons.length) +
+      '<main class="wrap"><article class="card prose" style="display:grid;gap:12px"><div class="row">' + draftChip + lvChips(l.levels) + '</div><h2 class="ttl" style="font-size:20px">' + esc(l.title) + '</h2>' +
+      l.body.map(p => '<p>' + esc(p) + '</p>').join('') +
+      (l.sources.length ? '<h3 class="k">Sources</h3><ul class="src">' + l.sources.map(s => '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[0]) + '</a> <span class="lvchip">' + esc(s[2]) + '</span></li>').join('') + '</ul>' : '<p class="note">No single source: tagged Inferred.</p>') +
+      '</article>' +
+      checks.map(c => { const pick = PICKS[c.id], done = pick !== undefined;
+        return '<section class="card" style="display:grid;gap:10px" id="check-' + esc(c.id.toLowerCase()) + '"><div class="row"><span class="qid">' + esc(c.id) + '</span>' + lvChips(c.levels) + '</div><p class="stem">' + esc(c.stem) + '</p><div class="opts">' +
+          c.options.map((o, j) => { const cls = !done ? '' : j === c.answer ? ' is-correct' : j === pick ? ' is-wrong' : '';
+            return '<button class="opt' + cls + '" data-act="check-pick" data-id="' + esc(c.id) + '" data-j="' + j + '"' + (done ? ' disabled' : '') + ' aria-pressed="' + (pick === j) + '"><span class="key">' + 'ABCD'[j] + '</span><span>' + esc(o) +
+              (done && j === c.answer ? '<span class="tag">Answer</span>' : done && j === pick ? '<span class="tag">Your pick</span>' : '') + '</span></button>'; }).join('') + '</div>' +
+          (done ? '<p class="verdict ' + (pick === c.answer ? 'ok' : 'bad') + '">' + (pick === c.answer ? 'Right' : 'Not quite') + '</p><p>' + esc(c.why) + '</p>' + (pick !== c.answer ? '<p class="note">' + esc(c.whyNot[pick]) + '</p>' : '') : '') + '</section>'; }).join('') +
+      '<div class="row">' + (next ? '<a class="btn btn-primary" href="#lesson-' + esc(next.id) + '">Next: ' + esc(next.title) + '</a>' : '') + '<a class="btn" href="#lane-cio">Back to the CIO lane</a></div>' + foot() + '</main>';
+  }
+  function renderPrompts() {
+    const ps = PROMPTS.filter(showFor);
+    app.innerHTML = host.header('Behavioral prompts', 'lane', 'cio', 'Back to the CIO lane', ps.length + ' of ' + PROMPTS.length) +
+      '<main class="wrap"><p class="note">Practise each prompt aloud with the stories listed. Story links open your Master Story Bank (copy of ' + esc(BANK.storyBankVersion) + '); this app only reads it.</p>' +
+      ps.map(p => '<section class="card" style="display:grid;gap:8px" id="prompt-' + esc(p.id.toLowerCase()) + '"><div class="row"><span class="qid">' + esc(p.id) + '</span>' + draftChip + lvChips(p.levels) + '</div>' +
+        '<p class="stem">' + esc(p.prompt) + '</p><div class="roles">' + p.roles.map(r => '<span class="pill">' + esc(r) + '</span>').join('') + '</div>' +
+        '<p><b>Tests:</b> ' + esc(p.tests) + '</p><p class="note"><b>By level:</b> ' + esc(p.level) + '</p>' +
+        '<ul class="src">' + p.stories.map(st => '<li><a href="' + esc(st.url) + '" target="_blank" rel="noopener">' + esc(st.ref + ': ' + st.title) + '</a></li>').join('') + '</ul></section>').join('') +
+      hidden(PROMPTS.length - ps.length) + levelFilter() + foot() + '</main>';
   }
   function foot() {
     const t = theme();
@@ -125,9 +181,10 @@ __KIT_CSS__
       '<p>Engines: study-kit ' + esc(BANK.kitVersion) + '. Claude grading and role-plays work when this page is open in Claude; everything else works without it.</p></footer>';
   }
 
-  const SCREENS = Object.assign({ home: renderHome, lane: renderLane }, craft.screens, sims.screens);
+  const SCREENS = Object.assign({ home: renderHome, lane: renderLane, lesson: renderLesson, prompts: renderPrompts }, craft.screens, sims.screens);
   const ACT = Object.assign({
     home() { history.replaceState(null, '', location.pathname + location.search); host.go('home', {}); },
+    'check-pick'(t) { const id = t.dataset.id; if (PICKS[id] !== undefined) return; PICKS[id] = +t.dataset.j; host.keepScroll(); },
     lane(t) { const l = laneById(t.dataset.id); if (!l || !l.active) return; prefs.put('lane', { ts: Date.now(), v: l.id }); history.replaceState(null, '', '#lane-' + l.id); host.go('lane', { id: l.id }); },
     level(t) { const id = t.dataset.id, on = levels(), i = on.indexOf(id); if (i === -1) on.push(id); else if (on.length > 1) on.splice(i, 1); else return host.toast('Keep at least one level on.'); setLevels(ALL.filter(x => on.indexOf(x) !== -1)); host.keepScroll(); },
     theme(t) { try { localStorage.setItem(THEME_KEY, t.dataset.id); } catch (e) { /* storage unavailable */ } applyTheme(t.dataset.id); host.keepScroll(); }
@@ -136,6 +193,9 @@ __KIT_CSS__
 
   // Routes: dash form only (#lane-cio). Craft and Simulations route their own (#stage-br-1-1, #run-brn-1).
   function route(h) {
+    let lm = /^#lesson-(om-\d+)$/.exec(h || '');
+    if (lm && OM.lessons.some(l => l.id === lm[1])) { host.go('lesson', { id: lm[1] }); return true; }
+    if (h === '#prompts-cio') { host.go('prompts', {}); return true; }
     const m = /^#lane-([a-z0-9-]+)$/.exec(h || '');
     if (m) { const l = laneById(m[1]); if (l && l.active) { host.go('lane', { id: l.id }); return true; } host.go('home', {}); return true; }
     return craft.route(h) || sims.route(h);

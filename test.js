@@ -42,6 +42,12 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await fit(page, tag + ' home');
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
     await fit(page, tag + ' CIO lane');
+    for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#stage-br-1-2', '#stage-br-6-1', '#run-brn-1']) {
+      await page.goto(URL + h); await page.waitForTimeout(150); await fit(page, tag + ' ' + h);
+    }
+    await page.goto(URL + '#lesson-om-3'); await page.waitForSelector('[data-act="check-pick"]');
+    await page.locator('[data-act="check-pick"]').first().click(); await page.waitForSelector('.verdict');
+    await fit(page, tag + ' lesson with a checked answer');
     await page.goto(URL + '#craft'); await page.waitForTimeout(150); await fit(page, tag + ' craft list');
     await page.goto(URL + '#sims'); await page.waitForTimeout(150); await fit(page, tag + ' sims list');
     // the forced themes too (the switch sets data-theme)
@@ -85,6 +91,68 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await act(page, 'theme', 'system');
     ok(await page.evaluate(() => document.documentElement.hasAttribute('data-theme')) === false, 'system theme clears the override');
     ok(await page.evaluate(() => window.StudyKit.version) === 'v0.2.0' || await page.evaluate(() => /0\.2\.0/.test(window.StudyKit.version)), 'study-kit v0.2.0 loaded');
+    await ctx.close();
+  }
+
+  // ---- 2b. Phase 1 content: lane lists, level filter on content, lessons, prompts, packets, the sim's best path
+  {
+    const { ctx, page } = await newPage();
+    const BANK = await (async () => { await page.goto(URL); await page.waitForSelector('.lanebtn'); return page.evaluate(() => BANK); })();
+    await page.goto(URL + '#lane-cio'); await page.waitForSelector('.itemrow');
+    ok(await page.locator('#cio-operating-model .itemrow').count() === 6, 'lane lists 6 lessons');
+    ok(await page.locator('#cio-portfolio-cases .itemrow').count() === 6, 'lane lists 6 cases');
+    ok(await page.locator('#cio-renewal-sim .itemrow').count() === 1 && await page.locator('#cio-behavioral .itemrow').count() === 1, 'lane lists the sim and the prompts');
+    ok(await page.locator('#cio-first-90 .soon').count() === 1, 'Phase 2 sections still marked');
+    ok(await page.locator('.itemrow .cchip.draft').count() === 14, 'every built item carries a Draft label');
+    // C-level only: the Director-only case and Director/VP items drop out
+    await act(page, 'level', 'director'); await act(page, 'level', 'vp');
+    const cases = await page.locator('#cio-portfolio-cases .itemrow b').allTextContents();
+    ok(cases.length === 3 && cases.indexOf('Sunsetting a legacy order system') === -1, 'C-level filter: cases ' + cases.join(' / '));
+    ok(await page.locator('#cio-renewal-sim .itemrow').count() === 0 && /1 more hidden/.test(await page.locator('#cio-renewal-sim').textContent()), 'C-level filter hides the Director/VP sim and says so');
+    ok(await page.locator('#cio-operating-model .itemrow').count() === 5, 'C-level filter: 5 lessons');
+    await act(page, 'level', 'director'); await act(page, 'level', 'vp');
+    // lesson: answer one check right and one wrong
+    await page.goto(URL + '#lesson-om-1'); await page.waitForSelector('[data-act="check-pick"]');
+    const c1 = BANK.opmodel.checks.find(c => c.id === 'OM-01'), c2 = BANK.opmodel.checks.find(c => c.id === 'OM-02');
+    await page.locator('[data-act="check-pick"][data-id="OM-01"][data-j="' + c1.answer + '"]').click(); await page.waitForTimeout(80);
+    const wrong = (c2.answer + 1) % 4;
+    await page.locator('[data-act="check-pick"][data-id="OM-02"][data-j="' + wrong + '"]').click(); await page.waitForTimeout(80);
+    const v = await page.locator('.verdict').allTextContents();
+    ok(v.join() === 'Right,Not quite', 'checks mark right and wrong ' + v.join());
+    ok(await page.locator('#check-om-02 .is-correct').count() === 1 && await page.locator('#check-om-02 .is-wrong').count() === 1, 'wrong pick shows the answer and the pick');
+    ok((await page.locator('#check-om-02').textContent()).indexOf(c2.whyNot[wrong]) !== -1, 'wrong pick shows its whyNot');
+    ok(await page.locator('#check-om-02 [data-act="check-pick"]:not([disabled])').count() === 0, 'answered check locks');
+    ok(await page.locator('.src a[href^="https://"]').count() === 2, 'lesson 1 lists its two sources');
+    await page.locator('a.btn-primary').click(); await page.waitForTimeout(150);
+    ok(/#lesson-om-2$/.test(page.url()), 'Next goes to lesson 2');
+    await act(page, 'lane', 'cio'); await page.waitForSelector('.itemrow');
+    ok(/#lane-cio$/.test(page.url()), 'lesson back button returns to the lane');
+    // answer positions are spread
+    const pos = BANK.opmodel.checks.map(c => c.answer).concat(BANK.runs[0].steps.map(s => s.answer));
+    ok([0, 1, 2, 3].every(j => pos.filter(x => x === j).length >= 3), 'answer positions spread across A to D ' + pos.join(''));
+    // prompts
+    await page.goto(URL + '#prompts-cio'); await page.waitForSelector('.stem');
+    ok(await page.locator('.stem').count() === 10, '10 prompts');
+    const hrefs = await page.locator('.src a').evaluateAll(a => a.map(x => x.getAttribute('href')));
+    ok(hrefs.length >= 13 && hrefs.every(h => /^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(h)), 'story links point at Story Bank cards (' + hrefs.length + ')');
+    for (const r of ['CIO', 'Director of IT', 'VP Business Systems', 'Head of Enterprise Applications']) ok((await page.locator('.roles .pill').allTextContents()).indexOf(r) !== -1, 'prompts cover ' + r);
+    // packets and stages: numbers filled, no placeholders anywhere in the page data
+    ok(!/\{\{/.test(JSON.stringify(BANK)), 'no unfilled {{placeholders}} in the page data');
+    await page.goto(URL + '#packet-br-1'); await page.waitForTimeout(200);
+    ok(/Two ERPs after an acquisition/.test(await page.locator('main').textContent()), 'packet BR-1 opens');
+    await page.goto(URL + '#stage-br-1-2'); await page.waitForSelector('#craft-text');
+    ok(/Three-year cost/.test(await page.locator('main').textContent()), 'stage BR-1.2 opens');
+    ok(BANK.craft[0].stages[1].checklist.indexOf('Option A totals $2,380,500') !== -1, 'checklist numbers filled from the math module');
+    // sim: best path ends at 100% predictability and the top ending
+    await page.goto(URL + '#run-brn-1'); await page.waitForSelector('.opts');
+    const steps = BANK.runs[0].steps;
+    for (let i = 0; i < steps.length; i++) {
+      await page.locator('[data-act="run-pick"][data-j="' + steps[i].answer + '"]').click(); await page.waitForTimeout(120);
+      const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+    }
+    const end = await page.locator('main').textContent();
+    ok(/100(\.0)?%/.test(end) && /A renewal the CFO trusts/.test(end), 'sim best path: 100% and the top ending');
+    await fit(page, '390 sim result');
     await ctx.close();
   }
 
