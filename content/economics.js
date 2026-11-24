@@ -12,6 +12,9 @@ const SRC = {
   finopsUnit: ['FinOps Foundation, Unit Economics capability', 'https://www.finops.org/framework/capabilities/unit-economics/', 'Relayed (search result text)'],
   claude: ['Claude API pricing (as an example of per-token pricing)', 'https://docs.claude.com/en/docs/about-claude/pricing', 'Relayed (search result text, Nov 24)'],
   finopsCharge: ['FinOps Foundation, Invoicing & Chargeback capability', 'https://www.finops.org/framework/capabilities/invoicing-chargeback/', 'Read'],
+  snowflake: ['Snowflake docs, Understanding compute cost', 'https://docs.snowflake.com/en/user-guide/cost-understanding-compute', 'Read'],
+  bigquery: ['Google Cloud, BigQuery pricing', 'https://cloud.google.com/bigquery/pricing', 'Read'],
+  finopsUnitRead: ['FinOps Foundation, Unit Economics capability', 'https://www.finops.org/framework/capabilities/unit-economics/', 'Read'],
   claudePrompt: ['Claude docs, Prompt engineering overview: when to prompt engineer', 'https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview', 'Relayed (search result text, Nov 24; the page fetch needed approval)']
 };
 const lessons = [
@@ -57,7 +60,23 @@ const lessons = [
       'Anthropic’s documentation lists reasons to try prompt engineering before fine-tuning: it uses the base model, which is typically cheaper; it gives results quickly; and it needs little labelled data, where fine-tuning needs task-specific data and incurs significant cost (Relayed, Claude docs, search result text).',
       'Retrieval adds your own documents to each request, so the model can answer from current policy without retraining. Fine-tuning changes the model itself: it can lower the cost per call at high volume, but it has a setup cost and must be redone when the base model changes. Compute the break-even volume before choosing it. (Inferred.)'
     ],
-    sources: [SRC.claudePrompt] }
+    sources: [SRC.claudePrompt] },
+  { id: 'ec-7', title: 'How warehouses and lakehouses bill', levels: ['vp', 'c-level'],
+    body: [
+      'Snowflake’s documentation says warehouse credits are billed per second with a 60-second minimum, and that each start or resume bills one minute. Its example shows a Small warehouse using 2 credits an hour and a Medium using 4 (Read, Snowflake docs, Understanding compute cost).',
+      t('Work it through with an invented credit price of {{$ec7.credPrice}}. A Medium warehouse that wakes {{ec7.wakes}} times a day for {{ec7.runSec}} seconds of work bills {{ec7.billedSec}} seconds a day, {{ec7.credDay}} credits, {{$ec7.monthCost}} over {{ec7.days}} days. Counting only the work seconds gives {{$ec7.noMinCost}}; leaving it running all day gives {{$ec7.allDayCost}} (Inferred; the workload and credit price are made up, computed in this app).'),
+      t('BigQuery lists two ways to pay: on demand at $6.25 per TiB scanned with the first TiB each month free, or capacity pricing at $0.04 per slot-hour on the Standard edition, billed per second with a one-minute minimum (Read, Google Cloud, BigQuery pricing). {{ec7.slots}} slots held for {{ec7.hrs}} hours cost {{$ec7.slotMonth}} a month, which equals on-demand pricing at about {{ec7.breakTib}} TiB scanned (ignoring the free TiB).'),
+      'Each product bills a different unit: a second of compute, a slot-hour, a byte scanned. Before you approve a platform spend, ask three questions: what unit is billed, what is the minimum charge, and what keeps running when nobody is using it. (Inferred.)'
+    ],
+    sources: [SRC.snowflake, SRC.bigquery] },
+  { id: 'ec-8', title: 'Unit cost of data and chargeback', levels: ['vp', 'c-level'],
+    body: [
+      'The FinOps Foundation describes unit economics as the link between what an organization spends on technology and the value that spending produces. Units can be per customer, per transaction or per case resolved, or per GB or per token. It advises having Finance validate the assumptions and check that the sources reconcile, and retiring a metric that no longer serves its purpose (Read, FinOps Foundation, Unit Economics).',
+      'The same source separates showback from chargeback. Showback shows each group the costs of the scope it owns. Chargeback posts those costs to official accounting budgets, depends on accounting policy, and may not be worth the effort when costs map to one or a few cost centers. Finance and the FinOps team decide together whether shared costs are held centrally or allocated by consumption (Read, FinOps Foundation, Invoicing & Chargeback).',
+      t('Example with invented figures. A data platform costs {{$ec8.total}} a month: {{$ec8.dSales}} tagged to Sales, {{$ec8.dMkt}} to Marketing, {{$ec8.dFin}} to Finance and {{$ec8.shared}} shared. Queries split {{ec8.shSales}}% Sales, {{ec8.shMkt}}% Marketing and {{ec8.shFin}}% Finance, so allocating the shared cost by queries gives fully loaded costs of {{$ec8.lSales}}, {{$ec8.lMkt}} and {{$ec8.lFin}}. The platform costs {{$ec8.unit1}} per 1,000 queries (Inferred; computed in this app).'),
+      t('Report unit cost next to total cost. In month 6 the platform costs {{$ec8.m6cost}} for {{ec8.m6q}} queries: total spend is up {{ec8.costUpPct}}%, and cost per 1,000 queries is {{$ec8.unit6}}, down {{ec8.unitDownPct}}%. Choose an allocation key the business units can see and influence, and publish the rules before the first bill. (Inferred.)')
+    ],
+    sources: [SRC.finopsUnitRead, SRC.finopsCharge] }
 ];
 const checks = [
   { id: 'EC-01', lesson: 'ec-1', levels: ['vp', 'c-level'],
@@ -130,9 +149,30 @@ const checks = [
     options: ['60,000', t('{{ec6.ftBreakEven}}'), '6,000,000', 'It pays back on the first task'],
     answer: 1, why: t('{{$ec6.ftSetup}} ÷ {{$ec6.ftSaveEach}} saved a task = {{ec6.ftBreakEven}} tasks, and the count restarts if a base-model change forces a new fine-tune.'),
     whyNot: { 0: 'Off by a factor of ten.', 2: 'Off by a factor of ten.', 3: 'The setup cost comes first.' } }
+,
+  { id: 'EC-15', lesson: 'ec-7', levels: ['vp', 'c-level'],
+    stem: t('A Medium warehouse (4 credits an hour) wakes {{ec7.wakes}} times a day for {{ec7.runSec}} seconds of work each time, for {{ec7.days}} days, at {{$ec7.credPrice}} a credit. Billing is per second with a 60-second minimum at each start. What does it cost a month?'),
+    options: [t('{{$ec7.noMinCost}}, the work seconds only'), t('{{$ec7.monthCost}}, one minute billed per wake'), t('{{$ec7.allDayCost}}, as if it ran all day'), t('{{$ec7.hourlyCost}}, one full hour billed per wake')],
+    answer: 1, why: t('Each wake bills 60 seconds, so {{ec7.wakes}} wakes bill {{ec7.billedSec}} seconds, {{ec7.credDay}} credits a day and {{ec7.credMonth}} credits a month: {{$ec7.monthCost}}.'),
+    whyNot: { 0: t('Counts the work seconds and ignores the minute billed at each start; that gives {{$ec7.noMinCost}}.'), 2: t('The always-on cost, {{$ec7.allDayCost}}, assumes it never suspends.'), 3: 'Bills a full hour for every wake; the minimum is one minute.' } },
+  { id: 'EC-16', lesson: 'ec-7', levels: ['vp', 'c-level'],
+    stem: t('BigQuery on demand costs $6.25 per TiB scanned. {{ec7.slots}} Standard-edition slots at $0.04 a slot-hour run all {{ec7.hrs}} hours of a month. Ignoring the free first TiB, about how many TiB scanned a month make the two cost the same?'),
+    options: [t('{{ec7.tenthTib}} TiB, a tenth of the answer'), t('{{ec7.breakTib}} TiB, slot cost divided by the TiB price'), t('{{ec7.wrongTib}} TiB, ten times the answer'), t('{{ec7.slotMonth}} TiB, the slot cost as a scan volume')],
+    answer: 1, why: t('{{ec7.slots}} slots × {{ec7.hrs}} hours × $0.04 = {{$ec7.slotMonth}}, and {{$ec7.slotMonth}} ÷ $6.25 = {{ec7.breakTib}} TiB. Below that volume on-demand is cheaper; above it the slots are.'),
+    whyNot: { 0: 'Moves the decimal point one place too far left.', 2: 'Moves the decimal point one place too far right.', 3: 'The dollar cost of the slots, read as a number of TiB.' } },
+  { id: 'EC-17', lesson: 'ec-8', levels: ['vp', 'c-level'],
+    stem: t('A data platform costs {{$ec8.total}} a month: {{$ec8.dSales}} tagged to Sales, {{$ec8.dMkt}} to Marketing, {{$ec8.dFin}} to Finance and {{$ec8.shared}} shared. Queries were Sales {{ec8.qSales}}, Marketing {{ec8.qMkt}} and Finance {{ec8.qFin}}. Allocating the shared cost by queries, what is Marketing’s fully loaded cost?'),
+    options: [t('{{$ec8.evenMkt}}, the shared cost split three ways'), t('{{$ec8.lMkt}}, its tagged cost plus {{ec8.shMkt}}% of the shared cost'), t('{{$ec8.dMkt}}, its tagged cost only'), t('{{$ec8.thirds}}, a third of the total')],
+    answer: 1, why: t('Marketing ran {{ec8.shMkt}}% of the queries, so it takes {{$ec8.aMkt}} of the shared cost on top of {{$ec8.dMkt}}: {{$ec8.lMkt}}.'),
+    whyNot: { 0: 'An even split ignores who used the platform.', 2: 'Leaves the shared cost with nobody, so the three groups would not add up to the bill.', 3: 'Ignores both the tags and the usage.' } },
+  { id: 'EC-18', lesson: 'ec-8', levels: ['vp', 'c-level'],
+    stem: t('Month 1 cost {{$ec8.total}} for {{ec8.qTot}} queries. Month 6 costs {{$ec8.m6cost}} for {{ec8.m6q}} queries. The CFO notes that spend is up. What do you report?'),
+    options: ['Total spend is up, so cost control has failed and the platform needs a spending cap before any new work', t('Cost per 1,000 queries fell from {{$ec8.unit1}} to {{$ec8.unit6}} while total spend rose {{ec8.costUpPct}}%; report both and what drove the volume'), 'Query volume is up, so adoption is working and the total bill is the business units’ concern, not the platform’s', 'Cost per query cannot be reported until every business unit agrees on what counts as a query'],
+    answer: 1, why: t('Cost per 1,000 queries fell {{ec8.unitDownPct}}% while volume rose {{ec8.qUpPct}}%. Total cost and unit cost answer different questions, so give the CFO both.'),
+    whyNot: { 0: 'A cap on the total would also cap the use that brought the unit cost down.', 2: 'Volume alone says nothing about whether the spend is worth it; the CFO asked about cost.', 3: 'Waiting for agreement delays the number; publish the definition you used and change it if the units object.' } }
 ];
 const { place } = require('./place.js');
-const POS = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1, 3, 2, 0, 1];
+const POS = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1, 3, 2, 0, 1, 0, 2, 1, 3];
 checks.forEach((c, i) => place(c, POS[i]));
 for (const x of lessons.concat(checks)) if (x.status === undefined) x.status = 'Draft';
 module.exports = { lessons, checks };
