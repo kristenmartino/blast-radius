@@ -1,0 +1,19 @@
+# Blast Radius
+
+Technology leadership study app (executive layer). Plan of record: `claude/tech-leadership-app-plan.md` in the claude.ai Project "Interview, Cert Exam, and Career Prep Apps". Status and handoffs: `claude/blast-radius-status.md`. Shared rules: `claude/study-apps-index.md`.
+
+## Rules
+- Engines come from study-kit, pinned in `vendor/study-kit/VERSION` (v0.2.0, ba9cff8). Never edit `vendor/study-kit/` by hand: engine fixes go to study-kit, get a new tag, and are copied in.
+- Routes use the dash form only (`#lane-cio`, `#stage-br-1-1`, `#run-brn-1`). study-kit v0.2.0's `craft.route` rejects dots.
+- Never rename or drop a published id. `build.js` refuses to build if an id in `published-ids.json` is missing. After a publish, run `node build.js --record`.
+- Every content item carries `lane` and `levels` (director, vp, c-level). Lane names use full titles; no bare colliding acronyms (CDO, CRO, CPO, CCO).
+- Role-plays: rules `guarded`, `noCoaching`, `noUnpromptedOffer` and scoring `outcomeAgreesWithScore`, `verifiedQuotes` are on (as in Inspect & Adapt V34).
+- New content: helper drafts, blind check by a second model, all arithmetic in code and checked two ways, Draft label until Kristen reviews. Claim tags: Measured, Read, Relayed, Inferred, Untested.
+- Master Story Bank is read-only.
+- Work on a branch and open a pull request; never push to main or force-push.
+
+## Build and test
+```sh
+node build.js        # build/index.html
+node test.js         # Playwright: 360/390/414 px in light and dark, lane picker, level filter, idle-write check
+```

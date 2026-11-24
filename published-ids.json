@@ -1,0 +1,26 @@
+{
+ "note": "Link ids already published (lanes, levels, sections, craft, sims). Links from other apps depend on them; never remove or rename one. Run `node build.js --record` after a publish.",
+ "lanes": [
+  "cio",
+  "ai-leadership",
+  "data-leadership",
+  "cto",
+  "ciso"
+ ],
+ "levels": [
+  "director",
+  "vp",
+  "c-level"
+ ],
+ "sections": [
+  "cio-operating-model",
+  "cio-portfolio-cases",
+  "cio-renewal-sim",
+  "cio-behavioral",
+  "cio-first-90",
+  "cio-role-plays",
+  "cio-tmay"
+ ],
+ "craft": [],
+ "sims": []
+}
