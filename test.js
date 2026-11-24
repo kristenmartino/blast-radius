@@ -30,6 +30,8 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     if (init) await ctx.addInitScript(init);
     const page = await ctx.newPage(); page.setDefaultTimeout(6000);
     page.on('pageerror', e => errs.push(e.message));
+    // The claude.ai artifact frame refuses native dialogs, so any alert/confirm/prompt is a failure here.
+    page.on('dialog', d => { errs.push('native ' + d.type() + ' dialog: ' + d.message()); d.dismiss(); });
     page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     return { ctx, page };
   };
@@ -328,6 +330,31 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.locator('[data-act="level"][aria-pressed="true"]').count() === 2, 'second device: filter comes from the account');
     const n3 = await page.evaluate(() => Object.assign({}, window.__sets));
     ok(JSON.stringify(n3) === '{}', 'second device: loading writes nothing (' + JSON.stringify(n3) + ')');
+    await ctx.close();
+  }
+
+  // Clear feedback history asks in an in-page dialog (Nov 24, 2026: the artifact frame refuses window.confirm)
+  for (const scheme of ['light', 'dark']) {
+    const { ctx, page } = await newPage({ viewport: { width: 360, height: 800 }, colorScheme: scheme }, () => {
+      const mk = p => { const n = Number(/x(\d+) in checklist order/.exec(p)[1]); return { items: Array.from({ length: n }, (_, i) => ({ status: i ? 'meets' : 'partly', why: 'Reason.', rewrite: i ? '' : 'Name the deadline.' })), works: 'Clear.', optional: '', changed_mind: '' }; };
+      const sample = async () => ({ text: '' }); sample.json = async p => mk(p);
+      window.claude = { use: async n => n === 'sample' ? sample : null };
+    });
+    const L = 'confirm ' + scheme;
+    await page.goto(URL + '#stage-br-1-1'); await page.waitForSelector('#craft-text');
+    await page.locator('#craft-text').fill('Facts: the two ERPs and the renewal date. Opinions: the vendor pitch. Deadline: the renewal notice.');
+    await act(page, 'fb-ask'); await page.waitForSelector('.fbx .fblist');
+    await act(page, 'fb-reset'); await page.waitForSelector('[role="alertdialog"]');
+    ok(/Clear feedback history\?/.test(await page.locator('[role="alertdialog"]').textContent()), L + ': in-page dialog shows the question');
+    ok(await page.evaluate(() => document.activeElement && document.activeElement.dataset.cfm) === 'cancel', L + ': focus starts on Cancel');
+    await fit(page, L + ' dialog open');
+    await page.keyboard.press('Escape');
+    ok(await page.locator('[role="alertdialog"]').count() === 0 && await page.locator('.fblist').count() === 1, L + ': Escape keeps the feedback');
+    await act(page, 'fb-reset'); await page.locator('[data-cfm="cancel"]').click();
+    ok(await page.locator('.fblist').count() === 1, L + ': Cancel keeps the feedback');
+    await act(page, 'fb-reset'); await page.locator('[data-cfm="ok"]').click();
+    await page.waitForFunction(() => !document.querySelector('.fblist'));
+    ok(/renewal notice/.test(await page.locator('#craft-text').inputValue()), L + ': Clear removes the rounds and keeps the answer');
     await ctx.close();
   }
 
