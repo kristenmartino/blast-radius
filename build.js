@@ -32,6 +32,15 @@ const { compute, flat, fill, money } = require('./math/numbers.js');
 const mc = require('./math/check.js').check();
 if (mc.errs.length) errors.push('math cross-check failed:\n  ' + mc.errs.join('\n  '));
 const NUM = compute(), FL = flat(NUM);
+// {{table:b7.apps}} and {{table:b7.contracts}} render data/br7.json as markdown tables, so the packet and the math read one source.
+const D7 = require('./data/br7.json');
+const TABLES = {
+  'b7.apps': ['| Application | Function | Business owner | Users | Annual cost | Contract |', '|---|---|---|---|---|---|']
+    .concat(D7.apps.map(a => '| ' + a.name + ' | ' + a.fn + ' | ' + (a.owner || '—') + ' | ' + a.users.toLocaleString('en-US') + ' | ' + money(a.cost) + ' | ' + (a.contract || 'In house') + ' |')).join('\n'),
+  'b7.contracts': ['| Contract | Vendor | Annual value | Renews in | Notice | Auto-renews for |', '|---|---|---|---|---|---|']
+    .concat(D7.contracts.map(c => '| ' + c.id + ' | ' + c.vendor + ' | ' + money(c.value) + ' | ' + c.renewDays + ' days | ' + c.noticeDays + ' days | ' + c.autoYears + (c.autoYears === 1 ? ' year' : ' years') + ' |')).join('\n')
+};
+const tables = t => t.replace(/\{\{table:([a-z0-9.]+)\}\}/g, (m, k) => { if (!TABLES[k]) throw new Error('unknown table ' + m); return TABLES[k]; });
 
 // Content. Every item carries level tags from L.levels.
 // Craft: fill {{placeholders}} in craft-src/*.md and in the checklists, then parse with study-kit.
@@ -39,7 +48,7 @@ const craftDefs = require('./craft-stages.js');
 const craftDir = path.join(here, 'build', 'craft');
 fs.mkdirSync(craftDir, { recursive: true });
 for (const d of craftDefs) {
-  try { fs.writeFileSync(path.join(craftDir, d.file), fill(fs.readFileSync(path.join(here, 'craft-src', d.file), 'utf8'), FL)); }
+  try { fs.writeFileSync(path.join(craftDir, d.file), fill(tables(fs.readFileSync(path.join(here, 'craft-src', d.file), 'utf8')), FL)); }
   catch (e) { errors.push(d.id + ': ' + e.message); }
   for (const st of d.stages) {
     try { st.checklist = st.checklist.map(c => fill(c, FL)); } catch (e) { errors.push(st.id + ': ' + e.message); }
@@ -61,25 +70,41 @@ for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) {
 }
 
 // Operating model module and behavioral prompts.
-const OM = require('./content/opmodel.js'), BP = require('./content/prompts.js');
-const lessonIds = OM.lessons.map(l => l.id), checkIds = OM.checks.map(c => c.id), promptIds = BP.prompts.map(p => p.id);
+// Shared modules: lessons and two keyed checks per lesson. Lesson ids <prefix>-n, check ids <PREFIX>-nn.
+const MODS = [
+  { id: 'operating-model', title: 'Operating model', prefix: 'om', data: require('./content/opmodel.js') },
+  { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') }
+];
+const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js');
+const allLessons = [].concat(...MODS.map(m => m.data.lessons)), allChecks = [].concat(...MODS.map(m => m.data.checks));
+const lessonIds = allLessons.map(l => l.id), checkIds = allChecks.map(c => c.id), promptIds = BP.prompts.map(p => p.id);
 const words = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
-for (const l of OM.lessons) {
-  claim(l.id, 'lesson');
-  if (!/^om-\d+$/.test(l.id) || !l.title || !Array.isArray(l.body) || !l.body.length) errors.push(l.id + ': id om-n, title and body required');
-  if (!Array.isArray(l.levels) || !l.levels.length || l.levels.some(v => !levelIds.has(v))) errors.push(l.id + ': bad levels');
-  for (const s of l.sources) if (!/^https:\/\//.test(s[1]) || !/^(Read|Relayed|Inferred)/.test(s[2])) errors.push(l.id + ': source needs an https link and a tier');
-  for (const p of l.body) if (!/\((Read|Relayed|Inferred)/.test(p) && !/Going Concern|later phase|In an interview|At Director level/.test(p)) errors.push(l.id + ': every paragraph needs a tier tag: ' + p.slice(0, 50));
-  if (OM.checks.filter(c => c.lesson === l.id).length !== 2) errors.push(l.id + ': needs exactly two checks');
+for (const m of MODS) {
+  if (!sectionIds.some(x => x === 'cio-' + m.id)) errors.push('module ' + m.id + ' has no CIO section');
+  for (const l of m.data.lessons) {
+    claim(l.id, 'lesson');
+    if (!new RegExp('^' + m.prefix + '-\\d+$').test(l.id) || !l.title || !Array.isArray(l.body) || !l.body.length) errors.push(l.id + ': id ' + m.prefix + '-n, title and body required');
+    if (!Array.isArray(l.levels) || !l.levels.length || l.levels.some(v => !levelIds.has(v))) errors.push(l.id + ': bad levels');
+    for (const src of l.sources) if (!/^https:\/\//.test(src[1]) || !/^(Read|Relayed|Inferred)/.test(src[2])) errors.push(l.id + ': source needs an https link and a tier');
+    for (const p of l.body) if (!/\((Read|Relayed|Inferred)/.test(p) && !/Going Concern|later phase|In an interview|At Director level/.test(p)) errors.push(l.id + ': every paragraph needs a tier tag: ' + p.slice(0, 50));
+    if (m.data.checks.filter(c => c.lesson === l.id).length !== 2) errors.push(l.id + ': needs exactly two checks');
+  }
+  for (const c of m.data.checks) {
+    claim(c.id, 'check');
+    if (!new RegExp('^' + m.prefix.toUpperCase() + '-\\d\\d$').test(c.id) || !m.data.lessons.some(l => l.id === c.lesson)) errors.push(c.id + ': bad id or lesson');
+    if (!Array.isArray(c.options) || c.options.length !== 4 || !(c.answer >= 0 && c.answer < 4) || !c.why || words(c.stem) < 6) errors.push(c.id + ': four options, an answer, a why and a stem');
+    for (let j = 0; j < 4; j++) if (j !== c.answer && !(c.whyNot && c.whyNot[j])) errors.push(c.id + ': option ' + j + ' needs a whyNot');
+    if (c.whyNot && c.whyNot[c.answer]) errors.push(c.id + ': the answer has a whyNot');
+    if (!Array.isArray(c.levels) || !c.levels.length || c.levels.some(v => !levelIds.has(v))) errors.push(c.id + ': bad levels');
+  }
 }
-for (const c of OM.checks) {
-  claim(c.id, 'check');
-  if (!/^OM-\d\d$/.test(c.id) || lessonIds.indexOf(c.lesson) === -1) errors.push(c.id + ': bad id or lesson');
-  if (!Array.isArray(c.options) || c.options.length !== 4 || !(c.answer >= 0 && c.answer < 4) || !c.why || words(c.stem) < 6) errors.push(c.id + ': four options, an answer, a why and a stem');
-  for (let j = 0; j < 4; j++) if (j !== c.answer && !(c.whyNot && c.whyNot[j])) errors.push(c.id + ': option ' + j + ' needs a whyNot');
-  if (c.whyNot && c.whyNot[c.answer]) errors.push(c.id + ': the answer has a whyNot');
-  if (!Array.isArray(c.levels) || !c.levels.length || c.levels.some(v => !levelIds.has(v))) errors.push(c.id + ': bad levels');
-}
+// Every lane-tagged run, packet and role-play names one of its lane's sections.
+for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) if (sectionIds.indexOf(x.lane + '-' + x.section) === -1) errors.push(x.id + ': unknown section ' + x.section);
+// TMAY: five beats with budgets that add up to the target range (rounding allowed: one second each way).
+{ const lo = TMAY.beats.reduce((a, b) => a + b.lo, 0), hi = TMAY.beats.reduce((a, b) => a + b.hi, 0);
+  if (TMAY.beats.length !== 5 || Math.abs(lo - 60) > 1 || Math.abs(hi - 75) > 1) errors.push('TMAY: five beats summing to 60 and 75 seconds (got ' + lo + ', ' + hi + ')');
+  if (TMAY.beats.filter(b => b.stressed).length !== 2) errors.push('TMAY: two stressed beats');
+  if (TMAY.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'cio').roles)).sort().join()) errors.push('TMAY: one close per CIO-family title'); }
 const ROLES = new Set(L.lanes.find(l => l.id === 'cio').roles);
 for (const p of BP.prompts) {
   claim(p.id, 'prompt');
@@ -88,7 +113,7 @@ for (const p of BP.prompts) {
   if (!Array.isArray(p.levels) || !p.levels.length || p.levels.some(v => !levelIds.has(v))) errors.push(p.id + ': bad levels');
   for (const st of p.stories) if (!/^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(st.url)) errors.push(p.id + ': bad story link');
 }
-for (const x of [].concat(OM.lessons, OM.checks, BP.prompts, craftDefs, sims.runs)) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
+for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
 for (const r of ROLES) if (!BP.prompts.some(p => p.roles.indexOf(r) !== -1)) errors.push('no prompt for role ' + r);
 if (BP.prompts.length !== 10) errors.push('Phase 1 has 10 behavioral prompts');
 
@@ -108,9 +133,9 @@ if (process.argv.includes('--record')) {
 const read = f => fs.readFileSync(path.join(here, f), 'utf8');
 const kitVersion = read('vendor/study-kit/VERSION').split('\n')[0].trim();
 // study-kit drops fields it does not know; carry lane and level tags across for the lane screen.
-for (const p of craft.packets) { const d = craftDefs.find(x => x.id === p.id); p.lane = d.lane; p.levels = d.levels; p.stages.forEach((s, i) => { s.level = d.stages[i].level; }); }
+for (const p of craft.packets) { const d = craftDefs.find(x => x.id === p.id); p.lane = d.lane; p.levels = d.levels; p.section = d.section; p.stages.forEach((s, i) => { s.level = d.stages[i].level; }); }
 const bank = { lanes: L.lanes, levels: L.levels, sections: L.sections, craft: craft.packets, runs: sims.runs, roleplays: sims.roleplays, kitVersion,
-  opmodel: OM, prompts: BP.prompts, storyBankVersion: BP.storyBankVersion };
+  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY };
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
 const json = JSON.stringify(bank).replace(/<\//g, '<\\/').split(LS).join('\\u2028').split(PS).join('\\u2029');
 const tpl = read('index.src.html');

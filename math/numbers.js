@@ -120,10 +120,73 @@ function compute() {
   N.b6.byQuad = {};
   for (const a of N.b6.apps) N.b6.byQuad[a.quad] = r2((N.b6.byQuad[a.quad] || 0) + a.cost);
   N.b6.total = r2(apps.reduce((s, a) => s + a[3], 0));
+  // ---------------------------------------------------------------- economics checks EC-07, EC-10
+  N.ec = { spendUp: 40, ordersX: 2, perOrderDropPct: Math.round(100 * (1 - 1.4 / 2)), selfFixed: 52000, perReq: 0.006, breakEvenM: Math.round(10 * 52000 / 0.006 / 1e6) / 10 };
+
+  // ---------------------------------------------------------------- BRL-1 budget cut
+  N.rp = { itBudget: 16000000, cutPct: 15, cut: r2(16000000 * 0.15), opex: r2(16000000 * 0.6), capex: r2(16000000 * 0.4) };
+
+  // ---------------------------------------------------------------- BR-7 first 90 days as CIO (data in data/br7.json)
+  const D7 = require('../data/br7.json');
+  const byId = {}; D7.contracts.forEach(c => { byId[c.id] = c; });
+  N.b7 = { appCount: D7.apps.length, contractCount: D7.contracts.length };
+  N.b7.appTotal = r2(D7.apps.reduce((a, x) => a + x.cost, 0));
+  N.b7.unowned = D7.apps.filter(x => !x.owner).length;
+  N.b7.unownedCritical = D7.apps.filter(x => !x.owner && x.critical).length;
+  N.b7.inHouse = D7.apps.filter(x => !x.contract).length;
+  const om = byId['C-08'];
+  N.b7.omNoticeDays = om.renewDays - om.noticeDays;
+  N.b7.omLock = r2(om.value * om.autoYears);
+  N.b7.omAutoYears = om.autoYears;
+  const due120 = D7.contracts.filter(c => c.renewDays <= 120);
+  N.b7.due120Count = due120.length;
+  N.b7.due120Value = r2(due120.reduce((a, c) => a + c.value, 0));
+  N.b7.notice60Count = D7.contracts.filter(c => c.renewDays - c.noticeDays <= 60).length;
+  const tw = D7.apps.find(x => x.name === 'Expense tool (Tripwise)'), sp = D7.apps.find(x => x.name === 'Expense tool (Spendly)');
+  N.b7.twPerUser = r2(tw.cost / tw.users);
+  N.b7.spMoveCost = r2(sp.users * tw.cost / tw.users);
+  N.b7.dupSave = r2(sp.cost - N.b7.spMoveCost);
+  N.b7.spNoticeDays = byId['C-04'].renewDays - byId['C-04'].noticeDays;
+
+  // ---------------------------------------------------------------- BRN-2 inference cost simulation (fictional prices)
+  const pin = 3, pout = 15, cacheRead = 0.1, batchDisc = 0.5, fixedTok = 1800, varTok = 200, outTok = 400;
+  const cBase = (fixedTok + varTok) * pin / 1e6 + outTok * pout / 1e6;
+  const cCache = varTok * pin / 1e6 + fixedTok * pin * cacheRead / 1e6 + outTok * pout / 1e6;
+  const batchShare = 0.4, cBlend = cCache * (1 - batchShare * batchDisc);
+  const V = [500000, 1000000, 2000000, 3000000, 4000000, 5000000];
+  const r6 = x => Math.round(x * 1e6) / 1e6;
+  N.i = { pin, pout, cachePct: 10, batchPct: 50, fixedTok, varTok, outTok, batchSharePct: 40,
+    cBase: r6(cBase), cCache: r6(cCache), cBlend: r6(cBlend),
+    v1: V[0], v2: V[1], v3: V[2], v4: V[3], v5: V[4], v6: V[5],
+    base1: r2(V[0] * cBase), cache1: r2(V[0] * cCache), save1: r2(V[0] * (cBase - cCache)),
+    cheapPlanned: r2(V[0] * cBase * 2 / 3),
+    save2: r2(V[1] * batchShare * cCache * batchDisc), cost2: r2(V[1] * cBlend),
+    tickets3: 250000, cost3: r2(V[2] * cBlend), perTicket3: Math.round(1000 * V[2] * cBlend / 250000) / 1000,
+    fc4: r2(V[3] * cBlend), act4v: 2600000, act4: r2(2600000 * cBlend), discPct: 20, bigDiscPct: 25 };
+  const I = N.i, commitCost = (c, d, use) => r2(c * (1 - d) + Math.max(0, use - c));
+  I.c80 = r2(I.fc4 * 0.8); I.c100 = I.fc4; I.c150 = r2(I.fc4 * 1.5);
+  I.pay80 = commitCost(I.c80, 0.2, I.act4); I.pay100 = commitCost(I.c100, 0.2, I.act4); I.pay150 = commitCost(I.c150, 0.25, I.act4);
+  I.plan80 = r2(I.fc4 - commitCost(I.c80, 0.2, I.fc4)); I.plan100 = r2(I.fc4 - commitCost(I.c100, 0.2, I.fc4)); I.plan150 = r2(I.fc4 - commitCost(I.c150, 0.25, I.fc4));
+  I.save80 = r2(I.act4 - I.pay80); I.save100 = r2(I.act4 - I.pay100); I.save150 = r2(I.act4 - I.pay150);
+  I.gpu = 22000; I.staff = 30000; I.selfFixed = I.gpu + I.staff;
+  I.api5 = r2(V[4] * cBlend); I.selfGap = r2(I.selfFixed - I.api5);
+  I.breakEvenM = Math.round(10 * I.selfFixed / cBlend / 1e6) / 10;
+  I.unitDropPct = Math.round(1000 * (1 - cBlend / cBase)) / 10;
+  I.spend6 = r2(V[5] * cBlend); I.spendBase6 = r2(V[5] * cBase);
+  I.startK = 10;
+  I.bestK = r2(I.startK + k2(I.save1) + k2(I.save2) + k2(I.save80));
+  I.pv = { s1: k2(I.save1), cheapPlan: k2(I.cheapPlanned), s2: k2(I.save2),
+    p80: k2(I.plan80), a80: k2(I.save80), p100: k2(I.plan100), a100: k2(I.save100), p150: k2(I.plan150), a150: k2(I.save150), self: -k2(I.selfGap) };
+
+  // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
+  const W = [20, 19, 17, 26, 24], stress = [3, 2];
+  const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);
+  N.tm = { lo: wt.map(x => Math.round(60 * x / sw)), hi: wt.map(x => Math.round(75 * x / sw)) };
   return N;
 }
 
-const money = x => '$' + Number(x).toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(x) ? 0 : 2, maximumFractionDigits: 2 });
+// Amounts under $0.10 (per-request prices) keep up to 5 decimals; everything else is shown to the cent.
+const money = x => '$' + Number(x).toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(x) ? 0 : 2, maximumFractionDigits: Math.abs(x) < 0.1 && !Number.isInteger(x) ? 5 : 2 });
 // Flattens N into {path: value} for templates and the cross-check.
 function flat(o, p, out) { out = out || {}; for (const k in o) { const v = o[k], q = p ? p + '.' + k : k; if (v && typeof v === 'object') flat(v, q, out); else out[q] = v; } return out; }
 // Replaces {{path}} with a number and {{$path}} with money. Unknown placeholders throw.

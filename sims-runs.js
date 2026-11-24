@@ -13,7 +13,7 @@ const { place } = require('./content/place.js');
 const POS = [2, 0, 3, 1, 3, 0];
 
 const runs = [{
-  id: 'BRN-1', status: '', lane: 'cio', levels: ['director', 'vp'],
+  id: 'BRN-1', status: '', lane: 'cio', section: 'renewal-sim', levels: ['director', 'vp'],
   title: 'Three renewals, one CFO', role: 'CIO',
   blurb: 'Six decisions across three software renewals. Every figure is computed in code; the prices and companies are fictional.',
   briefing: t('You are CIO of Halvorsen Supply, a 1,800-person distributor (fictional). Three renewals land this year: the Corvane office suite ({{entitled}} seats), the Pipeline CRM ({{crmLicensed}} seats at {{$crmPrice}} a seat a year) and Tallyhouse, the CRM that came with last year’s acquisition ({{tallySeats}} seats at {{$tallyPrice}}). The CFO wants savings and counts the ${{startK}}k last year’s cleanup already delivered. Business value here is savings in $k: what you promise the CFO, and what lands.'),
@@ -93,5 +93,81 @@ const runs = [{
     { min: 0, title: 'Renewals that cost more than they saved', text: 'Shelfware stayed, the vendor set the terms, and the savings story will not survive the next review.' }
   ]
 }];
+
+const I = N.i, IP = N.i.pv;
+runs.push({
+  id: 'BRN-2', status: 'Draft', lane: 'cio', section: 'cost-sim', levels: ['vp', 'c-level'],
+  title: 'Inference at scale', role: 'CIO',
+  blurb: 'Six quarters of an AI assistant’s costs as usage grows tenfold. Every figure is computed in code; prices are fictional but follow the published per-token model.',
+  briefing: t('Halvorsen Supply (fictional) runs a customer-service assistant on a hosted model. Each request sends {{i.fixedTok}} tokens of fixed instructions and about {{i.varTok}} tokens of question, and gets about {{i.outTok}} tokens back. The model costs ${{i.pin}} per million input tokens and ${{i.pout}} per million output tokens, so {{$i.cBase}} a request today. Usage will grow from {{i.v1}} to {{i.v6}} requests a month over six quarters. Business value here is monthly savings in $k against the starting price; ${{i.startK}}k was saved last year.'),
+  meters: ['unitcost', 'reliability', 'capacity', 'risk'],
+  meterLabels: { unitcost: 'Unit cost', reliability: 'Reliability', capacity: 'Team capacity', risk: 'Risk control' },
+  start: { planned: I.startK, actual: I.startK },
+  predNote: 'Here predictability is savings delivered ÷ savings promised.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-2-01', phase: 'Q1',
+      stem: t('{{i.v1}} requests a month cost {{$i.base1}}. The {{i.fixedTok}}-token instructions are identical on every request. The provider bills cached input reads at {{i.cachePct}}% of the input price. An engineer also suggests a model at a third of the price that nobody has tested on your tickets.'),
+      options: ['Leave it; the bill is small', t('Cache the fixed instructions, so each request pays full price only for its own {{i.varTok}} tokens'), 'Switch to the cheaper model now', 'Self-host an open model to own the costs'],
+      answer: 1,
+      whyNot: { 0: 'The bill grows with usage; the waste grows with it.', 2: 'An untested model can cost more in wrong answers and escalations than it saves.', 3: 'Self-hosting adds fixed cost and staff before volume justifies it.' },
+      effects: eff({ unitcost: -5 }, { unitcost: 15, risk: 5 }, { unitcost: 10, reliability: -15, risk: -10 }, { unitcost: -10, capacity: -20 }),
+      pv: { 1: { planned: IP.s1, actual: IP.s1 }, 2: { planned: IP.cheapPlan, actual: 0 } },
+      sets: { 2: 'cheap' },
+      why: t('Caching cuts the cost per request from {{$i.cBase}} to {{$i.cCache}}: {{$i.save1}} a month at today’s volume, with no change to answers.'),
+      lesson: 'Cut repeated input first: caching changes the bill, not the answers.' },
+    { id: 'BRN-2-02', phase: 'Q2',
+      stem: t('Volume is {{i.v2}} a month. {{i.batchSharePct}}% of requests are overnight summaries nobody reads until morning. The provider’s batch service processes requests within a day at {{i.batchPct}}% off, and the discount applies on top of caching.'),
+      updateIf: { cheap: 'Support escalations rose after the model switch; the team rolled back to the original model.' },
+      options: ['Keep everything real-time', t('Send the overnight {{i.batchSharePct}}% through the batch service'), 'Send all requests through batch', 'Cut the summaries to save cost'],
+      answer: 1,
+      whyNot: { 0: 'Paying real-time prices for work nobody needs in real time.', 2: 'Customers waiting up to a day for live answers breaks the service.', 3: 'The summaries are used every morning; cutting them moves work back to people.' },
+      effects: eff({ unitcost: -5 }, { unitcost: 10, reliability: 5 }, { unitcost: 15, reliability: -25 }, { unitcost: 5, capacity: -10 }),
+      pv: { 1: { planned: IP.s2, actual: IP.s2 } },
+      why: t('Batch halves the cost of the overnight share: {{$i.save2}} a month saved, bringing the blended cost to {{$i.cBlend}} a request.'),
+      lesson: 'Match the price to the urgency: batch whatever can wait.' },
+    { id: 'BRN-2-03', phase: 'Q3',
+      stem: t('Volume is {{i.v3}} a month and the monthly bill is {{$i.cost3}}. The CFO asks whether AI costs are under control. The assistant helped resolve {{i.tickets3}} tickets this month.'),
+      options: ['Report the monthly bill', t('Report cost per resolved ticket ({{$i.perTicket3}}) alongside volume, and track it monthly'), 'Report tokens used', 'Report the provider’s list price'],
+      answer: 1,
+      whyNot: { 0: 'A rising bill alone looks like a problem even when each answer gets cheaper.', 2: 'Tokens mean nothing to a CFO.', 3: 'List price is not what you pay after caching and batch.' },
+      effects: eff({ risk: -5 }, { risk: 10, capacity: 5 }, { risk: -5 }, { risk: -10 }),
+      why: 'A unit cost ties spend to the work done, so growth in the bill can be read against growth in tickets resolved.',
+      lesson: 'Report AI spend per unit of work, not just the total.' },
+    { id: 'BRN-2-04', phase: 'Q4',
+      stem: t('The provider offers {{i.discPct}}% off a 12-month monthly spend commitment, billed whether used or not; usage above it is billed at the normal price. Forecast spend is {{$i.fc4}} a month ({{i.v4}} requests), but quarterly volume has varied by about 15%. A larger commitment of 150% would get {{i.bigDiscPct}}%.'),
+      options: [t('Commit to the full forecast, {{$i.c100}} a month'), t('Commit to 80% of forecast, {{$i.c80}} a month, and pay the rest at the normal price'), 'Make no commitment', t('Commit to 150%, {{$i.c150}} a month, for {{i.bigDiscPct}}% off')],
+      answer: 1,
+      whyNot: { 0: t('A slow quarter leaves part of the commitment unused. At {{i.act4v}} requests it saves {{$i.save100}} a month instead of the {{$i.plan100}} promised.'), 2: 'Leaves a steady, predictable baseline on full price.', 3: t('Paying for half again as much as you use: at {{i.act4v}} requests the bill rises by {{$i.save150}} a month against no commitment.') },
+      effects: eff({ unitcost: 5, risk: -5 }, { unitcost: 10, risk: 5 }, { unitcost: -5 }, { unitcost: -15, risk: -10 }),
+      pv: { 0: { planned: IP.p100, actual: IP.a100 }, 1: { planned: IP.p80, actual: IP.a80 }, 3: { planned: IP.p150, actual: IP.a150 } },
+      why: t('Committing to the steady baseline uses the whole commitment even in a slow quarter. The quarter came in at {{i.act4v}} requests; the 80% commitment saved {{$i.save80}} a month, as planned.'),
+      lesson: 'Commit to the baseline you are sure of; pay normal price for the swing.' },
+    { id: 'BRN-2-05', phase: 'Q5',
+      stem: t('Volume is {{i.v5}} a month, about {{$i.api5}} on the hosted model. An engineer proposes self-hosting an open model: GPUs at {{$i.gpu}} a month plus two engineers costing {{$i.staff}} a month together, so {{$i.selfFixed}} a month before any request.'),
+      options: ['Self-host everything this quarter', t('Stay hosted and set a review trigger at about {{i.breakEvenM}} million requests a month, where the fixed cost breaks even'), 'Fine-tune a model on your tickets this quarter', 'Freeze usage to hold the bill flat'],
+      answer: 1,
+      whyNot: { 0: t('At this volume self-hosting costs {{$i.selfGap}} a month more than the hosted model.'), 2: 'Fine-tuning is a project with its own cost and evaluation work; nothing here says quality is the problem.', 3: 'Freezing usage caps the value the assistant delivers.' },
+      effects: eff({ unitcost: -20, capacity: -20 }, { unitcost: 5, capacity: 10 }, { capacity: -10 }, { reliability: -10, capacity: -5 }),
+      pv: { 0: { planned: 0, actual: IP.self } },
+      why: t('{{$i.selfFixed}} a month ÷ {{$i.cBlend}} a request is about {{i.breakEvenM}} million requests a month. Below that, the hosted model is cheaper; a dated trigger keeps the option open.'),
+      lesson: 'Self-hosting is a volume decision: compute the break-even and set a trigger.' },
+    { id: 'BRN-2-06', phase: 'Q6',
+      stem: t('Volume is {{i.v6}} a month and the bill is {{$i.spend6}}, up from {{$i.base1}} in Q1. The board asks why AI spend has grown almost fivefold.'),
+      options: ['Show the total spend and promise to cut it', t('Show volume up tenfold and cost per request down {{i.unitDropPct}}%, with the next trigger'), 'Show the token counts by month', 'Point to the vendor’s price list'],
+      answer: 1,
+      whyNot: { 0: 'Promising a cut without the unit view treats growth in use as waste.', 2: 'Token counts do not answer a board question.', 3: 'The price list is not what you pay and not what changed.' },
+      effects: eff({ risk: -10 }, { risk: 10 }, { risk: -5 }, { risk: -10 }),
+      why: t('Without caching and batch, {{i.v6}} requests would cost {{$i.spendBase6}} a month. Cost per request fell from {{$i.cBase}} to {{$i.cBlend}} ({{i.unitDropPct}}%) while volume grew tenfold.'),
+      lesson: 'Explain AI spend as volume times unit cost, and show both moving.' }
+  ],
+  endings: [
+    { min: 75, title: 'Costs that scale with value', text: 'Unit cost fell by half, commitments matched the baseline, and the board saw spend explained by use.' },
+    { min: 55, title: 'Savings with gaps', text: 'Some savings landed, but a commitment, a model switch or a self-hosting call cost more than it saved.' },
+    { min: 0, title: 'A bill nobody can explain', text: 'Spend grew faster than value, and the board heard a total with no story behind it.' }
+  ]
+});
 runs[0].steps.forEach((st, i) => place(st, POS[i]));
+const POS2 = [3, 0, 2, 1, 0, 3];
+runs[1].steps.forEach((st, i) => place(st, POS2[i]));
 module.exports = runs;

@@ -24,11 +24,13 @@ module.exports = {
   sections: {
     cio: [
       { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
+      { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
       { id: 'portfolio-cases', title: 'ERP and CRM portfolio cases', kind: 'Cases', phase: 1 },
-      { id: 'renewal-sim', title: 'Vendor and license renewal', kind: 'Simulation', phase: 1 },
-      { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 1 },
       { id: 'first-90', title: 'First 90 days as CIO', kind: 'Craft packet', phase: 2 },
+      { id: 'renewal-sim', title: 'Vendor and license renewal', kind: 'Simulation', phase: 1 },
+      { id: 'cost-sim', title: 'Inference at scale', kind: 'Simulation', phase: 2 },
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 2 },
+      { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 1 },
       { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 2 }
     ]
   }
