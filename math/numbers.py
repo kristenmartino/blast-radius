@@ -352,6 +352,7 @@ shn = cu[:B12['shown']]
 for kk, fn in [('shS', sales_def), ('shM', mkt_def), ('shF', fin_def)]:
     put('b12.' + kk, tally(shn, fn))
 put('b12.shAll', tally(shn, lambda x: sales_def(x) and mkt_def(x) and fin_def(x))); put('b12.shAny', tally(shn, lambda x: sales_def(x) or mkt_def(x) or fin_def(x)))
+put('b12.packDays', 21); put('b12.budgetDays', 60)
 put('b12.unusedYear', sum(r['cost'] for r in unused) * 12); put('b12.invYear', sum(r['cost'] for r in inv) * 12)
 put('b12.salesOver', c(100 * D(tally(cu, sales_def) - tally(cu, fin_def)) / tally(cu, fin_def)))
 

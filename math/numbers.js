@@ -321,6 +321,7 @@ function compute() {
       cust: C.length, sales: n(C, S), mkt: n(C, M), fin: n(C, F), all3: n(C, c => S(c) && M(c) && F(c)), any: n(C, c => S(c) || M(c) || F(c)),
       none: n(C, c => !(S(c) || M(c) || F(c))), testAcc: n(C, c => c.test === 1), salesTest: n(C, c => S(c) && c.test === 1),
       salesNotFin: n(C, c => S(c) && !F(c)), shown: sh.length, shS: n(sh, S), shM: n(sh, M), shF: n(sh, F), shAll: n(sh, c => S(c) && M(c) && F(c)), shAny: n(sh, c => S(c) || M(c) || F(c)) };
+    N.b12.packDays = 21; N.b12.budgetDays = 60;           // dates in the packet: board pack due, CFO budget review (days from the first Monday)
     N.b12.unusedYear = N.b12.unusedMonth * 12; N.b12.invYear = N.b12.invMonth * 12;
     N.b12.salesOver = r2(100 * (N.b12.sales - N.b12.fin) / N.b12.fin); }
 

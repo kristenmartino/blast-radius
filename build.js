@@ -55,6 +55,14 @@ const TABLES = {
     .concat(D11.tools.map(x => '| ' + x.name + ' | ' + x.use + ' | ' + (x.owner || '—') + ' | ' + x.source + ' | ' + (x.customerDecision ? 'Yes' : 'No') + ' | ' + (x.tested ? 'Yes' : 'No') + ' | ' + (x.cost ? money(x.cost) : 'In house') + ' | ' + (x.contract || '—') + ' |')).join('\n');
   TABLES['b11.contracts'] = ['| Contract | Vendor | Annual value | Renews in | Notice | Vendor may train on our data |', '|---|---|---|---|---|---|']
     .concat(D11.contracts.map(c => '| ' + c.id + ' | ' + c.vendor + ' | ' + money(c.value) + ' | ' + c.renewDays + ' days | ' + c.noticeDays + ' days | ' + (c.trainsOnData ? 'Yes' : 'No') + ' |')).join('\n'); }
+// Phase 3a table: BR-12 (Ashgrove Outfitters' dataset inventory, the customer rows shown, and the full-extract counts).
+{ const D12 = require('./data/br12.json'), B = NUM.b12;
+  TABLES['b12.inventory'] = ['| Id | Dataset | Domain | Owner | Feeds the board pack | Days since refresh | Tests | Queries, last 30 days | Cost a month |', '|---|---|---|---|---|---|---|---|---|']
+    .concat(D12.inventory.map(r => '| ' + r.id + ' | ' + r.name + ' | ' + r.domain + ' | ' + (r.owner || '—') + ' | ' + (r.feedsBoard ? 'Yes' : 'No') + ' | ' + r.refreshDays + ' | ' + r.tests + ' | ' + r.q30.toLocaleString('en-US') + ' | ' + money(r.cost) + ' |')).join('\n');
+  TABLES['b12.customers'] = ['| Customer | Account | Internal test account | Days since last order | Paid orders, last 12 months (after refunds) | Days since last email open, click or visit |', '|---|---|---|---|---|---|']
+    .concat(D12.customers.slice(0, D12.shown).map(c => '| ' + c.id + ' | ' + c.status[0].toUpperCase() + c.status.slice(1) + ' | ' + (c.test ? 'Yes' : 'No') + ' | ' + (c.lastOrder < 0 ? 'Never' : c.lastOrder) + ' | ' + c.orders12 + ' | ' + (c.engage < 0 ? 'None' : c.engage) + ' |')).join('\n');
+  TABLES['b12.counts'] = ['| Customers in the full extract, counted by | Count |', '|---|---|', '| Sales’s definition | ' + B.sales + ' |', '| Marketing’s definition | ' + B.mkt + ' |', '| Finance’s definition | ' + B.fin + ' |',
+    '| All three definitions | ' + B.all3 + ' |', '| At least one definition | ' + B.any + ' |', '| No definition | ' + B.none + ' |', '| Internal test accounts | ' + B.testAcc + ' |', '| Extract size | ' + B.cust + ' |'].join('\n'); }
 const tables = t => t.replace(/\{\{table:([a-z0-9.]+)\}\}/g, (m, k) => { if (!TABLES[k]) throw new Error('unknown table ' + m); return TABLES[k]; });
 
 // Content. Every item carries level tags from L.levels.
