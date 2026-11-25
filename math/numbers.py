@@ -471,6 +471,75 @@ put('b14.dispatchPb', c(D(dsp['effort']) / dsp['interest'])); put('b14.glPb', c(
 for s in rows14:
     put('b14.pb_' + s['id'].replace('-', ''), c(D(s['effort']) / s['interest']))
 
+# ---- Phase 4a: risk module and incident sims (business days skip Saturday and Sunday; examples avoid public holidays)
+import datetime as _dt
+def long_date(d): return d.strftime('%A, %B ') + str(d.day) + ', ' + str(d.year)
+def plus_business_days(d, n):
+    while n:
+        d += _dt.timedelta(days=1)
+        if d.weekday() < 5: n -= 1
+    return d
+_base_monday = _dt.datetime(2026, 11, 2, 0, 0)                     # any Monday: only the weekday name is used
+def wall(start_weekday_offset, start_minute, plus_minutes):         # offset from Monday (Saturday = 5)
+    t = _base_monday + _dt.timedelta(days=start_weekday_offset, minutes=start_minute + plus_minutes)
+    return t.strftime('%A %H:%M')
+def hhmm(m): return '%d:%02d' % (m // 60, m % 60)
+
+# rk-1 register ($k): ransomware 10% x 4,000; ERP vendor outage 30% x 500; lost laptops 60% x 40
+reg = {'rw': (10, 4000), 'vo': (30, 500), 'lp': (60, 40)}
+for key, (lik, imp) in reg.items():
+    put('rk.%sLik' % key, lik); put('rk.%sImp' % key, imp); put('rk.%sExp' % key, D(lik * imp) / 100)
+put('rk.totExp', sum(D(l * i) / 100 for l, i in reg.values()))
+put('rk.mitCost', 120); put('rk.rwImpAfter', 1500); put('rk.rwExpAfter', D(10 * 1500) / 100)
+put('rk.mitCut', D(10 * 4000 - 10 * 1500) / 100); put('rk.mitNet', D(10 * 4000 - 10 * 1500) / 100 - 120)
+put('rk.tol', 250); put('rk.prem', 90); put('rk.ret', 500); put('rk.insPays', 1500 - 500)
+put('rk.insExp', D(10) * (1500 - 500) / 100); put('rk.insNet', D(10) * (1500 - 500) / 100 - 90)
+sec_det = _dt.date(2026, 10, 15)
+put('rk.secDet', long_date(sec_det)); put('rk.secDue', long_date(plus_business_days(sec_det, 4)))
+put('rk.gdprAware', wall(5, 14 * 60, 0)); put('rk.gdprDue', wall(5, 14 * 60, 72 * 60)); put('rk.gdprHours', 72)
+tiers = [(18, D(16), 1), (40, D(4), 2), (62, D('0.5'), 1)]           # vendors, hours per review, years between reviews
+per_year_h = [n * h / every for n, h, every in tiers]
+for i, (n, h, _) in enumerate(tiers, 1):
+    put('rk.t%d' % i, n); put('rk.t%dh' % i, h); put('rk.t%dy' % i, per_year_h[i - 1])
+put('rk.vend', sum(n for n, _, _ in tiers)); put('rk.tierY', sum(per_year_h)); put('rk.fullY', 120 * 16); put('rk.tierSave', 120 * 16 - sum(per_year_h))
+put('rk.ctl', 85); put('rk.exc', 3); put('rk.excPct', c(D(300) / 85))
+
+# BRN-7 Marrowgate ransomware: detected Monday 02:10; $1,200k shipped a day across four sites
+mins = [20, 90, 240, 480, 1560, 2640, 3360, 20160]
+put('inc.start', 2400); put('inc.day', 1200); put('inc.perHour', 50); put('inc.sites', 4); put('inc.site', 300)
+put('inc.srv', 220); put('inc.enc', 14); put('inc.encPct', c(D(1400) / 220))
+for i in range(7): put('inc.c%d' % (i + 1), hhmm(mins[i]))
+put('inc.d8', 14)
+put('inc.isoK', 900); put('inc.wipeK', 600); put('inc.watchK', 300)                    # three, two or one site still shipping
+put('inc.prTB', 6); put('inc.allTB', 40); put('inc.rate', D('0.5')); put('inc.prH', 12); put('inc.allH', 80); put('inc.win', 48)
+put('inc.prK', D(300) * (48 - 12) / 24); put('inc.siteTwo', 600)
+put('inc.recs', 38000); put('inc.eu', 4200); put('inc.exfilH', 44); put('inc.gdprH', 116)
+put('inc.exfilAt', wall(0, 130, 44 * 60)); put('inc.gdprDue', wall(0, 130, 116 * 60))
+put('inc.detH', 56); put('inc.detAt', wall(0, 130, 56 * 60))
+det_day = _dt.date(2026, 11, 2) + _dt.timedelta(days=(130 + 56 * 60) // 1440)
+put('inc.detDate', long_date(det_day)); put('inc.secDue', long_date(plus_business_days(det_day, 4))); put('inc.secDueDay', plus_business_days(det_day, 4).strftime('%A'))
+fee, retained = 420, 250
+put('inc.retention', retained); put('inc.irFee', fee); put('inc.irCover', fee - retained); put('inc.demand', 1800)
+
+# BRN-8 Pellwood shadow AI: licences at $30 a seat a month
+staff, ai_users, waitlist = 4200, 1140, 110
+put('sh.start', 120); put('sh.staff', staff); put('sh.users', ai_users); put('sh.usersPct', c(D(100 * ai_users) / staff)); put('sh.tools', 9); put('sh.trainTools', 3); put('sh.trainUsers', 610)
+put('sh.wait', waitlist); put('sh.seats', ai_users + waitlist); put('sh.seatPrice', 30); put('sh.seatYear', 360)
+put('sh.bestK', D((ai_users + waitlist) * 30 * 12) / 1000); put('sh.allK', D(staff * 30 * 12) / 1000)
+put('sh.approved', ai_users + waitlist); put('sh.aiAll', 1380); put('sh.appPct', c(D(100 * (ai_users + waitlist)) / 1380)); put('sh.unapp', 1380 - ai_users - waitlist)
+put('sh.pasted', 2); put('sh.botAns', 3)
+
+# BRN-9 Tessaly cross-tenant leak: 200 affected customers at $20k ARR each
+affected_arr = 200 * 20
+put('ml.start', 600); put('ml.tenants', 9000); put('ml.days', 11); put('ml.cross', 1460); put('ml.cust', 200); put('ml.arr', 20); put('ml.all', affected_arr)
+for name, pct in (('keep', 95), ('late', 60), ('gen', 80)):
+    put('ml.%sK' % name, D(affected_arr) * pct / 100); put('ml.%sPct' % name, pct)
+put('ml.untag', 6); put('ml.chunks', 2400000); put('ml.untagN', 2400000 * 6 // 100)
+put('ml.tests', 5000); put('ml.oldLeak', 37); put('ml.oldPct', c(D(3700) / 5000)); put('ml.newLeak', 0)
+put('ml.phasedK', 360); put('ml.allNowPlan', 480); put('ml.allNowAct', 120); put('ml.noRagAct', 160)
+for i, m in enumerate([45, 180, 600, 1200, 1800, 2400, 4320], 1): put('ml.c%d' % i, hhmm(m))
+put('ml.d8', 14)
+
 # ---- TMAY: each beat's share of 60 and 75 seconds by word count, stressed beats (RealPage, IBM) weighted 1.5
 words, stressed = [20, 19, 17, 26, 24], {2, 3}
 w = [D(x) * (D('1.5') if i in stressed else 1) for i, x in enumerate(words)]

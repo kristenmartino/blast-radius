@@ -22,6 +22,7 @@ Technology leadership study app (executive layer). Plan of record: `claude/tech-
 - Draft labels come from each item's `status` ('Draft' or empty).
 - `content/place.js` moves each keyed answer to a set position (POS arrays) and remaps index-keyed fields.
 - CTO lane (Phase 3b): `content/techstrat.js` (ts-n/TS-nn), `content/delivery.js` (ed-n/ED-nn), BRN-6 in `sims-runs.js` (best debt share found by scan in both math modules), BR-13 (`data/br13.json` from `tools/make-br13.py`) and BR-14 (`data/br14.json` from `tools/make-br14.py`), BRL-9..11, BP-33..42, `content/tmay-cto.js` (hidden), links in `content/links.js`. BRN-2 is also listed in the CTO lane.
+- Phase 4a (risk and incidents): shared module `content/risk.js` (rk-n/RK-nn, section `risk`) and BRN-7 (ransomware; cio, also cto), BRN-8 (shadow AI; ai-leadership), BRN-9 (model data leak; ai-leadership, also data-leadership), all in section `incident-sim`. Each stage states the time since detection in its phase and stem. Math blocks N.rk, N.inc, N.sh, N.ml (dates and business days computed in both modules). Phase 4b adds the CISO lane and `ciso` to these `alsoIn` lists. Export: `node tools/export-blind-4a.js <dir>`.
 - `fill()` refuses a non-money placeholder with more than two decimals (it would print rounded); restate the unit instead.
 - Blind-check records: `docs/blind-check-*.md`. Export for Phase 2b: `node tools/export-blind-2b.js <dir>` (reads `build/bank.json`).
 

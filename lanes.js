@@ -29,15 +29,18 @@ module.exports = {
     { id: 'ciso', name: 'Chief Information Security Officer (CISO)', short: 'CISO', active: false, color: '--s-coral',
       blurb: 'Security program design, NIST CSF 2.0 at the executive level, board security metrics, security budget.' }
   ],
+  // Phase 4a (approved Nov 24): the shared risk module and the incident sims (BRN-7..9) are listed in all four active lanes.
   // Sections for each active lane. Section ids are link ids (lane-section) and never change once published.
   sections: {
     cio: [
       { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
       { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'risk', title: 'Risk, security and incident leadership', kind: 'Shared module', phase: 4 },
       { id: 'portfolio-cases', title: 'ERP and CRM portfolio cases', kind: 'Cases', phase: 1 },
       { id: 'first-90', title: 'First 90 days as CIO', kind: 'Craft packet', phase: 2 },
       { id: 'renewal-sim', title: 'Vendor and license renewal', kind: 'Simulation', phase: 1 },
       { id: 'cost-sim', title: 'Inference at scale', kind: 'Simulation', phase: 2 },
+      { id: 'incident-sim', title: 'Incidents and risk events', kind: 'Simulation', phase: 4 },
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 2 },
       { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 1 },
       { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 2 }
@@ -47,9 +50,11 @@ module.exports = {
       { id: 'strategy', title: 'AI strategy and portfolio', kind: 'Module', phase: 2 },
       { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
       { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'risk', title: 'Risk, security and incident leadership', kind: 'Shared module', phase: 4 },
       { id: 'cost-sim', title: 'Inference at scale', kind: 'Simulation', phase: 2 },
       { id: 'rollout-sim', title: 'AI assistant rollout', kind: 'Simulation', phase: 2 },
       { id: 'intake-sim', title: 'Intake queue', kind: 'Simulation', phase: 2 },
+      { id: 'incident-sim', title: 'Incidents and risk events', kind: 'Simulation', phase: 4 },
       { id: 'packets', title: 'Craft packets', kind: 'Craft packet', phase: 2 },
       { id: 'first-90', title: 'First 90 days as Chief AI Officer', kind: 'Craft packet', phase: 2 },
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 2 },
@@ -62,7 +67,9 @@ module.exports = {
       { id: 'data-products', title: 'Data products and analytics value', kind: 'Module', phase: 3 },
       { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
       { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'risk', title: 'Risk, security and incident leadership', kind: 'Shared module', phase: 4 },
       { id: 'platform-sim', title: 'Data platform, eight quarters', kind: 'Simulation', phase: 3 },
+      { id: 'incident-sim', title: 'Incidents and risk events', kind: 'Simulation', phase: 4 },
       { id: 'first-90', title: 'First 90 days as Chief Data Officer', kind: 'Craft packet', phase: 3 },
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 3 },
       { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 3 },
@@ -75,8 +82,10 @@ module.exports = {
       { id: 'engineering-delivery', title: 'Engineering org and delivery', kind: 'Module', phase: 3 },
       { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
       { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'risk', title: 'Risk, security and incident leadership', kind: 'Shared module', phase: 4 },
       { id: 'debt-sim', title: 'Tech debt vs. features, eight quarters', kind: 'Simulation', phase: 3 },
       { id: 'cost-sim', title: 'Inference at scale', kind: 'Simulation', phase: 2 },
+      { id: 'incident-sim', title: 'Incidents and risk events', kind: 'Simulation', phase: 4 },
       { id: 'first-90', title: 'First 90 days as CTO', kind: 'Craft packet', phase: 3 },
       { id: 'packets', title: 'Craft packets', kind: 'Craft packet', phase: 3 },
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 3 },
