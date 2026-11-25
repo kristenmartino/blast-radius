@@ -34,7 +34,7 @@ const lessons = [
   { id: 'sp-3', title: 'Security measures a board can use', levels: ALL,
     body: [
       'NIST SP 800-55 Volume 1 (December 2024) gives guidance on developing information security measures to identify the adequacy of in-place security policies, procedures and controls, and on prioritizing and evaluating them. It supersedes Revision 1 from 2008 (Relayed, NIST, search-result text).',
-      t('Report outcomes the board can judge against a target, not activity counts. Example (invented): {{sp.kevMet}} of {{sp.kevDue}} known-exploited, internet-facing vulnerabilities fixed within the target time ({{sp.kevPct}}%) and {{sp.admPR}} of {{sp.adm}} administrator accounts on phishing-resistant MFA ({{sp.admPct}}%) say more about exposure than {{sp.trainPct}}% of staff completing training. (Inferred.)'),
+      t('Report outcomes the board can judge against a target, not activity counts. Example (invented, a different company from sp-5): {{sp.kevMet}} of {{sp.kevDue}} known-exploited, internet-facing vulnerabilities fixed within the target time ({{sp.kevPct}}%) and {{sp.admPR}} of {{sp.adm}} administrator accounts on phishing-resistant MFA ({{sp.admPct}}%) say more about exposure than {{sp.trainPct}}% of staff completing training. (Inferred.)'),
       'Show each measure as a trend over at least four quarters, with its target and the risk it tracks. Keep the set small (five to seven), keep the definitions fixed, and say plainly when a number got worse and why. (Inferred.)'
     ],
     sources: [SRC.m55] },
@@ -55,7 +55,7 @@ const lessons = [
   { id: 'sp-6', title: 'The security budget', levels: ['vp', 'c-level'],
     body: [
       'CSF 2.0 lists adequate resources allocated to match the cybersecurity risk strategy as a Govern outcome (GV.RR-03) (Read, NIST CSF 2.0).',
-      t('Fund by risk reduced, using the expected losses from the risk register. Example (invented, $k a year, budget {{sp.bud}}): A costs {{sp.aCost}} and cuts expected loss by {{sp.aCut}}; B costs {{sp.bCost}} and cuts {{sp.bCut}}; C costs {{sp.cCost}} and cuts {{sp.cCut}}; D costs {{sp.dCost}} and cuts {{sp.dCut}}. Ranking by cut per dollar ({{sp.aRatio}}, {{sp.bRatio}}, {{sp.cRatio}}, {{sp.dRatio}}) and funding down the list buys {{sp.greedyIds}}: {{sp.greedyCut}} for {{sp.greedyCost}}. Checking every combination finds {{sp.bestIds}}: {{sp.bestCut}} for {{sp.bestCost}}, {{sp.bestGain}} more. (Inferred.)'),
+      t('Fund by risk reduced, using the expected losses from the risk register. Example (invented, $k a year, budget {{sp.bud}}): A costs {{sp.aCost}} and cuts expected loss by {{sp.aCut}}; B costs {{sp.bCost}} and cuts {{sp.bCut}}; C costs {{sp.cCost}} and cuts {{sp.cCut}}; D costs {{sp.dCost}} and cuts {{sp.dCut}}. Ranking by cut per dollar ({{sp.aRatio}}, {{sp.bRatio}}, {{sp.cRatio}}, {{sp.dRatio}}) and funding down the list buys {{sp.greedyIds}}, which cut {{sp.greedyCut}} for a cost of {{sp.greedyCost}}. Checking every combination finds {{sp.bestIds}}, which cut {{sp.bestCut}} for a cost of {{sp.bestCost}}: {{sp.bestGain}} more. (Inferred.)'),
       'Present the budget as the risks it reduces and the ones it leaves, with who accepted the rest. Cutting a duplicate tool is savings; cutting a control is a risk acceptance and should be signed as one. (Inferred.)'
     ],
     sources: [SRC.csf] }

@@ -8,7 +8,7 @@ You start Monday as CISO of Calloway Software (fictional), a business-software c
 
 {{table:b15.findings}}
 
-"KEV" marks a finding on CISA's Known Exploited Vulnerabilities catalog. The company's target is to fix internet-facing KEV findings within {{b15.sla}} days. A dash under owner means no team owns the system.
+"KEV" marks a finding on CISA's Known Exploited Vulnerabilities catalog. The company's target is to fix every KEV finding within {{b15.sla}} days, internet-facing ones first. A dash under owner means no team owns the system.
 
 ### Security tools (cost a year)
 
@@ -59,6 +59,7 @@ Planted: two internet-facing KEV findings on systems nobody owns; administrator 
 - The {{b15.kevNetNo}} internet-facing KEV findings with no owner ({{b15.kevNetNoNames}}): reachable from the internet and being exploited elsewhere.
 - The {{b15.admNone}} administrator accounts with no MFA, then the {{b15.admPush}} on push approval.
 - The {{b15.expired}} expired exceptions: nobody has accepted those risks any more.
+- Also credit: the cloud storage bucket readable by anyone with the link (F-16), if the hand-back gives it an owner-led fix this week. F-03 is KEV and internet-facing but owned and inside the {{b15.sla}}-day target, so listing it is fine but not required.
 
 ## Model answer
 
