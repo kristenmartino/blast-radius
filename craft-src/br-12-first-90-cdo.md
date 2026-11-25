@@ -17,7 +17,7 @@ Datasets that feed the board pack are meant to refresh at least weekly. The othe
 ### The three definitions of "active customer"
 
 - Sales: an open account with an order in the last 24 months (730 days).
-- Marketing: an email open, click or site visit in the last 90 days, or an order in the last 90 days, on any account (open or closed, test accounts included).
+- Marketing: an email open, click or site visit in the last 90 days, or a placed order in the last 90 days (refunded or not), on any account (open or closed, test accounts included).
 - Finance: a paid order, after refunds, in the last 12 months, excluding internal test accounts.
 
 {{table:b12.counts}}
