@@ -356,6 +356,121 @@ put('b12.packDays', 21); put('b12.budgetDays', 60)
 put('b12.unusedYear', sum(r['cost'] for r in unused) * 12); put('b12.invYear', sum(r['cost'] for r in inv) * 12)
 put('b12.salesOver', c(100 * D(tally(cu, sales_def) - tally(cu, fin_def)) / tally(cu, fin_def)))
 
+# ================= Phase 3b: CTO lane. Written from the lesson, simulation and packet text, not from the JS.
+# ---- lessons ts-n / ed-n
+put('cto.deploys', 46); put('cto.qWeeks', 13); put('cto.fails', 9); put('cto.leadDays', 6); put('cto.recoverHrs', 5)
+put('cto.perWeek', c(D(46) / 13)); put('cto.cfr', c(D(900) / 46))
+four_weeks_min = D(28) * 24 * 60
+budget_a = four_weeks_min * (D(100) - D('99.9')) / 100          # error budget = 100% minus the SLO
+budget_b = four_weeks_min * (D(100) - D('99.95')) / 100
+put('cto.slo', D('99.9')); put('cto.slo2', D('99.95')); put('cto.winDays', 28); put('cto.budgetMin', c(budget_a)); put('cto.budget2Min', c(budget_b)); put('cto.budget30', c(D(30) * 1440 * D('0.001'))); put('cto.budget4', c(four_weeks_min * (D(100) - D('99.99')) / 100))
+put('cto.out1', 31); put('cto.out2', 14); put('cto.usedMin', 31 + 14); put('cto.overMin', c(31 + 14 - budget_a)); put('cto.out1Pct', c(100 * D(31) / budget_a))
+put('cto.reqs', 3000000); put('cto.reqFail', c(D(3000000) * D('0.001')))
+toil_fte = D(60) * 20 / 100; feat_b = 60 - toil_fte; streams = 60 - 6; feat_a = streams * (D(100) - 5) / 100
+put('cto.eng', 60); put('cto.toilPct', 20); put('cto.toilFte', toil_fte); put('cto.featBefore', feat_b); put('cto.plat', 6); put('cto.toilAfterPct', 5)
+put('cto.stream', streams); put('cto.featAfter', c(feat_a)); put('cto.gain', c(feat_a - feat_b)); put('cto.gainPct', c(100 * (feat_a - feat_b) / feat_b))
+put('cto.platBig', 15); put('cto.featBig', c((60 - 15) * D('0.95')))
+tp = [21, 18, 24, 19, 22, 16]; tp_mean = D(sum(tp)) / len(tp); n_spr = 12 // 2
+put('cto.sprintsText', ', '.join(map(str, tp))); put('cto.backlog', 180); put('cto.weeks', 12); put('cto.sprintsN', n_spr)
+put('cto.tpMean', c(tp_mean)); put('cto.tpMin', min(tp)); put('cto.needMean', c(180 / tp_mean)); put('cto.weeksMean', c(2 * 180 / tp_mean))
+put('cto.needMin', c(D(180) / min(tp))); put('cto.weeksMin', c(D(2 * 180) / min(tp))); put('cto.fitMean', c(n_spr * tp_mean)); put('cto.fitMin', n_spr * min(tp))
+put('cto.rest', 180 - n_spr * min(tp)); put('cto.addEng', 8); put('cto.needPer', c(D(180) / n_spr))
+put('cto.withCruft', 10); put('cto.without', 6); put('cto.cleanup', 8); put('cto.breakEven', c(D(8) / (10 - 6))); put('cto.threeSave', 3 * (10 - 6) - 8); put('cto.saveEach', 4); put('cto.gross3', 12)
+put('cto.changes', 140); put('cto.arbEvery', 14); put('cto.arbWait', 14 // 2); put('cto.leadBase', D('2.5')); put('cto.leadArb', D('2.5') + 7); put('cto.leadFull', D('2.5') + 14); put('cto.waitDays', 140 * 7)
+put('cto.buildEng', 3); put('cto.loaded', 180000); put('cto.buildYear', 3 * 180000); put('cto.build3', 3 * 3 * 180000)
+put('cto.saas', 150000); put('cto.integ', 60000); put('cto.buy3', 3 * 150000 + 60000); put('cto.gap3', 3 * 3 * 180000 - 3 * 150000 - 60000)
+
+# ---- BRN-6: tech debt vs. features over eight quarters (rules as stated in the briefing)
+def debt_path(pct):
+    hot, cold, feats = D(400), D(1200), []
+    for _ in range(8):
+        usable = 720 * (1 - D('0.0006') * hot - D('0.00005') * cold)
+        reserve = usable * pct / 100
+        to_hot = reserve if reserve < hot else hot
+        to_cold = min(reserve - to_hot, cold)
+        built = usable - reserve
+        hot = hot - to_hot + D('0.25') * built
+        cold = cold - to_cold
+        feats.append(built)
+    return sum(feats), hot, cold, feats
+scan = [(debt_path(p)[0], p) for p in range(101)]
+best_share = max(scan, key=lambda t: (t[0], -t[1]))[1]
+usable0 = 720 * (1 - D('0.0006') * 400 - D('0.00005') * 1200)
+put('td.cap', 720); put('td.eng', 60); put('td.h0', 400); put('td.k0', 1200); put('td.rHpct', D('0.06')); put('td.rKpct', D('0.005')); put('td.rH100', 6); put('td.rK100', D('0.5')); put('td.acc', D('0.25')); put('td.v', D('0.5'))
+put('td.lostPct', c(100 * (D('0.0006') * 400 + D('0.00005') * 1200))); put('td.eff0', c(usable0)); put('td.sBest', best_share)
+paths = {p: debt_path(p) for p in (0, 10, best_share, 50)}
+put('td.t0', c(paths[0][0])); put('td.t10', c(paths[10][0])); put('td.tBest', c(paths[best_share][0])); put('td.t50', c(paths[50][0]))
+put('td.f0q1', c(paths[0][3][0])); put('td.f0q8', c(paths[0][3][7])); put('td.fBq1', c(paths[best_share][3][0])); put('td.fBq8', c(paths[best_share][3][7]))
+put('td.h0end', c(paths[0][1])); put('td.hBend', c(paths[best_share][1])); put('td.h50end', c(paths[50][1])); put('td.k50end', c(paths[50][2])); put('td.kBend', c(paths[best_share][2]))
+put('td.deploys', 46); put('td.fails', 9); put('td.qWeeks', 13); put('td.perWeek', c(D(46) / 13)); put('td.cfr', c(D(900) / 46)); put('td.leadDays', 6)
+put('td.freezeQ', 4); put('td.freezeK', c(D('0.5') * 4 * usable0)); put('td.stTeam', 8); put('td.stQ', 2); put('td.stWeeks', 8 * 12 * 2); put('td.stK', c(D('0.5') * 192))
+put('td.backlog', 180); put('td.weeks', 12); put('td.sprintsText', '21, 18, 24, 19, 22, 16'); put('td.tpMean', 20); put('td.tpMin', 16); put('td.weeksMean', 18); put('td.fitMin', 96); put('td.rest', 84); put('td.addEng', 8)
+put('td.dealK', 600); put('td.phaseK', 450); put('td.lateK', 240); put('td.addK', 300)
+put('td.budgetMin', c(budget_a)); put('td.out1', 31); put('td.out2', 14); put('td.overMin', c(45 - budget_a)); put('td.out1Pct', c(100 * D(31) / budget_a))
+put('td.featBefore', feat_b); put('td.featAfter', c(feat_a)); put('td.gain', c(feat_a - feat_b)); put('td.featBig', c(45 * D('0.95'))); put('td.plat', 6); put('td.platBig', 15); put('td.toilAfterPct', 5); put('td.toilPct', 20)
+put('td.platK', c(D('0.5') * (feat_a - feat_b) * 24)); put('td.bigPlanK', c(D('0.5') * toil_fte * 24)); put('td.bigActK', c(D('0.5') * (45 * D('0.95') - feat_b) * 24)); put('td.outPlanK', 72)
+put('td.changes', 140); put('td.leadBase', D('2.5')); put('td.leadArb', D('9.5')); put('td.waitDays', 980); put('td.pointsUp', 40); put('td.startK', 200)
+for tag, p in (('0', 0), ('10', 10), ('B', best_share), ('50', 50)):
+    put('td.pv.p' + tag, c(D('0.5') * 8 * usable0 * (100 - p) / 100))
+    put('td.pv.a' + tag, c(D('0.5') * paths[p][0]))
+put('td.bestK', c(200 + c(D('0.5') * paths[best_share][0]) + 450 + c(D('0.5') * (feat_a - feat_b) * 24)))
+
+# ---- BR-13: Halyard Software (data/br13.json)
+B13 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br13.json')))
+svc, inc = B13['services'], B13['incidents']
+dep = fl = cost = idle_n = idle_cost = no_team = cust_nt = 0
+for s in svc:
+    dep += s['deploys']; fl += s['fails']; cost += s['cost']
+    if s['team'] == '':
+        no_team += 1
+        if s['customer']: cust_nt += 1
+    if s['req30'] == 0: idle_n += 1; idle_cost += s['cost']
+    if s['name'] == 'Order service': od, of = s['deploys'], s['fails']
+    if s['name'] == 'Payments gateway': pay_eos = s['eosDays']
+    if s['name'] == 'Identity and login': id_eos = s['eosDays']
+o_n = o_min = all_min = rb = pool = 0
+for i in inc:
+    all_min += i['minutes']
+    if i['service'] == 'Order service': o_n += 1; o_min += i['minutes']
+    if 'rolled back' in i['cause']: rb += 1
+    if 'connection pool' in i['cause']: pool += 1
+q_budget = D(B13['quarterDays']) * 1440 * (100 - D(str(B13['slo']))) / 100
+spr = B13['sprints']; spr_mean = D(sum(spr)) / len(spr); half = B13['pellmarWeeks'] // 2
+for kk, v in [('svc', len(svc)), ('noTeam', no_team), ('custNoTeam', cust_nt), ('deploys', dep), ('fails', fl), ('cfr', c(D(100 * fl) / dep)),
+              ('ordDeploys', od), ('ordFails', of), ('ordCfr', c(D(100 * of) / od)), ('payEos', pay_eos), ('idEos', id_eos), ('costMonth', cost),
+              ('idleN', idle_n), ('idleMonth', idle_cost), ('idleYear', 12 * idle_cost), ('p1', len(inc)), ('ordP1', o_n), ('p1Min', all_min), ('ordMin', o_min),
+              ('ordShare', c(D(100 * o_n) / len(inc))), ('ordMinShare', c(D(100 * o_min) / all_min)), ('budget', c(q_budget)), ('ordOverPct', c(100 * o_min / q_budget)),
+              ('rollbacks', rb), ('pool', pool), ('sprintsText', ', '.join(map(str, spr))), ('tpMean', c(spr_mean)), ('tpMin', min(spr)),
+              ('items', B13['pellmarItems']), ('pWeeks', B13['pellmarWeeks']), ('fitMean', c(half * spr_mean)), ('fitMin', half * min(spr)),
+              ('weeksMean', c(2 * B13['pellmarItems'] / spr_mean)), ('quarterDays', B13['quarterDays']), ('slo', D(str(B13['slo'])))]:
+    put('b13.' + kk, v)
+
+# ---- BR-14: Corrin Freight Systems (data/br14.json); rule order as the packet states it
+B14 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br14.json')))
+def bucket(s):
+    if s['changes'] == 0 and s['critical'] == 'Low': return 'Retire'
+    if not s['diff'] and s['market']: return 'Replace'
+    if s['diff'] and s['seam']: return 'Strangle'
+    return 'Retain'
+rows14 = B14['systems']
+groups = {g: [s['name'] for s in rows14 if bucket(s) == g] for g in ('Retire', 'Replace', 'Strangle', 'Retain')}
+ranked = sorted([s for s in rows14 if bucket(s) != 'Retain'], key=lambda s: (D(s['effort']) / s['interest'], s['id']))
+cap14 = B14['budgetQ'] * B14['quarters']; spent = 0; fund, skip = [], []
+for s in ranked:
+    if spent + s['effort'] <= cap14: fund.append(s); spent += s['effort']
+    else: skip.append(s)
+first = ranked[0]
+put('b14.n', len(rows14)); put('b14.budgetQ', B14['budgetQ']); put('b14.quarters', B14['quarters']); put('b14.budget', cap14); put('b14.used', spent); put('b14.left', cap14 - spent)
+for g, key in (('Retire', 'retire'), ('Replace', 'replace'), ('Strangle', 'strangle'), ('Retain', 'retain')):
+    put('b14.' + key, ', '.join(groups[g])); put('b14.n' + g, len(groups[g]))
+put('b14.order', ', '.join(s['name'] for s in ranked)); put('b14.funded', ', '.join(s['name'] for s in fund)); put('b14.skipped', ', '.join(s['name'] for s in skip)); put('b14.nFunded', len(fund))
+put('b14.interestCut', sum(s['interest'] for s in fund)); put('b14.interestAll', sum(s['interest'] for s in rows14))
+put('b14.topName', first['name']); put('b14.topEffort', first['effort']); put('b14.topInterest', first['interest']); put('b14.topPb', c(D(first['effort']) / first['interest'])); put('b14.topNet8', 8 * first['interest'] - first['effort'])
+gl = [s for s in rows14 if s['id'] == 'A-04'][0]; dsp = [s for s in rows14 if s['id'] == 'A-01'][0]
+put('b14.dispatchPb', c(D(dsp['effort']) / dsp['interest'])); put('b14.glPb', c(D(gl['effort']) / gl['interest'])); put('b14.glInterest', gl['interest']); put('b14.glEffort', gl['effort'])
+for s in rows14:
+    put('b14.pb_' + s['id'].replace('-', ''), c(D(s['effort']) / s['interest']))
+
 # ---- TMAY: each beat's share of 60 and 75 seconds by word count, stressed beats (RealPage, IBM) weighted 1.5
 words, stressed = [20, 19, 17, 26, 24], {2, 3}
 w = [D(x) * (D('1.5') if i in stressed else 1) for i, x in enumerate(words)]

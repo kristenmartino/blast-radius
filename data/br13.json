@@ -1,0 +1,259 @@
+{
+ "note": "Fictional. Written by tools/make-br13.py for packet BR-13; do not edit by hand.",
+ "services": [
+  {
+   "id": "S-01",
+   "name": "Web app",
+   "team": "Storefront",
+   "customer": true,
+   "deploys": 38,
+   "fails": 3,
+   "leadDays": 2,
+   "eosDays": -1,
+   "req30": 41200,
+   "cost": 9800
+  },
+  {
+   "id": "S-02",
+   "name": "Order service",
+   "team": "Orders",
+   "customer": true,
+   "deploys": 9,
+   "fails": 4,
+   "leadDays": 11,
+   "eosDays": -1,
+   "req30": 18600,
+   "cost": 7400
+  },
+  {
+   "id": "S-03",
+   "name": "Payments gateway",
+   "team": "",
+   "customer": true,
+   "deploys": 3,
+   "fails": 1,
+   "leadDays": 19,
+   "eosDays": 45,
+   "req30": 6100,
+   "cost": 3900
+  },
+  {
+   "id": "S-04",
+   "name": "Search",
+   "team": "Storefront",
+   "customer": true,
+   "deploys": 22,
+   "fails": 1,
+   "leadDays": 3,
+   "eosDays": -1,
+   "req30": 23900,
+   "cost": 6200
+  },
+  {
+   "id": "S-05",
+   "name": "Catalog API",
+   "team": "Catalog",
+   "customer": true,
+   "deploys": 17,
+   "fails": 2,
+   "leadDays": 4,
+   "eosDays": -1,
+   "req30": 15700,
+   "cost": 4100
+  },
+  {
+   "id": "S-06",
+   "name": "Pricing engine",
+   "team": "Catalog",
+   "customer": false,
+   "deploys": 6,
+   "fails": 1,
+   "leadDays": 8,
+   "eosDays": -1,
+   "req30": 9200,
+   "cost": 2800
+  },
+  {
+   "id": "S-07",
+   "name": "Notifications",
+   "team": "Platform",
+   "customer": true,
+   "deploys": 12,
+   "fails": 0,
+   "leadDays": 3,
+   "eosDays": -1,
+   "req30": 8800,
+   "cost": 1900
+  },
+  {
+   "id": "S-08",
+   "name": "Identity and login",
+   "team": "Platform",
+   "customer": true,
+   "deploys": 5,
+   "fails": 0,
+   "leadDays": 6,
+   "eosDays": 210,
+   "req30": 12400,
+   "cost": 3300
+  },
+  {
+   "id": "S-09",
+   "name": "Reporting exports",
+   "team": "",
+   "customer": false,
+   "deploys": 1,
+   "fails": 0,
+   "leadDays": 25,
+   "eosDays": -1,
+   "req30": 140,
+   "cost": 2600
+  },
+  {
+   "id": "S-10",
+   "name": "Legacy admin portal",
+   "team": "",
+   "customer": false,
+   "deploys": 0,
+   "fails": 0,
+   "leadDays": 0,
+   "eosDays": -1,
+   "req30": 0,
+   "cost": 3100
+  },
+  {
+   "id": "S-11",
+   "name": "Data pipeline",
+   "team": "Data",
+   "customer": false,
+   "deploys": 14,
+   "fails": 2,
+   "leadDays": 5,
+   "eosDays": -1,
+   "req30": 3300,
+   "cost": 8700
+  },
+  {
+   "id": "S-12",
+   "name": "Recommendations (pilot)",
+   "team": "Data",
+   "customer": true,
+   "deploys": 4,
+   "fails": 1,
+   "leadDays": 9,
+   "eosDays": -1,
+   "req30": 0,
+   "cost": 4200
+  },
+  {
+   "id": "S-13",
+   "name": "Billing sync",
+   "team": "Orders",
+   "customer": false,
+   "deploys": 2,
+   "fails": 1,
+   "leadDays": 14,
+   "eosDays": -1,
+   "req30": 2100,
+   "cost": 1200
+  },
+  {
+   "id": "S-14",
+   "name": "Feature flags",
+   "team": "Platform",
+   "customer": false,
+   "deploys": 8,
+   "fails": 0,
+   "leadDays": 2,
+   "eosDays": -1,
+   "req30": 31000,
+   "cost": 600
+  },
+  {
+   "id": "S-15",
+   "name": "Old mobile API v1",
+   "team": "",
+   "customer": true,
+   "deploys": 0,
+   "fails": 0,
+   "leadDays": 0,
+   "eosDays": -1,
+   "req30": 0,
+   "cost": 2400
+  },
+  {
+   "id": "S-16",
+   "name": "Internal wiki",
+   "team": "Platform",
+   "customer": false,
+   "deploys": 3,
+   "fails": 0,
+   "leadDays": 1,
+   "eosDays": -1,
+   "req30": 260,
+   "cost": 300
+  }
+ ],
+ "incidents": [
+  {
+   "id": "P1-01",
+   "service": "Order service",
+   "minutes": 47,
+   "cause": "Database connection pool exhausted during a promotion"
+  },
+  {
+   "id": "P1-02",
+   "service": "Order service",
+   "minutes": 38,
+   "cause": "Bad deployment rolled back by hand"
+  },
+  {
+   "id": "P1-03",
+   "service": "Payments gateway",
+   "minutes": 26,
+   "cause": "Certificate expired"
+  },
+  {
+   "id": "P1-04",
+   "service": "Order service",
+   "minutes": 55,
+   "cause": "Queue backlog after a retry storm"
+  },
+  {
+   "id": "P1-05",
+   "service": "Search",
+   "minutes": 12,
+   "cause": "Index rebuild ran during business hours"
+  },
+  {
+   "id": "P1-06",
+   "service": "Order service",
+   "minutes": 31,
+   "cause": "Bad deployment rolled back by hand"
+  },
+  {
+   "id": "P1-07",
+   "service": "Web app",
+   "minutes": 9,
+   "cause": "Configuration change to the content delivery network"
+  },
+  {
+   "id": "P1-08",
+   "service": "Order service",
+   "minutes": 43,
+   "cause": "Database connection pool exhausted during a promotion"
+  }
+ ],
+ "sprints": [
+  15,
+  18,
+  14,
+  17,
+  16,
+  16
+ ],
+ "pellmarItems": 140,
+ "pellmarWeeks": 10,
+ "quarterDays": 90,
+ "slo": 99.9
+}

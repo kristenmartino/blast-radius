@@ -21,8 +21,11 @@ module.exports = {
       // Level per title (Inferred, approved Nov 24): Chief Data Officer: C-level; Chief Analytics Officer: VP or C-level;
       // Chief Data Science Officer: C-level; VP Data: VP; Head of Data Science: Director or VP; Director of Data Governance: Director.
       roles: ['Chief Data Officer', 'Chief Analytics Officer', 'Chief Data Science Officer', 'VP Data', 'Head of Data Science', 'Director of Data Governance'] },
-    { id: 'cto', name: 'Chief Technology Officer (CTO)', short: 'CTO', active: false, color: '--s-orange',
-      blurb: 'Technology strategy, architecture and tech-debt governance, engineering org and delivery.' },
+    { id: 'cto', name: 'Chief Technology Officer (CTO)', short: 'CTO', active: true, color: '--s-orange',
+      blurb: 'Technology strategy, architecture and tech-debt governance, engineering org and delivery.',
+      // Level per title (Inferred, approved Nov 24): CTO: C-level; VP Engineering: VP; Head of Technology: VP or C-level;
+      // Director of Engineering: Director; Head of Platform Engineering: Director or VP; Chief Architect: VP or C-level.
+      roles: ['CTO', 'VP Engineering', 'Head of Technology', 'Director of Engineering', 'Head of Platform Engineering', 'Chief Architect'] },
     { id: 'ciso', name: 'Chief Information Security Officer (CISO)', short: 'CISO', active: false, color: '--s-coral',
       blurb: 'Security program design, NIST CSF 2.0 at the executive level, board security metrics, security budget.' }
   ],
@@ -64,6 +67,21 @@ module.exports = {
       { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 3 },
       { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 3 },
       { id: 'links', title: 'Certifications, practice and platform pages', kind: 'Links to other apps', phase: 3 },
+      { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 3 }
+    ],
+    // Phase 3b (approved Nov 24). Shared modules and BRN-2 appear here under their existing ids; nothing is copied.
+    cto: [
+      { id: 'tech-strategy', title: 'Technology strategy and architecture governance', kind: 'Module', phase: 3 },
+      { id: 'engineering-delivery', title: 'Engineering org and delivery', kind: 'Module', phase: 3 },
+      { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
+      { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'debt-sim', title: 'Tech debt vs. features, eight quarters', kind: 'Simulation', phase: 3 },
+      { id: 'cost-sim', title: 'Inference at scale', kind: 'Simulation', phase: 2 },
+      { id: 'first-90', title: 'First 90 days as CTO', kind: 'Craft packet', phase: 3 },
+      { id: 'packets', title: 'Craft packets', kind: 'Craft packet', phase: 3 },
+      { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 3 },
+      { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 3 },
+      { id: 'links', title: 'Architecture exams and practitioner cases', kind: 'Links to other apps', phase: 3 },
       { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 3 }
     ]
   }

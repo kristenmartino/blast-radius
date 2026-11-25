@@ -325,6 +325,103 @@ function compute() {
     N.b12.unusedYear = N.b12.unusedMonth * 12; N.b12.invYear = N.b12.invMonth * 12;
     N.b12.salesOver = r2(100 * (N.b12.sales - N.b12.fin) / N.b12.fin); }
 
+  // ================================================================ Phase 3b: CTO lane (all fictional)
+  // ---------------------------------------------------------------- lessons ts-n and ed-n, checks TS-nn and ED-nn
+  { const sprints = [21, 18, 24, 19, 22, 16], backlog = 180, weeks = 12;
+    const mean = sprints.reduce((a, b) => a + b, 0) / sprints.length, lo = Math.min(...sprints), n = weeks / 2;
+    const win = 28 * 24 * 60;                                                   // a rolling four-week window, in minutes
+    N.cto = {
+      // ed-1: DORA delivery metrics from one quarter's deployment log
+      deploys: 46, qWeeks: 13, fails: 9, perWeek: r2(46 / 13), cfr: r2(100 * 9 / 46), leadDays: 6, recoverHrs: 5,
+      // ed-2: error budget = 100% minus the SLO
+      slo: 99.9, slo2: 99.95, winDays: 28, budgetMin: r2(win * 0.001), budget2Min: r2(win * 0.0005), budget30: r2(30 * 24 * 60 * 0.001), budget4: r2(win * 0.0001), out1: 31, out2: 14,
+      usedMin: 45, overMin: r2(45 - win * 0.001), out1Pct: r2(100 * 31 / (win * 0.001)), reqs: 3000000, reqFail: r2(3000000 * 0.001),
+      // ed-4: a platform team taking over infrastructure work from six stream-aligned teams
+      eng: 60, toilPct: 20, toilFte: r2(60 * 0.2), featBefore: r2(60 * 0.8), plat: 6, toilAfterPct: 5, stream: 54,
+      featAfter: r2(54 * 0.95), gain: r2(54 * 0.95 - 60 * 0.8), gainPct: r2(100 * (54 * 95 - 60 * 80) / (60 * 80)), platBig: 15, featBig: r2(45 * 0.95),
+      // ed-6: forecasting a date from throughput
+      sprintsText: sprints.join(', '), backlog, weeks, sprintsN: n, tpMean: r2(mean), tpMin: lo, needMean: r2(backlog / mean), weeksMean: r2(2 * backlog / mean),
+      needMin: r2(backlog / lo), weeksMin: r2(2 * backlog / lo), fitMean: r2(n * mean), fitMin: n * lo, rest: backlog - n * lo, addEng: 8, needPer: r2(backlog / n),
+      // ts-2: Fowler's interest example, made concrete
+      withCruft: 10, without: 6, cleanup: 8, breakEven: r2(8 / (10 - 6)), threeSave: 3 * (10 - 6) - 8, saveEach: 10 - 6, gross3: 3 * (10 - 6),
+      // ts-4: a review board that approves every change
+      changes: 140, arbEvery: 14, arbWait: 7, leadBase: 2.5, leadArb: 2.5 + 7, leadFull: 2.5 + 14, waitDays: 140 * 7,
+      // ts-6: build or buy, three years
+      buildEng: 3, loaded: 180000, buildYear: 3 * 180000, build3: 3 * 3 * 180000, saas: 150000, integ: 60000, buy3: 3 * 150000 + 60000, gap3: 3 * 3 * 180000 - (3 * 150000 + 60000)
+    }; }
+
+  // ---------------------------------------------------------------- BRN-6 tech debt vs. features, eight quarters
+  // Model (stated in the briefing): capacity 720 engineer-weeks a quarter; each engineer-week of hot debt (code changed often)
+  // removes 0.06% of capacity, each of cold debt 0.005%; debt work pays hot debt first, then cold; each feature engineer-week
+  // adds 0.25 of hot debt. The best share of capacity for debt work, held for eight quarters, is found by scanning 0..100%.
+  { const cap = 720, h0 = 400, k0 = 1200, rH = 0.0006, rK = 0.00005, acc = 0.25, Q = 8, v = 0.5;
+    const run = s => { let h = h0, k = k0, tot = 0; const per = [];
+      for (let q = 0; q < Q; q++) { const eff = cap * (1 - rH * h - rK * k), P = s * eff, F = eff - P, ph = Math.min(P, h), pk = Math.min(P - ph, k);
+        h = h - ph + acc * F; k = k - pk; tot += F; per.push(F); }
+      return { tot, h, k, per }; };
+    let best = 0; for (let p = 0; p <= 100; p++) if (run(p / 100).tot > run(best / 100).tot + 1e-9) best = p;
+    const eff0 = cap * (1 - rH * h0 - rK * k0), shares = [0, 10, best, 50];
+    const R = {}; shares.forEach(p => { R[p] = run(p / 100); });
+    const plan = p => r2(v * Q * eff0 * (1 - p / 100)), act = p => r2(v * R[p].tot);
+    N.td = { cap, eng: 60, h0, k0, rHpct: 0.06, rKpct: 0.005, rH100: 6, rK100: 0.5, acc, v, lostPct: r2(100 * (rH * h0 + rK * k0)), eff0: r2(eff0), sBest: best,
+      t0: r2(R[0].tot), t10: r2(R[10].tot), tBest: r2(R[best].tot), t50: r2(R[50].tot),
+      f0q1: r2(R[0].per[0]), f0q8: r2(R[0].per[7]), fBq1: r2(R[best].per[0]), fBq8: r2(R[best].per[7]),
+      h0end: r2(R[0].h), hBend: r2(R[best].h), h50end: r2(R[50].h), k50end: r2(R[50].k), kBend: r2(R[best].k),
+      // Q1: last quarter's deployment log (the same figures as lesson ed-1)
+      deploys: 46, fails: 9, qWeeks: 13, perWeek: r2(46 / 13), cfr: r2(100 * 9 / 46), leadDays: 6,
+      // Q3: the rewrite proposal at today's capacity
+      freezeQ: 4, freezeK: r2(v * 4 * eff0), stTeam: 8, stQ: 2, stWeeks: 8 * 12 * 2, stK: r2(v * 8 * 12 * 2),
+      // Q4: the date the CEO promised (same throughput as lesson ed-6)
+      backlog: 180, weeks: 12, sprintsText: '21, 18, 24, 19, 22, 16', tpMean: 20, tpMin: 16, weeksMean: 18, fitMin: 96, rest: 84, addEng: 8,
+      dealK: 600, phaseK: 450, lateK: 240, addK: 300,
+      // Q5: error budget on the order service (as lesson ed-2)
+      budgetMin: N.cto.budgetMin, out1: 31, out2: 14, overMin: N.cto.overMin, out1Pct: N.cto.out1Pct,
+      // Q6: platform team (as lesson ed-4); value over the two remaining quarters
+      featBefore: N.cto.featBefore, featAfter: N.cto.featAfter, gain: N.cto.gain, featBig: N.cto.featBig, plat: N.cto.plat, platBig: N.cto.platBig, toilAfterPct: N.cto.toilAfterPct, toilPct: N.cto.toilPct, platK: r2(v * N.cto.gain * 12 * 2),
+      bigPlanK: r2(v * N.cto.toilFte * 12 * 2), bigActK: r2(v * (N.cto.featBig - N.cto.featBefore) * 12 * 2), outPlanK: 72,
+      // Q7: review board (as lesson ts-4)
+      changes: 140, leadBase: 2.5, leadArb: 9.5, waitDays: 980,
+      // Q8: the year-end report
+      pointsUp: 40, startK: 200 };
+    const T = N.td;
+    T.pv = { p0: plan(0), a0: act(0), p10: plan(10), a10: act(10), pB: plan(best), aB: act(best), p50: plan(50), a50: act(50) };
+    T.bestK = r2(T.startK + T.pv.aB + T.phaseK + T.platK); }
+
+  // ---------------------------------------------------------------- BR-13 first 90 days as CTO (data in data/br13.json)
+  { const D = require('../data/br13.json'), S = D.services, I = D.incidents;
+    const sum = (L, f) => L.reduce((a, x) => a + f(x), 0);
+    const ord = I.filter(i => i.service === 'Order service'), idle = S.filter(s => s.req30 === 0);
+    const tp = D.sprints, mean = sum(tp, x => x) / tp.length, lo = Math.min(...tp), n = D.pellmarWeeks / 2;
+    const budget = r2(D.quarterDays * 24 * 60 * (100 - D.slo) / 100);
+    N.b13 = { svc: S.length, noTeam: S.filter(s => !s.team).length, custNoTeam: S.filter(s => !s.team && s.customer).length,
+      deploys: sum(S, s => s.deploys), fails: sum(S, s => s.fails), cfr: r2(100 * sum(S, s => s.fails) / sum(S, s => s.deploys)),
+      ordDeploys: S.find(s => s.name === 'Order service').deploys, ordFails: S.find(s => s.name === 'Order service').fails,
+      ordCfr: r2(100 * S.find(s => s.name === 'Order service').fails / S.find(s => s.name === 'Order service').deploys),
+      payEos: S.find(s => s.name === 'Payments gateway').eosDays, idEos: S.find(s => s.name === 'Identity and login').eosDays,
+      costMonth: sum(S, s => s.cost), idleN: idle.length, idleMonth: sum(idle, s => s.cost), idleYear: 12 * sum(idle, s => s.cost),
+      p1: I.length, ordP1: ord.length, p1Min: sum(I, i => i.minutes), ordMin: sum(ord, i => i.minutes), ordShare: r2(100 * ord.length / I.length),
+      ordMinShare: r2(100 * sum(ord, i => i.minutes) / sum(I, i => i.minutes)), budget, ordOverPct: r2(100 * sum(ord, i => i.minutes) / budget),
+      rollbacks: I.filter(i => /rolled back/.test(i.cause)).length, pool: I.filter(i => /connection pool/.test(i.cause)).length,
+      sprintsText: tp.join(', '), tpMean: r2(mean), tpMin: lo, items: D.pellmarItems, pWeeks: D.pellmarWeeks, fitMean: r2(n * mean), fitMin: n * lo,
+      weeksMean: r2(2 * D.pellmarItems / mean), quarterDays: D.quarterDays, slo: D.slo }; }
+
+  // ---------------------------------------------------------------- BR-14 modernization plan (data in data/br14.json)
+  { const D = require('../data/br14.json'), S = D.systems;
+    const cls = s => (s.changes === 0 && s.critical === 'Low') ? 'Retire' : (!s.diff && s.market) ? 'Replace' : (s.diff && s.seam) ? 'Strangle' : 'Retain';
+    const pb = s => s.effort / s.interest;
+    const cand = S.filter(s => cls(s) !== 'Retain').slice().sort((a, b) => pb(a) - pb(b) || (a.id < b.id ? -1 : 1));
+    const budget = D.budgetQ * D.quarters; let used = 0; const funded = [], skipped = [];
+    for (const s of cand) { if (used + s.effort <= budget) { funded.push(s); used += s.effort; } else skipped.push(s); }
+    const top = cand[0], names = L => L.map(s => s.name).join(', ');
+    N.b14 = { n: S.length, budgetQ: D.budgetQ, quarters: D.quarters, budget, used, left: budget - used,
+      retire: names(S.filter(s => cls(s) === 'Retire')), replace: names(S.filter(s => cls(s) === 'Replace')), strangle: names(S.filter(s => cls(s) === 'Strangle')), retain: names(S.filter(s => cls(s) === 'Retain')),
+      nRetire: S.filter(s => cls(s) === 'Retire').length, nReplace: S.filter(s => cls(s) === 'Replace').length, nStrangle: S.filter(s => cls(s) === 'Strangle').length, nRetain: S.filter(s => cls(s) === 'Retain').length,
+      order: names(cand), funded: names(funded), skipped: names(skipped), nFunded: funded.length,
+      interestCut: funded.reduce((a, s) => a + s.interest, 0), interestAll: S.reduce((a, s) => a + s.interest, 0),
+      topName: top.name, topEffort: top.effort, topInterest: top.interest, topPb: r2(pb(top)), topNet8: 8 * top.interest - top.effort,
+      dispatchPb: r2(pb(S.find(s => s.id === 'A-01'))), glPb: r2(pb(S.find(s => s.id === 'A-04'))), glInterest: S.find(s => s.id === 'A-04').interest, glEffort: S.find(s => s.id === 'A-04').effort };
+    for (const s of S) N.b14['pb_' + s.id.replace('-', '')] = r2(pb(s)); }
+
   // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
   const W = [20, 19, 17, 26, 24], stress = [3, 2];
   const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);
@@ -341,6 +438,8 @@ function fill(text, F) {
   return String(text).replace(/\{\{(\$?)([a-zA-Z0-9_.]+)\}\}/g, (m, d, k) => {
     if (!(k in F)) throw new Error('unknown placeholder ' + m);
     if (typeof F[k] === 'string') { if (d) throw new Error('money placeholder on text ' + m); return F[k]; }   // ids and lists (BR-8)
+    // A value with more than two decimals would print rounded (0.005 as "0.01"): refuse it (Phase 3b blind check).
+    if (!d && Math.abs(Math.round(F[k] * 100) - F[k] * 100) > 1e-6) throw new Error('placeholder ' + m + ' has more than two decimals (' + F[k] + '); round it in the math module or restate the unit');
     return d ? money(F[k]) : Number(F[k]).toLocaleString('en-US', { maximumFractionDigits: 2 });
   });
 }

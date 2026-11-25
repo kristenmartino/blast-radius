@@ -59,5 +59,37 @@ module.exports = {
       { title: 'A churn model that scores too well', url: DR + '#mc-01', app: 'Dry Run', note: 'MC-01; auditing a model whose score is too good' },
       { title: 'Metrics and Case Room', url: DR + '#metrics', app: 'Dry Run', note: 'finance-operations metrics computed from tables' }
     ] }
+  ],
+  // Phase 3b: CTO lane. Route forms Read Nov 24, 2026: Inspect & Adapt published-ids.json (decks togafea1, itil5f, palebm, pal1)
+  // and index.src.html (#learn-<lesson id>; lesson ids in lessons-togafea1.js, lessons-itil5f2.js, lessons-itil5f3.js,
+  // lessons-palebm.js, lessons-pal1.js); Dry Run layout/routes.json and app/index.html (#tp, #tpm, #tp-c-NN = TP-NN,
+  // #tp-q-NN = TQ-NN, #eng-sd). Which item fits which lesson is Inferred from titles.
+  cto: [
+    { group: 'Architecture, service management and delivery measures (Inspect & Adapt)', items: [
+      { title: 'TOGAF Enterprise Architecture Part 1', url: IA + '#deck-togafea1', app: 'Inspect & Adapt', note: 'deck, lessons and timed mock; the enterprise-architecture exam' },
+      { title: 'TOGAF recall cards', url: IA + '#cards-togafea1', app: 'Inspect & Adapt', note: 'cards' },
+      { title: 'The Architecture Development Method, phase by phase', url: IA + '#learn-togafea1-2', app: 'Inspect & Adapt', note: 'lesson 2' },
+      { title: 'ADM techniques: principles, gaps, stakeholders and risk', url: IA + '#learn-togafea1-3', app: 'Inspect & Adapt', note: 'lesson 3; architecture principles beside ts-3 and ts-4' },
+      { title: 'Architecture Governance, the Board, contracts and compliance', url: IA + '#learn-togafea1-5', app: 'Inspect & Adapt', note: 'lesson 5; the formal review board in ts-4' },
+      { title: 'ITIL: AI, DevOps and PRINCE2', url: IA + '#learn-itil5f-10', app: 'Inspect & Adapt', note: 'ITIL Foundation lesson 10' },
+      { title: 'ITIL: key practices', url: IA + '#learn-itil5f-12', app: 'Inspect & Adapt', note: 'ITIL Foundation lesson 12; change and incident practices' },
+      { title: 'Evidence-Based Management (PAL-EBM)', url: IA + '#deck-palebm', app: 'Inspect & Adapt', note: 'deck; value-based measures beside ed-5' },
+      { title: 'The four Key Value Areas', url: IA + '#learn-palebm-1', app: 'Inspect & Adapt', note: 'EBM lesson 1' },
+      { title: 'Example measures in each area', url: IA + '#learn-palebm-2', app: 'Inspect & Adapt', note: 'EBM lesson 2; includes lead time' },
+      { title: 'Culture, safety and structure', url: IA + '#learn-pal1-4', app: 'Inspect & Adapt', note: 'PAL-I lesson 4; leadership and team structure' }
+    ] },
+    { group: 'Practitioner cases (Dry Run, Technical PM lane)', items: [
+      { title: 'Technical PM lane', url: DR + '#tp', app: 'Dry Run', note: '6 platform cases and 15 system design questions at PM depth' },
+      { title: 'Technical program manager setting', url: DR + '#tpm', app: 'Dry Run', note: 'the same questions with program topics' },
+      { title: 'Tech debt versus features', url: DR + '#tp-c-03', app: 'Dry Run', note: 'TP-03; the practitioner side of the tech-debt sim' },
+      { title: 'Build or buy', url: DR + '#tp-c-04', app: 'Dry Run', note: 'TP-04; build or buy at PM depth' },
+      { title: 'A platform migration', url: DR + '#tp-c-05', app: 'Dry Run', note: 'TP-05; migration sequencing' },
+      { title: 'Explaining a trade-off to an executive', url: DR + '#tp-c-06', app: 'Dry Run', note: 'TP-06' },
+      { title: 'SLAs, SLOs and error budgets', url: DR + '#tp-q-10', app: 'Dry Run', note: 'TQ-10; the practitioner side of ed-2' },
+      { title: 'Monolith or microservices', url: DR + '#tp-q-11', app: 'Dry Run', note: 'TQ-11' },
+      { title: 'Logs, metrics and traces', url: DR + '#tp-q-13', app: 'Dry Run', note: 'TQ-13' },
+      { title: 'Feature flags and gradual rollout', url: DR + '#tp-q-14', app: 'Dry Run', note: 'TQ-14' },
+      { title: 'System design room', url: DR + '#eng-sd', app: 'Dry Run', note: 'design prompts and estimates (AI engineer lane)' }
+    ] }
   ]
 };
