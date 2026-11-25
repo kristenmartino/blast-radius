@@ -21,7 +21,7 @@ for (const ln of L.lanes) {
   claim(ln.id, 'lane'); laneIds.push(ln.id);
   if (!ln.name || !ln.blurb || !ln.short) errors.push('lane ' + ln.id + ': name, short and blurb required');
 }
-if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership,data-leadership,cto') errors.push('Phase 3b: the CIO, AI leadership, Data leadership and CTO lanes are active');
+if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership,data-leadership,cto,ciso') errors.push('Phase 4b: the CIO, AI leadership, Data leadership, CTO and CISO lanes are active');
 const ACTIVE = L.lanes.filter(l => l.active);
 for (const ln of ACTIVE) if (!Array.isArray(ln.roles) || !ln.roles.length || !(L.sections[ln.id] || []).length) errors.push('active lane ' + ln.id + ': roles and sections required');
 for (const lane in L.sections) {
@@ -70,6 +70,16 @@ const TABLES = {
   TABLES['b13.incidents'] = ['| Id | Service | Minutes down | Cause |', '|---|---|---|---|'].concat(D13.incidents.map(i => '| ' + i.id + ' | ' + i.service + ' | ' + i.minutes + ' | ' + i.cause + ' |')).join('\n');
   TABLES['b14.systems'] = ['| Id | System | Changes last quarter | Interest (engineer-weeks a quarter) | Effort (engineer-weeks) | Criticality | Sets us apart | Market product | Seam | Users |', '|---|---|---|---|---|---|---|---|---|---|']
     .concat(D14.systems.map(r => '| ' + r.id + ' | ' + r.name + ' | ' + r.changes + ' | ' + r.interest + ' | ' + r.effort + ' | ' + r.critical + ' | ' + yn(r.diff) + ' | ' + yn(r.market) + ' | ' + yn(r.seam) + ' | ' + r.users.toLocaleString('en-US') + ' |')).join('\n'); }
+// Phase 4b tables: BR-15 (Calloway's findings and tools) and BR-16 (quarterly figures and investments).
+{ const D15 = require('./data/br15.json'), D16 = require('./data/br16.json'), yn = b => b ? 'Yes' : 'No';
+  TABLES['b15.findings'] = ['| Id | System | Finding | Internet-facing | KEV | Severity | Days open | Owner | Exception |', '|---|---|---|---|---|---|---|---|---|']
+    .concat(D15.findings.map(r => '| ' + r.id + ' | ' + r.system + ' | ' + r.finding + ' | ' + yn(r.internet) + ' | ' + yn(r.kev) + ' | ' + r.severity + ' | ' + r.ageDays + ' | ' + (r.owner || '—') + ' | ' + (r.exception === null ? '—' : r.exception < 0 ? 'Expired ' + (-r.exception) + ' days ago' : 'Expires in ' + r.exception + ' days') + ' |')).join('\n');
+  TABLES['b15.tools'] = ['| Id | Tool | Category | Cost a year | Coverage | Owner |', '|---|---|---|---|---|---|']
+    .concat(D15.tools.map(r => '| ' + r.id + ' | ' + r.tool + ' | ' + r.category + ' | $' + r.costK + 'k | ' + r.coverage + '% | ' + (r.owner || '—') + ' |')).join('\n');
+  TABLES['b16.quarters'] = ['| Quarter | KEV due | Fixed in time | Median detection (hours) | Median containment (hours) | Admins | Admins on phishing-resistant MFA | Critical vendors | Reviewed in 12 months | Severity 1 | Severity 2 | Phishing tests sent | Clicked | Budget | Spend |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|']
+    .concat(D16.quarters.map(q => '| ' + [q.q, q.kevDue, q.kevMet, q.mttdH, q.mttcH, q.admins, q.adminsPR, q.critVendors, q.critReviewed, q.sev1, q.sev2, q.sent.toLocaleString('en-US'), q.clicked, '$' + q.planK.toLocaleString('en-US') + 'k', '$' + q.spentK.toLocaleString('en-US') + 'k'].join(' | ') + ' |')).join('\n');
+  TABLES['b16.investments'] = ['| Id | Investment | First-year cost | Cuts expected loss a year |', '|---|---|---|---|']
+    .concat(D16.investments.map(i => '| ' + i.id + ' | ' + i.name + ' | $' + i.costK + 'k | $' + i.cutK + 'k |')).join('\n'); }
 const tables = t => t.replace(/\{\{table:([a-z0-9.]+)\}\}/g, (m, k) => { if (!TABLES[k]) throw new Error('unknown table ' + m); return TABLES[k]; });
 
 // Content. Every item carries level tags from L.levels.
@@ -109,10 +119,11 @@ const MODS = [
   { id: 'data-products', title: 'Data products and analytics value', prefix: 'dpv', data: require('./content/dpv.js') },
   { id: 'tech-strategy', title: 'Technology strategy and architecture governance', prefix: 'ts', data: require('./content/techstrat.js') },
   { id: 'engineering-delivery', title: 'Engineering org and delivery', prefix: 'ed', data: require('./content/delivery.js') },
-  { id: 'risk', title: 'Risk, security and incident leadership', prefix: 'rk', data: require('./content/risk.js') }
+  { id: 'risk', title: 'Risk, security and incident leadership', prefix: 'rk', data: require('./content/risk.js') },
+  { id: 'security-program', title: 'Security program and board reporting', prefix: 'sp', data: require('./content/secprog.js') }
 ];
 const LINKS = require('./content/links.js');
-const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js'), TMAYD = require('./content/tmay-data.js'), TMAYC = require('./content/tmay-cto.js');
+const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js'), TMAYD = require('./content/tmay-data.js'), TMAYC = require('./content/tmay-cto.js'), TMAYS = require('./content/tmay-ciso.js');
 const allLessons = [].concat(...MODS.map(m => m.data.lessons)), allChecks = [].concat(...MODS.map(m => m.data.checks));
 const lessonIds = allLessons.map(l => l.id), checkIds = allChecks.map(c => c.id), promptIds = BP.prompts.map(p => p.id);
 const words = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
@@ -147,6 +158,7 @@ for (const id of sectionIds) if (/-links$/.test(id) && !LINKS[id.replace(/-links
   if (TMAY.beats.filter(b => b.stressed).length !== 2) errors.push('TMAY: two stressed beats');
   if (TMAYD.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'data-leadership').roles)).sort().join()) errors.push('TMAY data: one close per data-leadership title');
   if (TMAYC.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'cto').roles)).sort().join()) errors.push('TMAY CTO: one close per CTO-lane title');
+  if (TMAYS.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'ciso').roles)).sort().join()) errors.push('TMAY CISO: one close per CISO-lane title');
   if (TMAY.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'cio').roles)).sort().join()) errors.push('TMAY: one close per CIO-family title'); }
 const ROLES = {}; for (const ln of ACTIVE) ROLES[ln.id] = new Set(ln.roles);
 for (const p of BP.prompts) {
@@ -158,7 +170,7 @@ for (const p of BP.prompts) {
   if (!Array.isArray(p.levels) || !p.levels.length || p.levels.some(v => !levelIds.has(v))) errors.push(p.id + ': bad levels');
   for (const st of p.stories) if (!/^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(st.url)) errors.push(p.id + ': bad story link');
 }
-for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY, TMAYD, TMAYC])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
+for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY, TMAYD, TMAYC, TMAYS])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
 for (const ln in ROLES) for (const r of ROLES[ln]) if (!BP.prompts.some(p => p.lane === ln && p.roles.indexOf(r) !== -1)) errors.push('no prompt for ' + ln + ' role ' + r);
 if (BP.prompts.filter(p => p.lane === 'cio').length !== 10) errors.push('the CIO lane keeps its 10 behavioral prompts');
 
@@ -180,7 +192,7 @@ const kitVersion = read('vendor/study-kit/VERSION').split('\n')[0].trim();
 // study-kit drops fields it does not know; carry lane and level tags across for the lane screen.
 for (const p of craft.packets) { const d = craftDefs.find(x => x.id === p.id); p.lane = d.lane; p.levels = d.levels; p.section = d.section; p.stages.forEach((s, i) => { s.level = d.stages[i].level; }); }
 const bank = { lanes: L.lanes, levels: L.levels, sections: L.sections, craft: craft.packets, runs: sims.runs, roleplays: sims.roleplays, kitVersion,
-  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY, tmayData: TMAYD, tmayCto: TMAYC, links: LINKS };
+  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY, tmayData: TMAYD, tmayCto: TMAYC, tmayCiso: TMAYS, links: LINKS };
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
 const json = JSON.stringify(bank).replace(/<\//g, '<\\/').split(LS).join('\\u2028').split(PS).join('\\u2029');
 const tpl = read('index.src.html');

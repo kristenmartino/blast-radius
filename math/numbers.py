@@ -540,6 +540,62 @@ put('ml.phasedK', 360); put('ml.allNowPlan', 480); put('ml.allNowAct', 120); put
 for i, m in enumerate([45, 180, 600, 1200, 1800, 2400, 4320], 1): put('ml.c%d' % i, hhmm(m))
 put('ml.d8', 14)
 
+# ---- Phase 4b: security program module and the CISO packets
+from itertools import combinations as _comb
+def best_within(items, budget):                     # items: (id, cost, cut); every subset; ties go to the lower cost
+    best = ((), 0, 0)
+    for r in range(1, len(items) + 1):
+        for sub in _comb(items, r):
+            cost = sum(i[1] for i in sub); cut = sum(i[2] for i in sub)
+            if cost <= budget and (cut > best[2] or (cut == best[2] and cost < best[1])): best = (tuple(i[0] for i in sub), cost, cut)
+    return best
+def ranked_fill(items, budget):                     # take by cut per dollar while it fits
+    cost = cut = 0; ids = []
+    for i in sorted(items, key=lambda x: -D(x[2]) / x[1]):
+        if cost + i[1] <= budget: cost += i[1]; cut += i[2]; ids.append(i[0])
+    return tuple(sorted(ids)), cost, cut
+
+sp_inv = [('A', 300, 520), ('B', 400, 450), ('C', 250, 380), ('D', 600, 300)]
+for k, v in dict(scope=22, atTarget=9, gaps=13, kevDue=52, kevMet=46, adm=120, admPR=118, trained=1358, staff=1400,
+                 open=4800, kev=37, kevNet=9, crit=610, mfaAdm=120, mfaPR=74, mfaNot=46, mfaPush=38, mfaNone=8, bud=900).items(): put('sp.' + k, v)
+put('sp.kevPct', c(D(4600) / 52)); put('sp.admPct', c(D(11800) / 120)); put('sp.trainPct', c(D(135800) / 1400)); put('sp.kevShare', c(D(3700) / 4800))
+put('sp.mfaNotPct', c(D(4600) / 120))
+for name, cost, cut in sp_inv:
+    put('sp.%sCost' % name.lower(), cost); put('sp.%sCut' % name.lower(), cut); put('sp.%sRatio' % name.lower(), c(D(cut) / cost))
+bi, bc, bu = best_within(sp_inv, 900); gi, gc, gu = ranked_fill(sp_inv, 900)
+put('sp.bestIds', ' and '.join(bi)); put('sp.bestCost', bc); put('sp.bestCut', bu)
+put('sp.greedyIds', ' and '.join(gi)); put('sp.greedyCost', gc); put('sp.greedyCut', gu); put('sp.bestGain', bu - gu)
+
+B15 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br15.json')))
+fd, tl = B15['findings'], B15['tools']
+kev = [f for f in fd if f['kev']]; kev_net = [f for f in kev if f['internet']]; kev_net_no = [f for f in kev_net if f['owner'] == '']
+expired = [f for f in fd if f['exception'] is not None and f['exception'] < 0]; no_owner = [f for f in fd if f['owner'] == '']
+edr = [t for t in tl if t['category'] == 'Endpoint detection']; tool_no = [t for t in tl if t['owner'] == '']
+adm, ven = B15['admins'], B15['vendors']
+for k, v in dict(n=len(fd), kev=len(kev), kevNet=len(kev_net), kevNetNo=len(kev_net_no), kevNetNoNames=', '.join(f['system'] for f in kev_net_no),
+                 kevLate=sum(1 for f in kev if f['ageDays'] > B15['kevSlaDays']), sla=B15['kevSlaDays'], crit=sum(1 for f in fd if f['severity'] == 'Critical'),
+                 noOwner=len(no_owner), noOwnerNames=', '.join(f['system'] for f in no_owner), expired=len(expired), expiredNames=', '.join(f['system'] for f in expired),
+                 oldest=max(f['ageDays'] for f in fd), toolsN=len(tl), toolsK=sum(t['costK'] for t in tl), edrN=len(edr), edrK=sum(t['costK'] for t in edr),
+                 edrCov=max(t['coverage'] for t in edr), dupK=min(t['costK'] for t in edr), toolNoOwner=len(tool_no), toolNoOwnerK=sum(t['costK'] for t in tool_no),
+                 adm=adm['total'], admPR=adm['phishRes'], admNot=adm['total'] - adm['phishRes'], admNotPct=c(D(100 * (adm['total'] - adm['phishRes'])) / adm['total']),
+                 admPush=adm['pushOnly'], admNone=adm['none'], vend=ven['total'], vCrit=ven['critical'], vRev=ven['criticalReviewed12m'],
+                 vUnrev=ven['critical'] - ven['criticalReviewed12m'], vUnrevPct=c(D(100 * (ven['critical'] - ven['criticalReviewed12m'])) / ven['critical']), staff=B15['staff']).items():
+    put('b15.' + k, v)
+
+B16 = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'br16.json')))
+qs, inv16 = B16['quarters'], [(i['id'], i['costK'], i['cutK']) for i in B16['investments']]
+bi, bc, bu = best_within(inv16, B16['budgetK']); gi, gc, gu = ranked_fill(inv16, B16['budgetK'])
+first, last = qs[0], qs[-1]
+for k, v in dict(budget=B16['budgetK'], bestIds=', '.join(bi), bestCost=bc, bestCut=bu, bestLeft=B16['budgetK'] - bc, greedyIds=', '.join(gi), greedyCut=gu,
+                 allCost=sum(i[1] for i in inv16), allCut=sum(i[2] for i in inv16), unfunded=', '.join(i[0] for i in inv16 if i[0] not in bi), unfundedCut=sum(i[2] for i in inv16 if i[0] not in bi), planY=sum(q['planK'] for q in qs), cut15=D(sum(q['planK'] for q in qs)) * 15 / 100, spentY=sum(q['spentK'] for q in qs),
+                 spentPct=c(D(100 * sum(q['spentK'] for q in qs)) / sum(q['planK'] for q in qs)), sev1Y=sum(q['sev1'] for q in qs), sev2Y=sum(q['sev2'] for q in qs),
+                 mttd1=first['mttdH'], mttd4=last['mttdH'], mttdCut=c(D(100 * (first['mttdH'] - last['mttdH'])) / first['mttdH']),
+                 mttc1=first['mttcH'], mttc4=last['mttcH'], mttcCut=c(D(100 * (first['mttcH'] - last['mttcH'])) / first['mttcH'])).items():
+    put('b16.' + k, v)
+for n, q in enumerate(qs, 1):
+    put('b16.kev%d' % n, c(D(100 * q['kevMet']) / q['kevDue'])); put('b16.pr%d' % n, c(D(100 * q['adminsPR']) / q['admins']))
+    put('b16.vend%d' % n, c(D(100 * q['critReviewed']) / q['critVendors'])); put('b16.click%d' % n, c(D(100 * q['clicked']) / q['sent']))
+
 # ---- TMAY: each beat's share of 60 and 75 seconds by word count, stressed beats (RealPage, IBM) weighted 1.5
 words, stressed = [20, 19, 17, 26, 24], {2, 3}
 w = [D(x) * (D('1.5') if i in stressed else 1) for i, x in enumerate(words)]

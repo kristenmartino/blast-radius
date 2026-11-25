@@ -475,6 +475,56 @@ function compute() {
       phasedK: 360, allNowPlan: 480, allNowAct: 120, noRagAct: 160,
       c1: hm(45), c2: hm(180), c3: hm(600), c4: hm(1200), c5: hm(1800), c6: hm(2400), c7: hm(4320), d8: 14 }; }
 
+  // ---------------------------------------------------------------- Phase 4b: security program module (sp-n) and the CISO packets
+  // Best set of investments within a budget: every combination is checked (bitmask), ties go to the lower cost.
+  const bestSet = (items, budget) => { let best = { mask: 0, cost: 0, cut: 0 };
+    for (let m = 1; m < (1 << items.length); m++) { let cost = 0, cut = 0;
+      items.forEach((it, i) => { if (m & (1 << i)) { cost += it.cost; cut += it.cut; } });
+      if (cost <= budget && (cut > best.cut || (cut === best.cut && cost < best.cost))) best = { mask: m, cost, cut }; }
+    return { ids: items.filter((it, i) => best.mask & (1 << i)).map(it => it.id), cost: best.cost, cut: best.cut }; };
+  // Greedy: take items in order of cut per dollar while they fit (what a ranked list alone would fund).
+  const greedy = (items, budget) => { let cost = 0, cut = 0; const ids = [];
+    items.slice().sort((a, b) => b.cut / b.cost - a.cut / a.cost).forEach(it => { if (cost + it.cost <= budget) { cost += it.cost; cut += it.cut; ids.push(it.id); } });
+    return { ids: ids.sort(), cost, cut }; };
+
+  { // sp-1 profile gaps; sp-3 measures; sp-4 vulnerability queue; sp-5 admin MFA; sp-6 budget ($k)
+    const inv = [{ id: 'A', cost: 300, cut: 520 }, { id: 'B', cost: 400, cut: 450 }, { id: 'C', cost: 250, cut: 380 }, { id: 'D', cost: 600, cut: 300 }], bud = 900;
+    const b = bestSet(inv, bud), g = greedy(inv, bud);
+    N.sp = { scope: 22, atTarget: 9, gaps: 22 - 9,
+      kevDue: 52, kevMet: 46, kevPct: r2(100 * 46 / 52), adm: 120, admPR: 118, admPct: r2(100 * 118 / 120), trained: 1358, staff: 1400, trainPct: r2(100 * 1358 / 1400),
+      open: 4800, kev: 37, kevNet: 9, crit: 610, kevShare: r2(100 * 37 / 4800),
+      mfaAdm: 120, mfaPR: 74, mfaNot: 120 - 74, mfaNotPct: r2(100 * (120 - 74) / 120), mfaPush: 38, mfaNone: 8,
+      bud, aCost: 300, aCut: 520, bCost: 400, bCut: 450, cCost: 250, cCut: 380, dCost: 600, dCut: 300,
+      aRatio: r2(520 / 300), bRatio: r2(450 / 400), cRatio: r2(380 / 250), dRatio: r2(300 / 600),
+      bestIds: b.ids.join(' and '), bestCost: b.cost, bestCut: b.cut, greedyIds: g.ids.join(' and '), greedyCost: g.cost, greedyCut: g.cut, bestGain: b.cut - g.cut }; }
+
+  { // BR-15 first 90 days as CISO (data in data/br15.json)
+    const D = require('../data/br15.json'), F = D.findings, T = D.tools, A = D.admins, V = D.vendors;
+    const sum = (L, f) => L.reduce((a, x) => a + f(x), 0), names = L => L.map(x => x.system).join(', ');
+    const kev = F.filter(f => f.kev), kevNet = kev.filter(f => f.internet), kevNetNo = kevNet.filter(f => !f.owner);
+    const expired = F.filter(f => f.exception !== null && f.exception < 0), noOwner = F.filter(f => !f.owner);
+    const edr = T.filter(t => t.category === 'Endpoint detection'), toolNoOwner = T.filter(t => !t.owner);
+    N.b15 = { n: F.length, kev: kev.length, kevNet: kevNet.length, kevNetNo: kevNetNo.length, kevNetNoNames: names(kevNetNo),
+      kevLate: kev.filter(f => f.ageDays > D.kevSlaDays).length, sla: D.kevSlaDays, crit: F.filter(f => f.severity === 'Critical').length,
+      noOwner: noOwner.length, noOwnerNames: names(noOwner), expired: expired.length, expiredNames: names(expired),
+      oldest: Math.max(...F.map(f => f.ageDays)), toolsN: T.length, toolsK: sum(T, t => t.costK), edrN: edr.length, edrK: sum(edr, t => t.costK),
+      edrCov: Math.max(...edr.map(t => t.coverage)), dupK: Math.min(...edr.map(t => t.costK)), toolNoOwner: toolNoOwner.length, toolNoOwnerK: sum(toolNoOwner, t => t.costK),
+      adm: A.total, admPR: A.phishRes, admNot: A.total - A.phishRes, admNotPct: r2(100 * (A.total - A.phishRes) / A.total), admPush: A.pushOnly, admNone: A.none,
+      vend: V.total, vCrit: V.critical, vRev: V.criticalReviewed12m, vUnrev: V.critical - V.criticalReviewed12m, vUnrevPct: r2(100 * (V.critical - V.criticalReviewed12m) / V.critical),
+      staff: D.staff }; }
+
+  { // BR-16 quarterly board security briefing (data in data/br16.json)
+    const D = require('../data/br16.json'), Q = D.quarters, I = D.investments;
+    const items = I.map(i => ({ id: i.id, cost: i.costK, cut: i.cutK })), b = bestSet(items, D.budgetK), g = greedy(items, D.budgetK);
+    const sum = (L, f) => L.reduce((a, x) => a + f(x), 0), f = Q[0], l = Q[Q.length - 1];
+    N.b16 = { budget: D.budgetK, bestIds: b.ids.join(', '), bestCost: b.cost, bestCut: b.cut, bestLeft: D.budgetK - b.cost, greedyIds: g.ids.join(', '), greedyCut: g.cut,
+      allCost: sum(I, i => i.costK), allCut: sum(I, i => i.cutK), unfunded: I.filter(i => !b.ids.includes(i.id)).map(i => i.id).join(', '), unfundedCut: sum(I.filter(i => !b.ids.includes(i.id)), i => i.cutK),
+      planY: sum(Q, q => q.planK), cut15: sum(Q, q => q.planK) * 15 / 100, spentY: sum(Q, q => q.spentK), spentPct: r2(100 * sum(Q, q => q.spentK) / sum(Q, q => q.planK)),
+      sev1Y: sum(Q, q => q.sev1), sev2Y: sum(Q, q => q.sev2), mttd1: f.mttdH, mttd4: l.mttdH, mttdCut: r2(100 * (f.mttdH - l.mttdH) / f.mttdH), mttc1: f.mttcH, mttc4: l.mttcH, mttcCut: r2(100 * (f.mttcH - l.mttcH) / f.mttcH) };
+    Q.forEach((q, i) => { const k = i + 1;
+      N.b16['kev' + k] = r2(100 * q.kevMet / q.kevDue); N.b16['pr' + k] = r2(100 * q.adminsPR / q.admins);
+      N.b16['vend' + k] = r2(100 * q.critReviewed / q.critVendors); N.b16['click' + k] = r2(100 * q.clicked / q.sent); }); }
+
   // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
   const W = [20, 19, 17, 26, 24], stress = [3, 2];
   const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);

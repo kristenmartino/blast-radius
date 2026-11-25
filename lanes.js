@@ -26,10 +26,14 @@ module.exports = {
       // Level per title (Inferred, approved Nov 24): CTO: C-level; VP Engineering: VP; Head of Technology: VP or C-level;
       // Director of Engineering: Director; Head of Platform Engineering: Director or VP; Chief Architect: VP or C-level.
       roles: ['CTO', 'VP Engineering', 'Head of Technology', 'Director of Engineering', 'Head of Platform Engineering', 'Chief Architect'] },
-    { id: 'ciso', name: 'Chief Information Security Officer (CISO)', short: 'CISO', active: false, color: '--s-coral',
-      blurb: 'Security program design, NIST CSF 2.0 at the executive level, board security metrics, security budget.' }
+    { id: 'ciso', name: 'Chief Information Security Officer (CISO)', short: 'CISO', active: true, color: '--s-coral',
+      blurb: 'Security program design, NIST CSF 2.0 at the executive level, board security metrics, security budget.',
+      // Level per title (Inferred, approved with Phase 4 Nov 24): CISO: C-level; VP Information Security: VP; Head of Security: VP or C-level;
+      // Director of Security Operations: Director; Director of Governance, Risk and Compliance: Director.
+      roles: ['CISO', 'VP Information Security', 'Head of Security', 'Director of Security Operations', 'Director of Governance, Risk and Compliance'] }
   ],
-  // Phase 4a (approved Nov 24): the shared risk module and the incident sims (BRN-7..9) are listed in all four active lanes.
+  // Phase 4a (approved Nov 24): the shared risk module and the incident sims (BRN-7..9) are listed in every active lane;
+  // Phase 4b activates the CISO lane, which lists all three runs.
   // Sections for each active lane. Section ids are link ids (lane-section) and never change once published.
   sections: {
     cio: [
@@ -92,6 +96,19 @@ module.exports = {
       { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 3 },
       { id: 'links', title: 'Architecture exams and practitioner cases', kind: 'Links to other apps', phase: 3 },
       { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 3 }
+    ],
+    ciso: [
+      { id: 'security-program', title: 'Security program and board reporting', kind: 'Module', phase: 4 },
+      { id: 'risk', title: 'Risk, security and incident leadership', kind: 'Shared module', phase: 4 },
+      { id: 'operating-model', title: 'Operating model', kind: 'Shared module', phase: 1 },
+      { id: 'economics', title: 'Technology economics', kind: 'Shared module', phase: 2 },
+      { id: 'incident-sim', title: 'Incidents and risk events', kind: 'Simulation', phase: 4 },
+      { id: 'first-90', title: 'First 90 days as CISO', kind: 'Craft packet', phase: 4 },
+      { id: 'packets', title: 'Craft packets', kind: 'Craft packet', phase: 4 },
+      { id: 'role-plays', title: 'Role-plays', kind: 'Role-play', phase: 4 },
+      { id: 'behavioral', title: 'Behavioral prompts', kind: 'Interview prep', phase: 4 },
+      { id: 'links', title: 'Security exams and practitioner items', kind: 'Links to other apps', phase: 4 },
+      { id: 'tmay', title: 'Tell me about yourself', kind: 'Interview prep', phase: 4 }
     ]
   }
 };

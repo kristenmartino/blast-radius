@@ -91,5 +91,26 @@ module.exports = {
       { title: 'Feature flags and gradual rollout', url: DR + '#tp-q-14', app: 'Dry Run', note: 'TQ-14' },
       { title: 'System design room', url: DR + '#eng-sd', app: 'Dry Run', note: 'design prompts and estimates (AI engineer lane)' }
     ] }
+  ],
+  // Phase 4b: CISO lane. Inspect & Adapt lesson ids read in its repo (az900-7, cdmpdmf-7; decks az900, cdmpdmf published);
+  // Dry Run item addresses are '#gd-' + the item id, lower case (app/index.html), titles read in gdc/gdc.json. Fit is Inferred
+  // from titles. The ISC2 Certified in Cybersecurity deck is planned for Inspect & Adapt and not built yet.
+  ciso: [
+    { group: 'Identity, data security and AI risk (Inspect & Adapt)', items: [
+      { title: 'Entra ID, access control and security models', url: IA + '#learn-az900-7', app: 'Inspect & Adapt', note: 'AZ-900 lesson 7; identity and conditional access beside sp-5' },
+      { title: 'AZ-900: Azure Fundamentals', url: IA + '#deck-az900', app: 'Inspect & Adapt', note: 'deck and timed mock' },
+      { title: 'Data security: access controls, classification and masking', url: IA + '#learn-cdmpdmf-7', app: 'Inspect & Adapt', note: 'CDMP Data Management Fundamentals lesson 7' },
+      { title: 'AIGP: IAPP Artificial Intelligence Governance Professional', url: IA + '#deck-aigp', app: 'Inspect & Adapt', note: 'deck; AI risk and governance beside the shadow AI and model leak sims' }
+    ] },
+    { group: 'Governance, security and cloud items (Dry Run)', items: [
+      { title: 'Governance, Security and QA room', url: DR + '#gdc', app: 'Dry Run', note: 'governance, BI DevOps and cloud primer items' },
+      { title: 'Who RLS and OLS don’t restrict', url: DR + '#gd-gv-03', app: 'Dry Run', note: 'GV-03; least privilege in reporting tools' },
+      { title: 'Sensitivity labels that follow the data', url: DR + '#gd-gv-06', app: 'Dry Run', note: 'GV-06' },
+      { title: 'Who viewed the report', url: DR + '#gd-gv-13', app: 'Dry Run', note: 'GV-13; audit logs' },
+      { title: 'Masking versus security', url: DR + '#gd-gv-15', app: 'Dry Run', note: 'GV-15' },
+      { title: 'What stays yours in the cloud', url: DR + '#gd-cp-01', app: 'Dry Run', note: 'CP-01; shared responsibility' },
+      { title: 'Patching in IaaS and PaaS', url: DR + '#gd-cp-02', app: 'Dry Run', note: 'CP-02; who patches what, beside sp-4' },
+      { title: 'Data residency', url: DR + '#gd-cp-11', app: 'Dry Run', note: 'CP-11' }
+    ] }
   ]
 };
