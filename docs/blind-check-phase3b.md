@@ -71,8 +71,8 @@ Two separate reviewers, both Claude Sonnet, neither shown the drafting conversat
 - **Giveaway flags** (TS-10, BRN-6-01, -03, -06, -08, ED-02, ED-03, ED-11): the length rule is met. The key is strictly longest in 7 of 32 items (22%), and none is over 1.3× its longest distractor (`tools/length-check.js`). Items quoting the stem's own figure stay, because the arithmetic is the point.
 - **Repeats:** ED-11 and BRN-6-04, and ED-02 and BRN-6-01, share figures on purpose, as a recall check after the lesson.
 - **BR-14:**
-  - Hardware is idealised: the 720 engineer-weeks are pooled, with no per-quarter cap.
-  - The budget runs out exactly, so the skip rule moves past General ledger (140 engineer-weeks with 70 left), but no smaller system later fits.
+  - Capacity is idealised: the 720 engineer-weeks are pooled, with no per-quarter cap.
+  - The budget runs out exactly after the Old EDI gateway, so General ledger, Fuel card reconciliation and HR intranet wait; the skip rule never has a smaller system to fund.
 - **BR-13:**
   - The ranking of the three urgent items is a judgment the packet asks for, not a computed figure.
   - Cost per customer cannot be computed from the packet; the key does not ask for it.
