@@ -35,7 +35,7 @@ Hand back four stages.
 
 1. Classify all {{b14.n}} systems by the rule and list each group.
 2. Sequence the year: payback for each system to modernize, the order, which ones are funded inside the budget and which wait.
-3. Write the business case for the first funded system: effort, interest removed, payback and the net engineer-weeks over two years (eight quarters) after it is done.
+3. Write the business case for the first funded system: effort, interest removed, payback and the net engineer-weeks over the eight quarters after it is done: interest removed over those quarters minus the effort.
 4. Write a decision memo to the CEO, under 150 words, that answers his note and the CFO's.
 
 Planted: two systems the CEO and CFO care about that the rule does not put first, two retirements whose savings the table does not show, and a system that sets the company apart but has no seam.
