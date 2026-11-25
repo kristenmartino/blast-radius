@@ -21,7 +21,7 @@ for (const ln of L.lanes) {
   claim(ln.id, 'lane'); laneIds.push(ln.id);
   if (!ln.name || !ln.blurb || !ln.short) errors.push('lane ' + ln.id + ': name, short and blurb required');
 }
-if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership') errors.push('Phase 2b: the CIO and AI leadership lanes are active');
+if (L.lanes.filter(l => l.active).map(l => l.id).join() !== 'cio,ai-leadership,data-leadership') errors.push('Phase 3a: the CIO, AI leadership and Data leadership lanes are active');
 const ACTIVE = L.lanes.filter(l => l.active);
 for (const ln of ACTIVE) if (!Array.isArray(ln.roles) || !ln.roles.length || !(L.sections[ln.id] || []).length) errors.push('active lane ' + ln.id + ': roles and sections required');
 for (const lane in L.sections) {
@@ -55,6 +55,14 @@ const TABLES = {
     .concat(D11.tools.map(x => '| ' + x.name + ' | ' + x.use + ' | ' + (x.owner || '—') + ' | ' + x.source + ' | ' + (x.customerDecision ? 'Yes' : 'No') + ' | ' + (x.tested ? 'Yes' : 'No') + ' | ' + (x.cost ? money(x.cost) : 'In house') + ' | ' + (x.contract || '—') + ' |')).join('\n');
   TABLES['b11.contracts'] = ['| Contract | Vendor | Annual value | Renews in | Notice | Vendor may train on our data |', '|---|---|---|---|---|---|']
     .concat(D11.contracts.map(c => '| ' + c.id + ' | ' + c.vendor + ' | ' + money(c.value) + ' | ' + c.renewDays + ' days | ' + c.noticeDays + ' days | ' + (c.trainsOnData ? 'Yes' : 'No') + ' |')).join('\n'); }
+// Phase 3a table: BR-12 (Ashgrove Outfitters' dataset inventory, the customer rows shown, and the full-extract counts).
+{ const D12 = require('./data/br12.json'), B = NUM.b12;
+  TABLES['b12.inventory'] = ['| Id | Dataset | Domain | Owner | Feeds the board pack | Days since refresh | Tests | Queries, last 30 days | Cost a month |', '|---|---|---|---|---|---|---|---|---|']
+    .concat(D12.inventory.map(r => '| ' + r.id + ' | ' + r.name + ' | ' + r.domain + ' | ' + (r.owner || '—') + ' | ' + (r.feedsBoard ? 'Yes' : 'No') + ' | ' + r.refreshDays + ' | ' + r.tests + ' | ' + r.q30.toLocaleString('en-US') + ' | ' + money(r.cost) + ' |')).join('\n');
+  TABLES['b12.customers'] = ['| Customer | Account | Internal test account | Days since last order | Paid orders, last 12 months (after refunds) | Days since last email open, click or visit |', '|---|---|---|---|---|---|']
+    .concat(D12.customers.slice(0, D12.shown).map(c => '| ' + c.id + ' | ' + c.status[0].toUpperCase() + c.status.slice(1) + ' | ' + (c.test ? 'Yes' : 'No') + ' | ' + (c.lastOrder < 0 ? 'Never' : c.lastOrder) + ' | ' + c.orders12 + ' | ' + (c.engage < 0 ? 'None' : c.engage) + ' |')).join('\n');
+  TABLES['b12.counts'] = ['| Customers in the full extract, counted by | Count |', '|---|---|', '| Sales’s definition | ' + B.sales + ' |', '| Marketing’s definition | ' + B.mkt + ' |', '| Finance’s definition | ' + B.fin + ' |',
+    '| All three definitions | ' + B.all3 + ' |', '| At least one definition | ' + B.any + ' |', '| No definition | ' + B.none + ' |', '| Internal test accounts | ' + B.testAcc + ' |', '| Extract size | ' + B.cust + ' |'].join('\n'); }
 const tables = t => t.replace(/\{\{table:([a-z0-9.]+)\}\}/g, (m, k) => { if (!TABLES[k]) throw new Error('unknown table ' + m); return TABLES[k]; });
 
 // Content. Every item carries level tags from L.levels.
@@ -89,10 +97,12 @@ for (const x of [].concat(craftDefs, sims.runs, sims.roleplays)) {
 const MODS = [
   { id: 'operating-model', title: 'Operating model', prefix: 'om', data: require('./content/opmodel.js') },
   { id: 'economics', title: 'Technology economics', prefix: 'ec', data: require('./content/economics.js') },
-  { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') }
+  { id: 'strategy', title: 'AI strategy and portfolio', prefix: 'as', data: require('./content/strategy.js') },
+  { id: 'data-strategy', title: 'Data strategy and governance', prefix: 'dst', data: require('./content/dst.js') },
+  { id: 'data-products', title: 'Data products and analytics value', prefix: 'dpv', data: require('./content/dpv.js') }
 ];
 const LINKS = require('./content/links.js');
-const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js');
+const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js'), TMAYD = require('./content/tmay-data.js');
 const allLessons = [].concat(...MODS.map(m => m.data.lessons)), allChecks = [].concat(...MODS.map(m => m.data.checks));
 const lessonIds = allLessons.map(l => l.id), checkIds = allChecks.map(c => c.id), promptIds = BP.prompts.map(p => p.id);
 const words = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
@@ -125,6 +135,7 @@ for (const id of sectionIds) if (/-links$/.test(id) && !LINKS[id.replace(/-links
 { const lo = TMAY.beats.reduce((a, b) => a + b.lo, 0), hi = TMAY.beats.reduce((a, b) => a + b.hi, 0);
   if (TMAY.beats.length !== 5 || Math.abs(lo - 60) > 1 || Math.abs(hi - 75) > 1) errors.push('TMAY: five beats summing to 60 and 75 seconds (got ' + lo + ', ' + hi + ')');
   if (TMAY.beats.filter(b => b.stressed).length !== 2) errors.push('TMAY: two stressed beats');
+  if (TMAYD.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'data-leadership').roles)).sort().join()) errors.push('TMAY data: one close per data-leadership title');
   if (TMAY.closes.map(c => c.role).sort().join() !== Array.from(new Set(L.lanes.find(l => l.id === 'cio').roles)).sort().join()) errors.push('TMAY: one close per CIO-family title'); }
 const ROLES = {}; for (const ln of ACTIVE) ROLES[ln.id] = new Set(ln.roles);
 for (const p of BP.prompts) {
@@ -136,7 +147,7 @@ for (const p of BP.prompts) {
   if (!Array.isArray(p.levels) || !p.levels.length || p.levels.some(v => !levelIds.has(v))) errors.push(p.id + ': bad levels');
   for (const st of p.stories) if (!/^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(st.url)) errors.push(p.id + ': bad story link');
 }
-for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
+for (const x of [].concat(allLessons, allChecks, BP.prompts, craftDefs, sims.runs, sims.roleplays, [TMAY, TMAYD])) if (x.status !== 'Draft' && x.status !== '') errors.push(x.id + ': status must be Draft or empty');
 for (const ln in ROLES) for (const r of ROLES[ln]) if (!BP.prompts.some(p => p.lane === ln && p.roles.indexOf(r) !== -1)) errors.push('no prompt for ' + ln + ' role ' + r);
 if (BP.prompts.filter(p => p.lane === 'cio').length !== 10) errors.push('the CIO lane keeps its 10 behavioral prompts');
 
@@ -158,7 +169,7 @@ const kitVersion = read('vendor/study-kit/VERSION').split('\n')[0].trim();
 // study-kit drops fields it does not know; carry lane and level tags across for the lane screen.
 for (const p of craft.packets) { const d = craftDefs.find(x => x.id === p.id); p.lane = d.lane; p.levels = d.levels; p.section = d.section; p.stages.forEach((s, i) => { s.level = d.stages[i].level; }); }
 const bank = { lanes: L.lanes, levels: L.levels, sections: L.sections, craft: craft.packets, runs: sims.runs, roleplays: sims.roleplays, kitVersion,
-  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY, links: LINKS };
+  modules: MODS.map(m => ({ id: m.id, title: m.title, lessons: m.data.lessons, checks: m.data.checks })), prompts: BP.prompts, storyBankVersion: BP.storyBankVersion, tmay: TMAY, tmayData: TMAYD, links: LINKS };
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
 const json = JSON.stringify(bank).replace(/<\//g, '<\\/').split(LS).join('\\u2028').split(PS).join('\\u2029');
 const tpl = read('index.src.html');

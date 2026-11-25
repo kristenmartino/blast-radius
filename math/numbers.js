@@ -260,6 +260,71 @@ function compute() {
       regDays: D.regulatorDays, qaNotice: qa.renewDays - qa.noticeDays, qaValue: qa.value, wmNotice: wm.renewDays - wm.noticeDays,
       trains: D.contracts.filter(c => c.trainsOnData).length, contractTotal: r2(D.contracts.reduce((a, c) => a + c.value, 0)) }; }
 
+  // ================================================================ Phase 3a: Data leadership lane (all fictional)
+  // ---------------------------------------------------------------- ec-7 how warehouses and lakehouses bill, EC-15 and EC-16
+  // Rates follow the billing structures on the vendors' pages (Snowflake: per-second with a 60-second minimum at each start;
+  // BigQuery: $6.25 per TiB on demand, $0.04 per slot-hour Standard edition, read Nov 24, 2026); the $3.00 credit price and the workloads are made up.
+  { const credPerHr = 4, credPrice = 3, wakes = 30, runSec = 10, minSec = 60, days = 30;
+    const billedSec = wakes * Math.max(runSec, minSec), credDay = r2(credPerHr * billedSec / 3600);
+    const tibRate = 6.25, slots = 100, slotRate = 0.04, hrs = 720, slotMonth = r2(slots * hrs * slotRate);
+    N.ec7 = { credPerHr, credPrice, wakes, runSec, minSec, days, billedSec, credDay, credMonth: r2(credDay * days), monthCost: r2(credDay * days * credPrice),
+      noMinCost: r2(credPerHr * wakes * runSec / 3600 * days * credPrice), allDayCost: r2(credPerHr * 24 * days * credPrice), hourlyCost: r2(credPerHr * wakes * days * credPrice),
+      tibRate, slots, slotRate, hrs, slotMonth, breakTib: r2(slotMonth / tibRate), wrongTib: r2(slotMonth / (tibRate / 10)), tenthTib: r2(slotMonth / tibRate / 10) }; }
+
+  // ---------------------------------------------------------------- ec-8 unit cost of data and chargeback, EC-17 and EC-18; used again in BRN-5 step 4
+  { const direct = { sales: 70000, mkt: 40000, fin: 30000 }, shared = 40000, q = { sales: 1200000, mkt: 720000, fin: 480000 };
+    const qTot = q.sales + q.mkt + q.fin, total = direct.sales + direct.mkt + direct.fin + shared;
+    const al = k => r2(shared * q[k] / qTot);
+    const m6cost = 210000, m6q = 3500000;
+    N.ec8 = { dSales: direct.sales, dMkt: direct.mkt, dFin: direct.fin, shared, total, qSales: q.sales, qMkt: q.mkt, qFin: q.fin, qTot,
+      shSales: r2(100 * q.sales / qTot), shMkt: r2(100 * q.mkt / qTot), shFin: r2(100 * q.fin / qTot),
+      aSales: al('sales'), aMkt: al('mkt'), aFin: al('fin'),
+      lSales: r2(direct.sales + al('sales')), lMkt: r2(direct.mkt + al('mkt')), lFin: r2(direct.fin + al('fin')),
+      evenMkt: r2(direct.mkt + shared / 3), thirds: r2(total / 3),
+      unit1: r2(1000 * total / qTot), m6cost, m6q, unit6: r2(1000 * m6cost / m6q),
+      costUpPct: r2(100 * (m6cost - total) / total), qUpPct: r2(100 * (m6q - qTot) / qTot), unitDownPct: r2(100 * (1000 * total / qTot - 1000 * m6cost / m6q) / (1000 * total / qTot)) }; }
+
+  // ---------------------------------------------------------------- BRN-5 data platform, eight quarters (value = $k a year that finance confirms)
+  { const months = [40, 44, 47, 52, 58, 61, 64, 66, 70, 76, 95, 71], disc = 0.30;       // monthly platform spend last year, $k at list price
+    const sum = months.reduce((a, b) => a + b, 0), mean = sum / 12;
+    const cost = c => months.reduce((a, u) => a + c * (1 - disc) + Math.max(u - c, 0), 0);   // commit c ($k a month, paid every month) at 30% off, the rest at list
+    const save = c => r2(sum - cost(c));
+    const asc = months.slice().sort((a, b) => a - b), cNine = asc[12 - 9];                 // the level used in at least 9 of the 12 months
+    let optC = 0; for (let c = 0; c <= 100; c++) if (save(c) > save(optC)) optC = c;      // brute-force check on whole $k levels
+    const board = 38, testsPer = 6, daysPer = 3, all = 412, eng = 2;
+    const rev = 112000000, dupDays = 3, qDays = 91, over = r2(rev * dupDays / qDays), tol = 0.005;
+    N.dp = { workDays: 260, domains: 14, datasets: all, boardDs: board, testsPer, daysPer, boardTests: board * testsPer, boardDays: board * daysPer, allDays: all * daysPer, eng,
+      boardWeeks: r2(board * daysPer / eng / 5), allWeeks: r2(all * daysPer / eng / 5), allYears: r2(all * daysPer / eng / 5 / 52),
+      monthsText: months.join(', '), pctPay: 70, yrOnDemand: sum, avgMonth: mean, floorMonth: Math.min(...months), peakMonth: Math.max(...months), discPct: 30,
+      cPeak: 95, cAvg: 62, cNine: cNine, cFloor: 40, optCommit: optC, headline: r2(sum * disc),
+      sPeak: save(95), sAvg: save(62), sNine: save(cNine), sFloor: save(40), sOpt: save(optC),
+      sSales: 48200, sMkt: 61500, sFin: 39800, overSales: r2(100 * (48200 - 39800) / 39800), overMkt: r2(100 * (61500 - 39800) / 39800),
+      rev, dupDays, qDays, over, overPct: r2(100 * over / rev), tolPct: 0.5, tol: r2(rev * tol), boardMetrics: 11, metricsCert: 1, metricsUncert: 3,
+      budget: 400000, monCost: 160000, reconHours: 1600, rate: 45, monSave: r2(1600 * 45), pipeCost: 400000, pipePlan: 600000, pipeConf: 150000,
+      claimHours: 12000, claim: r2(12000 * 45), lic: 190, licPrice: 500, licSave: r2(190 * 500), startK: 120 };
+    const D = N.dp;
+    D.pv = { peakPlan: k2(D.headline * 1000), peakAct: save(95) < 0 ? save(95) : save(95), avg: save(62), nine: save(cNine), floor: save(40),
+      mon: k2(D.monSave), pipePlan: k2(D.pipePlan), pipeAct: k2(D.pipeConf), claim: k2(D.claim), conf: k2(D.licSave) };
+    D.bestK = r2(D.startK + D.pv.nine + D.pv.mon + D.pv.conf); }
+
+  // ---------------------------------------------------------------- BR-12 first 90 days as Chief Data Officer (data in data/br12.json)
+  { const D = require('../data/br12.json'), I = D.inventory, C = D.customers, sh = C.slice(0, D.shown);
+    const S = c => c.status === 'open' && c.lastOrder >= 0 && c.lastOrder <= 730;
+    const M = c => (c.engage >= 0 && c.engage <= 90) || (c.lastOrder >= 0 && c.lastOrder <= 90);
+    const F = c => c.test === 0 && c.orders12 >= 1;
+    const n = (L, f) => L.filter(f).length;
+    const boardFeeds = I.filter(r => r.feedsBoard);
+    N.b12 = { invTotal: I.length, noOwner: n(I, r => !r.owner), board: boardFeeds.length, boardNoOwner: n(boardFeeds, r => !r.owner),
+      zeroTests: n(I, r => r.tests === 0), boardStale: Math.max(...boardFeeds.map(r => r.refreshDays)), unusedN: n(I, r => r.q30 === 0),
+      unusedMonth: I.filter(r => r.q30 === 0).reduce((a, r) => a + r.cost, 0), invMonth: I.reduce((a, r) => a + r.cost, 0),
+      custTables: n(I, r => /^Customer master$|^cust_main/.test(r.name)), dupMonth: I.find(r => r.name === 'cust_main_v2').cost,
+      cust: C.length, sales: n(C, S), mkt: n(C, M), fin: n(C, F), all3: n(C, c => S(c) && M(c) && F(c)), any: n(C, c => S(c) || M(c) || F(c)),
+      none: n(C, c => !(S(c) || M(c) || F(c))), testAcc: n(C, c => c.test === 1), salesTest: n(C, c => S(c) && c.test === 1),
+      salesNotFin: n(C, c => S(c) && !F(c)), shown: sh.length, shS: n(sh, S), shM: n(sh, M), shF: n(sh, F), shAll: n(sh, c => S(c) && M(c) && F(c)), shAny: n(sh, c => S(c) || M(c) || F(c)) };
+    N.b12.packDays = 21; N.b12.budgetDays = 60;           // dates in the packet: board pack due, CFO budget review (days from the first Monday)
+    N.b12.unusedYear = N.b12.unusedMonth * 12; N.b12.invYear = N.b12.invMonth * 12;
+    N.b12.salesOver = r2(100 * (N.b12.sales - N.b12.fin) / N.b12.fin); }
+
   // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
   const W = [20, 19, 17, 26, 24], stress = [3, 2];
   const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);
