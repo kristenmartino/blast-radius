@@ -16,6 +16,7 @@ const SRC = {
   iso: ['ISO, ISO/IEC 27001:2022 (search-result text)', 'https://www.iso.org/standard/27001', 'Relayed'],
   nsf: ['NSF, ISO/IEC 27001 certification steps (search-result text)', 'https://www.nsf.org/testing/information-security/iso-iec-27001', 'Relayed'],
   iia: ['The IIA, The IIA’s Three Lines Model: an update of the Three Lines of Defense (July 2020)', 'https://www.theiia.org/globalassets/documents/resources/the-iias-three-lines-model-an-update-of-the-three-lines-of-defense-july-2020/three-lines-model-updated-english.pdf', 'Read'],
+  csf: ['NIST, The NIST Cybersecurity Framework (CSF) 2.0, CSWP 29 (February 26, 2024)', 'https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf', 'Read'],
   owasp: ['OWASP GenAI Security Project, LLM02:2025 Sensitive Information Disclosure', 'https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/', 'Read']
 };
 const ALL = ['director', 'vp', 'c-level'];
@@ -46,11 +47,12 @@ const lessons = [
   { id: 'rk-4', title: 'Third-party and vendor risk', levels: ALL,
     body: [
       'A SOC 2 report is written for readers who know the service organization and its system: its own staff, user entities, business partners, their practitioners and regulators. Prospective customers who learned about the system through due diligence may also qualify; readers without that knowledge are better served by a SOC 3 report, which is for general use (Read, AICPA SOC 2 guide).',
+      'NIST CSF 2.0 puts cybersecurity supply chain risk management under Govern (GV.SC). Its outcomes include identifying suppliers and ranking them by criticality, writing security requirements into contracts, due diligence before a relationship starts, monitoring risk through the relationship, including suppliers in incident planning, response and recovery, and planning for what continues after an agreement ends (Read, NIST CSF 2.0).',
       'For AI vendors, OWASP’s guidance on sensitive information disclosure recommends clear terms of use, letting users opt out of having their data used for training, and documented policies on retention, use and deletion (Read, OWASP LLM02:2025).',
       t('Tier vendors by what they hold and what stops if they fail. Example (invented): of {{rk.vend}} vendors, {{rk.t1}} hold sensitive data or run a critical service and get a full {{rk.t1h}}-hour review each year ({{rk.t1y}} hours); {{rk.t2}} get a {{rk.t2h}}-hour review every two years ({{rk.t2y}} hours a year); {{rk.t3}} get a {{rk.t3h}}-hour check each year ({{rk.t3y}} hours). That is {{rk.tierY}} hours a year, against {{rk.fullY}} for a full review of every vendor. (Inferred.)'),
       'Put the terms that matter in the contract before signing: breach notice to you within a set time, the right to see audit reports, limits on subcontractors, return or deletion of data at exit, and, for AI tools, no training on your inputs. Name an internal owner for every tier 1 vendor. (Inferred.)'
     ],
-    sources: [SRC.soc2, SRC.owasp] },
+    sources: [SRC.csf, SRC.soc2, SRC.owasp] },
   { id: 'rk-5', title: 'Audit readiness: SOC 2 and ISO/IEC 27001', levels: ['director', 'vp'],
     body: [
       'A SOC 2 Type 1 report covers the system description and whether controls are suitably designed as of a point in time. A Type 2 report covers a period and adds whether the controls operated effectively throughout it, with the auditor’s tests and results. The trust services categories are security, availability, processing integrity, confidentiality and privacy (Read, AICPA SOC 2 guide).',

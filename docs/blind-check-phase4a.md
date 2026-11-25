@@ -37,4 +37,4 @@ Both reviewers recomputed every figure with Python, including the business days 
 | 13 | BRN-9-03: B and D both partial | D now says "Only re-tag" |
 | 14 | Gerding statement could move to Read | Kept Relayed: the reviewer opened it, the author did not |
 
-Not opened by the author: NIST CSF 2.0 (the fetch needed approval and nobody was there to give it), so supply-chain (GV.SC) is not cited.
+NIST CSF 2.0 (CSWP 29) was opened on Nov 25 after Kristen approved the sources. rk-4 gained one paragraph on GV.SC, tagged Read. No stem, option or key changed, so nothing was re-solved. iso.org (two URLs) and nsf.org still fail at the site, so those claims stay Relayed.
