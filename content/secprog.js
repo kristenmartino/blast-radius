@@ -27,7 +27,7 @@ const lessons = [
   { id: 'sp-2', title: 'Accountability, the CISO’s role and the board', levels: ALL,
     body: [
       'CSF 2.0’s Govern Function includes Roles, Responsibilities, and Authorities (GV.RR). Its first outcome states that organizational leadership is responsible and accountable for cybersecurity risk; others call for roles that are established, communicated, understood and enforced, adequate resources allocated to match the risk strategy, and cybersecurity included in human resources practices. Oversight (GV.OV) uses the results of risk activities to adjust strategy (Read, NIST CSF 2.0).',
-      'For a US public company, Item 106 of Regulation S-K requires annual disclosure of how cybersecurity risk is assessed and managed, the board’s oversight of it, and management’s role in assessing and managing it (Read, SEC Corporation Finance).',
+      'For a US public company, Item 106 of Regulation S-K requires annual disclosure of the processes for assessing and managing material cybersecurity risks, the board’s oversight of it, and management’s role in assessing and managing it (Read, SEC Corporation Finance).',
       'The CISO runs the program; the executive team owns the risk in its own business; the board oversees. A CISO who reports only through the technology line can find their risks weighed against that line’s budget, so many boards also hear from the CISO directly or through a risk committee. Agree in writing who may accept a risk and up to what size. (Inferred.)'
     ],
     sources: [SRC.csf, SRC.sec] },
@@ -75,7 +75,7 @@ const checks = [
     stem: 'According to CSF 2.0’s GV.RR-01, who is responsible and accountable for cybersecurity risk?',
     options: ['The CISO alone', 'Organizational leadership', 'The external auditor', 'Each employee individually'],
     answer: 1, why: 'GV.RR-01 states that organizational leadership is responsible and accountable for cybersecurity risk, and fosters a risk-aware culture.',
-    whyNot: { 0: 'The CISO runs the program; leadership owns the risk.', 2: 'Auditors give assurance; they do not own the risk.', 3: 'Employees have roles (GV.RR-02), but accountability sits with leadership.' } },
+    whyNot: { 0: 'The CISO runs the program; leadership owns the risk.', 2: 'Auditors give assurance; they do not own the risk.', 3: 'Roles are assigned under GV.RR-02, but accountability sits with leadership.' } },
   { id: 'SP-04', lesson: 'sp-2', levels: ['vp', 'c-level'],
     stem: 'A business unit head wants to keep an unsupported system for another year. Who should accept that risk?',
     options: ['The CISO, since security risks belong to the security team', 'The business unit head, within an agreed limit, with the CISO’s written view', 'The IT help desk, which already supports the system day to day', 'Nobody: just leave it running quietly and remove it from the risk register for now'],
