@@ -571,6 +571,293 @@ runs.push({
   ]
 });
 
+// ---------------------------------------------------------------- Phase 4a: three incident and risk-event runs (section 'incident-sim')
+// Each stage's text says how long it is since detection (or discovery). Companies and figures are fictional; every figure
+// comes from math/numbers.js (N.inc, N.sh, N.ml). Disclosure steps stay at the decision level; the legal calls are counsel's.
+
+// BRN-7: ransomware at a distributor. Value is $k of orders shipped: planned = what you tell the CEO will ship, actual = what ships.
+const IN = N.inc;
+runs.push({
+  id: 'BRN-7', status: 'Draft', lane: 'cio', alsoIn: ['cto'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  title: 'Major incident: ransomware, fourteen days', role: 'CIO',
+  blurb: 'Eight decisions from the first alert to the board review: declaring the incident, containment, outside help, updates, recovery and a ransom demand, a data-protection clock and an SEC filing. Figures are computed in code; the company is fictional.',
+  briefing: t('You are CIO of Marrowgate Logistics (fictional), a US-listed distributor whose {{inc.sites}} sites ship ${{inc.day}}k of orders a day, about ${{inc.perHour}}k an hour; each site ships about ${{inc.site}}k a day. The incident response plan names an incident commander role and a disclosure committee that includes counsel. The cyber insurance policy (fictional terms) pays response costs above a ${{inc.retention}}k retention if the insurer is told within 48 hours and its panel firms are used. Backups are written to storage that cannot be changed for 30 days. The attack is detected at 02:10 on Monday, November 2, 2026; each stage says how long it has been since then. Business value here is $k of orders shipped: what you tell the CEO will ship and what does, counting from the ${{inc.start}}k shipped in the two days before the attack.'),
+  meters: ['containment', 'operations', 'trust', 'compliance'],
+  meterLabels: { containment: 'Containment', operations: 'Operations', trust: 'Customer and board trust', compliance: 'Legal and compliance' },
+  start: { planned: IN.start, actual: IN.start },
+  predNote: 'Here predictability is orders shipped ÷ orders you told the CEO would ship.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-7-01', phase: t('Hour {{inc.c1}}'),
+      stem: t('{{inc.c1}} after detection. Endpoint software reports files being encrypted on {{inc.enc}} of {{inc.srv}} servers ({{inc.encPct}}%), all at the Brockton site. The on-call engineer calls you. What do you do first?'),
+      options: ['Declare a major incident, name one incident commander, start a decision log', 'Have the on-call engineer restart the affected servers and see whether the encryption stops', 'Wait for the day team at 08:00 to confirm it is a real incident before waking anyone else', 'Email all staff that the company is under attack and that they should unplug their laptops'],
+      answer: 0,
+      whyNot: { 1: 'A restart can destroy evidence held in memory and does not remove the attacker.', 2: 'Six hours of waiting lets the encryption spread.', 3: 'A mass email before anyone is in charge causes confusion and may reach the attacker.' },
+      effects: eff({ containment: 10, trust: 5 }, { containment: -15 }, { containment: -15, operations: -5 }, { operations: -10, trust: -5 }),
+      why: 'One person in charge, a log of decisions and the plan’s call list give the response a shape in its first hour.',
+      lesson: 'Declare early and put one person in charge; a false alarm costs little.' },
+
+    { id: 'BRN-7-02', phase: t('Hour {{inc.c2}}'),
+      stem: t('{{inc.c2}} after detection. The attacker is using a backup service account with administrator rights. The other three sites are still shipping. The CEO asks how much will ship in the next 24 hours. What do you do, and what do you tell her?'),
+      options: [t('Isolate Brockton, disable the account, image the servers first; tell her ${{inc.isoK}}k ships'), t('Wipe and rebuild the {{inc.enc}} servers tonight; tell her all four sites ship ${{inc.day}}k tomorrow'), t('Leave Brockton connected to watch what the attacker does; tell her ${{inc.day}}k ships'), 'Shut the network at all four sites until the investigation is over; tell her nothing will ship'],
+      answer: 0,
+      whyNot: { 1: t('With the account still active the attacker reaches two more sites, and the disk images the investigation needs are gone: ${{inc.wipeK}}k ships.'), 2: t('The encryption spreads to two more sites while you watch: ${{inc.watchK}}k ships.'), 3: t('Nothing ships at any site, about ${{inc.day}}k a day, to contain one site’s problem.') },
+      effects: eff({ containment: 15, operations: 5 }, { containment: -15, compliance: -10 }, { containment: -20, operations: -10 }, { operations: -20, trust: -5 }),
+      pv: { 0: { planned: IN.isoK, actual: IN.isoK }, 1: { planned: IN.day, actual: IN.wipeK }, 2: { planned: IN.day, actual: IN.watchK }, 3: { planned: 0, actual: 0 } },
+      sets: { 1: 'wiped' },
+      why: t('Three of four sites keep shipping: {{inc.day}} × 3 ÷ 4 = {{inc.isoK}}. Isolating the segment and disabling the account stops the spread, and the images keep the evidence.'),
+      lesson: 'Contain first and keep the evidence; rebuild after.' },
+
+    { id: 'BRN-7-03', phase: t('Hour {{inc.c3}}'),
+      stem: t('{{inc.c3}} after detection. You need forensic help and legal advice. A response firm estimates ${{inc.irFee}}k for the work. Nobody on the internal team has run a forensic investigation. What do you do?'),
+      updateIf: { wiped: 'Wiping the servers at hour 1:30 destroyed the disk images the firm would have started from.' },
+      options: ['Tell the insurer now and engage its panel response firm and counsel, as the policy requires', 'Hire the security firm IT used last year and tell the insurer once its work is underway', 'Handle the response with the internal team alone to keep the cost of the incident down', 'Wait to tell the insurer until the full cost of the incident is known, so the claim is complete'],
+      answer: 0,
+      whyNot: { 1: 'A firm outside the panel may not be covered.', 2: t('Nobody inside has forensic experience, and the policy would pay ${{inc.irCover}}k of a panel firm’s fee.'), 3: 'The policy’s 48-hour notice window closes long before the cost is known.' },
+      effects: eff({ containment: 10, compliance: 10 }, { compliance: -10 }, { containment: -15, compliance: -5 }, { compliance: -15 }),
+      why: t('Told within 48 hours, with a panel firm, the policy pays {{inc.irFee}} − {{inc.retention}} = ${{inc.irCover}}k of the fee, and counsel directs the work.'),
+      lesson: 'Follow the policy’s notice terms and bring counsel in early.' },
+
+    { id: 'BRN-7-04', phase: t('Hour {{inc.c4}}'),
+      stem: t('{{inc.c4}} after detection. Customers are calling about late deliveries and a reporter has emailed. Nobody yet knows whether data was taken. What do you set up?'),
+      options: ['Scheduled updates to leaders and customers: what is known, delivery impact, next update time', 'A statement that no customer data was accessed, so that customers stop calling the sales team about it', 'No word outside the company until the investigation is finished, however long that takes', 'A full technical account of the attack on the website, so that customers can judge it'],
+      answer: 0,
+      whyNot: { 1: 'Nobody knows yet; a claim that is later withdrawn costs more than the calls.', 2: 'Customers and the reporter fill the silence themselves.', 3: 'Technical detail helps the attacker and does not tell customers when their orders arrive.' },
+      effects: eff({ trust: 15 }, { trust: -15, compliance: -10 }, { trust: -10 }, { containment: -10, trust: -5 }),
+      why: 'Saying only what is known, on a schedule people can rely on, keeps trust while the facts are still coming in.',
+      lesson: 'Say what you know, what you do not, and when you will say more.' },
+
+    { id: 'BRN-7-05', phase: t('Hour {{inc.c5}}'),
+      stem: t('{{inc.c5}} after detection. A ransom note demands ${{inc.demand}}k for a decryption tool. The firm has confirmed the backups are clean. Restores run at {{inc.rate}} TB an hour; Brockton’s order and warehouse systems are {{inc.prTB}} TB of its {{inc.allTB}} TB. What do you do, and what do you tell the CEO Brockton ships in the next {{inc.win}} hours?'),
+      options: [t('Restore order and warehouse systems first ({{inc.prH}} hours), the rest by priority; tell her ${{inc.prK}}k'), t('Restore all {{inc.allTB}} TB at once and tell her Brockton is fully back tomorrow: ${{inc.siteTwo}}k'), t('Pay the ${{inc.demand}}k for the decryption tool and tell her Brockton is back by tomorrow: ${{inc.siteTwo}}k'), t('Order new hardware and rebuild Brockton on it before restoring any data; tell her ${{inc.siteTwo}}k')],
+      answer: 0,
+      whyNot: { 1: t('{{inc.allTB}} TB at {{inc.rate}} TB an hour takes {{inc.allH}} hours, so nothing at Brockton ships in the next {{inc.win}}.'), 2: 'Clean backups make the payment unnecessary, nothing guarantees the tool works, and a payment is a decision for the CEO and board with counsel, not a recovery plan. Brockton ships nothing in the window.', 3: 'The hardware takes longer than the window to arrive; Brockton ships nothing.' },
+      effects: eff({ operations: 15, trust: 5 }, { operations: -10, trust: -10 }, { compliance: -15, trust: -10 }, { operations: -15 }),
+      pv: { 0: { planned: IN.prK, actual: IN.prK }, 1: { planned: IN.siteTwo, actual: 0 }, 2: { planned: IN.siteTwo, actual: 0 }, 3: { planned: IN.siteTwo, actual: 0 } },
+      why: t('{{inc.prTB}} TB ÷ {{inc.rate}} = {{inc.prH}} hours, so Brockton ships for {{inc.win}} − {{inc.prH}} of the next {{inc.win}} hours: {{inc.site}} × 36 ÷ 24 = {{inc.prK}}.'),
+      lesson: 'Restore what earns money first, from backups you know are clean.' },
+
+    { id: 'BRN-7-06', phase: t('Hour {{inc.c6}}'),
+      stem: t('{{inc.c6}} after detection, at {{inc.exfilAt}}, the firm confirms the attacker copied {{inc.recs}} customer contact records before encrypting, {{inc.eu}} of them for people in the EU. Marrowgate is the controller of that data, and this confirmation is when it becomes aware of the breach. What do you do?'),
+      options: [t('Counsel assesses the risk now; if notice is due, the authority hears by {{inc.gdprDue}}, in phases'), 'Notify once the investigation has confirmed every record involved, even if that takes several more weeks', 'Skip any notice, because contact details are not payment data and so carry no real risk to anyone', t('Email all {{inc.recs}} customers tonight about the theft, before counsel has seen what the email says')],
+      answer: 0,
+      whyNot: { 1: 'Article 33 allows information in phases; waiting for completeness misses the 72 hours.', 2: 'The exemption is for breaches unlikely to result in a risk to people, and that is counsel’s assessment to make and record.', 3: 'Telling individuals is a separate duty with its own test; an unreviewed email can say too much or too little.' },
+      effects: eff({ compliance: 15, trust: 5 }, { compliance: -15 }, { compliance: -20, trust: -5 }, { compliance: -5, trust: -5 }),
+      why: t('Awareness at hour {{inc.exfilH}} puts the 72-hour mark at hour {{inc.gdprH}}, {{inc.gdprDue}}. Counsel decides whether notice is due; you make sure the facts reach them in time.'),
+      lesson: 'Know which clock each discovery starts, and get the facts to counsel fast.' },
+
+    { id: 'BRN-7-07', phase: t('Hour {{inc.c7}}'),
+      stem: t('{{inc.c7}} after detection, on {{inc.detDate}}, the disclosure committee and counsel determine the incident is material: a site down for days and customer data taken. There is no public holiday before the deadline and no Attorney General delay. What follows?'),
+      options: [t('A Form 8-K under Item 1.05 by {{inc.secDue}}, with no technical detail'), 'Wait until the investigation has finished, then decide again whether anything needs to be filed', 'File with the attacker’s entry point and the systems still unpatched, so investors see everything', 'File nothing new, because the last annual report already lists cyber attacks among its risk factors'],
+      answer: 0,
+      whyNot: { 1: 'The determination has been made; the four business days are running.', 2: 'Item 1.05 does not require technical detail, and publishing unpatched systems invites a second attack.', 3: 'A risk factor describes a possibility; a material incident needs the 8-K.' },
+      effects: eff({ compliance: 15, trust: 10 }, { compliance: -20, trust: -10 }, { containment: -10, compliance: -5 }, { compliance: -20, trust: -10 }),
+      why: t('Four business days from {{inc.detDate}} is {{inc.secDue}}. The filing covers the material aspects of the incident and its impact; counsel drafts it.'),
+      lesson: 'The SEC clock starts at the materiality determination; have the committee ready to meet.' },
+
+    { id: 'BRN-7-08', phase: t('Day {{inc.d8}}'),
+      stem: t('Day {{inc.d8}}. Brockton is shipping again. The board’s risk committee meets next week. What do you bring?'),
+      options: ['A review without blame: causes, owned actions with dates, register updates, and what to test next', 'The dismissal of the on-call engineer who missed an earlier alert, and the incident closed', 'A purchase order for the tool the response firm’s sales team recommended, and the incident closed', 'A short note that systems are restored and the incident is closed, so everyone can move on'],
+      answer: 0,
+      whyNot: { 1: 'Blame hides the causes, and the next alert is missed by someone else.', 2: 'A tool bought before the causes are known may not address them.', 3: 'Without a review the same gaps are there for the next attacker.' },
+      effects: eff({ trust: 15, compliance: 5 }, { trust: -10 }, { trust: -5 }, { trust: -10, compliance: -5 }),
+      why: 'NIST’s revision feeds lessons learned into Improvement under Identify; the review turns them into owned work the board can track.',
+      lesson: 'Close an incident with owned actions, not with blame or a purchase.' }
+  ],
+  endings: [
+    { min: 75, title: 'Contained, recovered and disclosed on time', text: 'One person ran the response, the spread stopped at one site, the money-making systems came back first, and every clock was met.' },
+    { min: 55, title: 'Recovered, with damage', text: 'Operations came back, but a lost day, a missed clock or a claim withdrawn cost trust or money.' },
+    { min: 0, title: 'A longer, costlier incident', text: 'The attack spread, recovery dragged, and customers, regulators and the board heard about it late or wrongly.' }
+  ]
+});
+
+// BRN-8: shadow AI. Value is $k a year of AI licences: planned = what you buy, actual = what is used.
+const SH = N.sh;
+runs.push({
+  id: 'BRN-8', status: 'Draft', lane: 'ai-leadership', section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  title: 'Shadow AI, one hundred and twenty days', role: 'Chief AI Officer',
+  blurb: 'Eight decisions after finding staff using unapproved AI tools: triage, a usage rule, an approved tool, a data slip, a chatbot that leaked, vendor terms, a metric and the board report. Figures are computed in code; the company is fictional.',
+  briefing: t('You are Chief AI Officer of Pellwood Group (fictional), a {{sh.staff}}-person professional services firm. Network logs show staff using AI tools that nobody approved. The firm already pays ${{sh.start}}k a year for an approved coding assistant, fully used. Each stage says how many days it has been since the discovery. Business value here is $k a year of AI licences: what you buy and what is used.'),
+  meters: ['control', 'adoption', 'trust', 'value'],
+  meterLabels: { control: 'Data control', adoption: 'Safe adoption', trust: 'Staff trust', value: 'Value' },
+  start: { planned: SH.start, actual: SH.start },
+  predNote: 'Here predictability is licence value used ÷ licence value bought.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-8-01', phase: 'Day 1',
+      stem: t('Day 1. Last month {{sh.users}} of {{sh.staff}} staff ({{sh.usersPct}}%) used {{sh.tools}} AI tools nobody approved. The terms of {{sh.trainTools}} of them let the vendor train on what users type; {{sh.trainUsers}} people used those. What do you do?'),
+      options: [t('Block all {{sh.tools}} tools today and announce that AI use is banned until further notice'), t('Rank the tools by data risk, block the {{sh.trainTools}} that train on inputs, draft a rule'), 'Leave it alone, since staff are clearly finding their own productivity gains', 'Send the names of the heaviest users to their managers for discipline'],
+      answer: 1,
+      whyNot: { 0: 'A blanket ban pushes use onto personal phones, where you see nothing.', 2: 'Three tools may be training on client data today.', 3: 'Punishing the people who showed the demand drives the rest out of sight.' },
+      effects: eff({ adoption: -10, trust: -10 }, { control: 10, trust: 5 }, { control: -15 }, { trust: -15, adoption: -5 }),
+      why: 'Triage by data risk stops the worst exposure at once and keeps the demand visible while you build the safe route.',
+      lesson: 'Triage by data risk; demand you can see is easier to steer.' },
+
+    { id: 'BRN-8-02', phase: 'Day 5',
+      stem: 'Day 5. Staff ask what they may use AI for. What rule do you issue?',
+      options: ['A one-page rule by data class: which data may go into which approved tools', 'A ban on all AI use, enforced by blocking every AI site at the network edge, reviewed next year', 'Any tool and any data, provided staff use good judgment about what they type', 'A 40-page policy covering every model and use, which each employee must read and sign'],
+      answer: 0,
+      whyNot: { 1: 'Bans push use out of sight; the demand found on day 1 does not go away.', 2: 'Judgment without data classes leaves each person to guess what is confidential.', 3: 'Nobody reads 40 pages; a rule people can apply in a moment works better.' },
+      effects: eff({ control: 10, adoption: 10 }, { adoption: -15, trust: -10 }, { control: -15 }, { adoption: -10, trust: -5 }),
+      why: 'A short rule tied to data classes tells people what they may do, which is what they asked.',
+      lesson: 'Write the rule people can apply at the keyboard.' },
+
+    { id: 'BRN-8-03', phase: 'Day 20',
+      stem: t('Day 20. An enterprise AI assistant costs ${{sh.seatPrice}} a seat a month, does not train on your inputs, uses single sign-on and lets you set retention. {{sh.users}} people use AI now and {{sh.wait}} more are on a waiting list. What do you buy?'),
+      options: [t('{{sh.seats}} seats for current users and the waiting list, ${{sh.bestK}}k a year'), t('Seats for all {{sh.staff}} staff, ${{sh.allK}}k a year, so that nobody ever has to ask'), 'No licence; tell staff to use the free consumer tiers carefully', 'Nothing this year; wait for prices to fall before buying'],
+      answer: 0,
+      whyNot: { 1: t('Only the {{sh.seats}} who want it use it: ${{sh.bestK}}k of the ${{sh.allK}}k is used.'), 2: 'Free consumer tiers may train on inputs, the exposure you just blocked.', 3: 'Staff keep using unapproved tools while you wait.' },
+      effects: eff({ adoption: 15, value: 10 }, { value: -10 }, { control: -15, adoption: -5 }, { adoption: -10, control: -10 }),
+      pv: { 0: { planned: SH.bestK, actual: SH.bestK }, 1: { planned: SH.allK, actual: SH.bestK }, 2: { planned: 0, actual: 0 }, 3: { planned: 0, actual: 0 } },
+      why: t('{{sh.seats}} × ${{sh.seatYear}} a year = ${{sh.bestK}}k. OWASP recommends terms that let users opt out of training and set retention; this tool’s contract does both.'),
+      lesson: 'Buy for the demand you can see, on terms that protect the data.' },
+
+    { id: 'BRN-8-04', phase: 'Day 34',
+      stem: t('Day 34. An analyst pasted {{sh.pasted}} clients’ contract pricing into a consumer AI tool that trains on inputs, before the block reached her laptop. What do you do?'),
+      options: ['Treat it as a data incident: scope it, ask the vendor to delete it, tell legal, coach her', 'Dismiss the analyst in front of her team so that everyone sees that the rule is meant seriously', 'Do nothing: the data is already with the vendor and cannot be recalled now', 'Cut off internet access for her whole department for a month'],
+      answer: 0,
+      whyNot: { 1: 'Public punishment teaches people to hide slips, not to report them.', 2: 'The vendor may delete on request, and the clients’ contracts may require you to tell them.', 3: 'A month offline stops the department’s work and fixes nothing.' },
+      effects: eff({ control: 10, trust: 10 }, { trust: -15 }, { control: -15 }, { adoption: -10, trust: -10 }),
+      why: 'OWASP lists users entering sensitive data as one way it leaks; an incident process finds the scope, and legal checks what the client contracts require.',
+      lesson: 'Handle a slip as an incident, and make reporting safe.' },
+
+    { id: 'BRN-8-05', phase: 'Day 48',
+      stem: t('Day 48. A sales team launched a client-facing chatbot on an unapproved model API, with no testing. In {{sh.botAns}} answers it showed one client another client’s order details. What do you do?'),
+      options: ['Keep it running, adding a system prompt telling it never to share other clients’ data', 'Take it offline, run the incident process, relaunch via intake with access controls', 'Shut down every AI project in the firm until next year, whatever its risk', 'Keep it running with a notice that its answers may contain errors'],
+      answer: 1,
+      whyNot: { 0: 'OWASP warns that system prompt restrictions may not be honored and can be bypassed by prompt injection.', 2: 'Stopping every project punishes the teams that followed the rule.', 3: 'A notice does not stop the next client seeing someone else’s data.' },
+      effects: eff({ control: -15, trust: -10 }, { control: 15, trust: 5 }, { adoption: -15, value: -10 }, { control: -15, trust: -10 }),
+      why: 'One client seeing another’s data is OWASP’s first example scenario; access controls on what the model can reach, tested before launch, are the fix.',
+      lesson: 'Control what the model can reach; a prompt is not a control.' },
+
+    { id: 'BRN-8-06', phase: 'Day 60',
+      stem: 'Day 60. Contracts for the AI tools still in use come up for renewal. What do you require?',
+      options: ['Renew all of them as they are, since staff are used to them and switching is disruptive', 'Renew only tools that bar training on your inputs and set retention; give each an owner', 'Send every vendor the standard security questionnaire and file the answers it returns', 'Let each department negotiate its own AI contracts with the vendors it prefers'],
+      answer: 1,
+      whyNot: { 0: 'Terms that allow training on client data renew with them.', 2: 'A filed questionnaire changes no contract term.', 3: 'Each department then accepts different terms, and nobody owns the risk.' },
+      effects: eff({ control: -10 }, { control: 15, value: 5 }, { control: -5 }, { control: -10, value: -5 }),
+      why: 'OWASP recommends letting users opt out of training and documenting retention and deletion; putting those terms in the contract is what binds the vendor to them (Inferred).',
+      lesson: 'Put data terms in the contract, and give each vendor an owner.' },
+
+    { id: 'BRN-8-07', phase: 'Day 90',
+      stem: t('Day 90. The executive committee asks how you will show shadow AI is under control. {{sh.approved}} of the {{sh.aiAll}} people who use AI now do so through approved tools. What do you track?'),
+      options: [t('The share of AI users on approved tools, {{sh.appPct}}%, with incidents and the {{sh.unapp}} still outside'), 'The number of prompts sent through the approved tool each month, as the main measure of success', 'Nothing more: the three training tools are blocked, so shadow AI is solved', 'Licence spend only, since it is the one figure finance already tracks'],
+      answer: 0,
+      whyNot: { 1: 'Prompt counts measure activity, not whether risky use has moved.', 2: 'People who used the blocked tools may simply have moved to others.', 3: 'Spend says nothing about the people still on unapproved tools.' },
+      effects: eff({ control: 10, value: 10 }, { value: -5 }, { control: -10 }, { value: -5 }),
+      why: t('{{sh.approved}} ÷ {{sh.aiAll}} = {{sh.appPct}}%. The {{sh.unapp}} outside are the next people to reach.'),
+      lesson: 'Measure how much use has moved to safe tools, and who is left.' },
+
+    { id: 'BRN-8-08', phase: 'Day 120',
+      stem: 'Day 120. The board asks for a report on AI risk. What do you present?',
+      options: ['A live demonstration of the approved assistant’s most impressive new features for staff', 'Findings, the rule, the approved-tool share, incidents handled, and the open gaps', 'A list of every AI tool on the market today, with its price and features', 'A request to double the AI budget next year, with no results attached'],
+      answer: 1,
+      whyNot: { 0: 'A demo shows a tool, not whether risk is under control.', 2: 'A market list tells the board nothing about your firm.', 3: 'A budget request without results gives the board nothing to judge.' },
+      effects: eff({ trust: -5 }, { trust: 10, value: 5 }, { value: -5 }, { trust: -10 }),
+      why: 'The board oversees risk; it needs what you found, what you did, how it is measured and what is still open.',
+      lesson: 'Report findings, actions, a measure and the gaps.' }
+  ],
+  endings: [
+    { min: 75, title: 'Demand met, data protected', text: 'Risky tools were stopped fast, people got a safe tool sized to demand, slips were handled as incidents, and the board saw a measure of progress.' },
+    { min: 55, title: 'Safer, not settled', text: 'The worst exposure stopped, but a ban, an oversized licence or a soft response left risk or waste.' },
+    { min: 0, title: 'Driven underground', text: 'Bans and blame pushed AI use out of sight, and the data kept leaking.' }
+  ]
+});
+
+// BRN-9: a support assistant leaks across tenants. Value is $k of ARR: planned = what you tell the CEO, actual = what is kept or added.
+const ML = N.ml;
+runs.push({
+  id: 'BRN-9', status: 'Draft', lane: 'ai-leadership', alsoIn: ['data-leadership'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  title: 'Model data leak, fourteen days', role: 'Chief AI Officer',
+  blurb: 'Eight decisions after an AI assistant shows one customer another’s data: shutting it off, scoping, the root cause, the training data, telling customers, their auditors, the relaunch and the review. Figures are computed in code; the company is fictional.',
+  briefing: t('You are Chief AI Officer of Tessaly (fictional), which sells helpdesk software to {{ml.tenants}} business customers. The customers are the controllers of the personal data in their tickets; Tessaly processes it for them. Tessaly’s support assistant answers agents’ questions by retrieving passages from {{ml.chunks}} indexed ticket chunks and passing them to a model fine-tuned on past tickets. A model invented for this exercise: affected customers who hear from Tessaly promptly renew at {{ml.keepPct}}%; those who hear late renew at {{ml.latePct}}%; a general notice that names nobody keeps {{ml.genPct}}%. Each stage says how long it has been since the first report. Business value here is $k of ARR: what you tell the CEO and what is kept or added, counting from the assistant add-on’s ${{ml.start}}k ARR.'),
+  meters: ['containment', 'data', 'trust', 'value'],
+  meterLabels: { containment: 'Containment', data: 'Data protection', trust: 'Customer trust', value: 'Product value' },
+  start: { planned: ML.start, actual: ML.start },
+  predNote: 'Here predictability is ARR kept or added ÷ ARR you told the CEO to expect.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-9-01', phase: t('Hour {{ml.c1}}'),
+      stem: t('{{ml.c1}} after the report. A customer’s agent sends a screenshot: the assistant quoted a ticket from another company. What do you do?'),
+      options: ['Add a line to the system prompt telling the model never to reveal other customers’ data', 'Switch the assistant off, declare an incident and preserve the retrieval logs', 'Wait for a second report before acting, in case this one was a one-off', 'Ask the customer to delete the screenshot and keep the matter private'],
+      answer: 1,
+      whyNot: { 0: 'OWASP warns that system prompt restrictions may not be honored and can be bypassed.', 2: 'Every hour it runs, more customers’ tickets may be shown to others.', 3: 'Asking a customer to stay quiet costs trust and does not stop the leak.' },
+      effects: eff({ containment: -15 }, { containment: 15, data: 5 }, { containment: -15, data: -10 }, { trust: -15 }),
+      why: 'Switching it off stops new exposure at once, and the logs are what the scope and any notice will rest on.',
+      lesson: 'Stop the exposure first and keep the logs.' },
+
+    { id: 'BRN-9-02', phase: t('Hour {{ml.c2}}'),
+      stem: t('{{ml.c2}} after the report. The logs go back {{ml.days}} days, to an index migration. How do you find out who was affected?'),
+      options: ['Review a sample of 100 answers by hand and extrapolate to the rest', 'Assume only the customer who reported it was affected, and fix the cause', 'Rebuild the index first to stop the problem, then read through the logs afterward to find who was affected', t('Query the logs for every answer using another customer’s chunk: {{ml.cross}} answers')],
+      answer: 3,
+      whyNot: { 0: 'A sample gives an estimate; notices need the actual customers.', 1: 'One report rarely means one case.', 2: 'The assistant is already off; rebuilding first can overwrite what the logs refer to.' },
+      effects: eff({ data: -5, trust: -5 }, { data: -15, trust: -10 }, { data: -10 }, { data: 15, containment: 5 }),
+      why: t('The full query gives the exact list: {{ml.cross}} answers in {{ml.days}} days showed tickets belonging to {{ml.cust}} customers.'),
+      lesson: 'Scope from the logs, completely, before you change anything.' },
+
+    { id: 'BRN-9-03', phase: t('Hour {{ml.c3}}'),
+      stem: t('{{ml.c3}} after the report. The migration dropped the tenant tag from {{ml.untag}}% of chunks ({{ml.untagN}}), and the retrieval filter let untagged chunks through. What is the fix?'),
+      options: ['Rely on the system prompt instruction to keep each customer’s tickets apart', 'Add an output filter that scans each answer for other customers’ names and blocks the answer', 'Check tenant in retrieval code before the model sees anything; reject untagged chunks', 'Only re-tag the chunks from the source and leave the retrieval code as it is'],
+      answer: 2,
+      whyNot: { 0: 'A prompt is an instruction the model may not follow, not an access control.', 1: 'Ticket text can expose another customer without naming it.', 3: 'The next migration that drops tags leaks again.' },
+      effects: eff({ data: -15 }, { data: -5 }, { data: 15, containment: 5 }, { data: -5 }),
+      why: t('OWASP recommends least-privilege access to data: the model should only ever receive the requesting customer’s chunks. Rejecting untagged ones closes the gap the {{ml.untagN}} chunks opened.'),
+      lesson: 'Enforce access before the model sees data; fail closed.' },
+
+    { id: 'BRN-9-04', phase: t('Hour {{ml.c4}}'),
+      stem: t('{{ml.c4}} after the report. The fine-tuned model was trained on past tickets with names, emails and phone numbers left in. What do you decide?'),
+      options: ['Stop serving it and retrain on tickets with personal data scrubbed or masked first', 'Keep it: fine-tuning makes it unlikely the model repeats any of its training text word for word', 'Keep it and add a notice that answers may contain personal information', 'Delete all the training data and give up fine-tuning for good'],
+      answer: 0,
+      whyNot: { 1: 'OWASP lists careless inclusion of sensitive data in training as a way it leaks.', 2: 'A notice does not stop the disclosure.', 3: 'Scrubbed data keeps the benefit without the exposure.' },
+      effects: eff({ data: 15 }, { data: -15 }, { data: -10, trust: -5 }, { value: -15 }),
+      why: 'OWASP recommends scrubbing or masking sensitive content before it is used in training.',
+      lesson: 'Clean training data before it reaches the model.' },
+
+    { id: 'BRN-9-05', phase: t('Hour {{ml.c5}}'),
+      stem: t('{{ml.c5}} after the report. The {{ml.cust}} affected customers hold ${{ml.all}}k of ARR. What do you do, and what ARR do you tell the CEO to expect from them?'),
+      options: [t('Tell each of the {{ml.cust}} now what is known, follow up in phases; tell her ${{ml.keepK}}k'), t('Wait three weeks for the full investigation, then notify them; tell her ${{ml.keepK}}k'), t('Notify the regulators yourself and let customers hear from them; tell her ${{ml.keepK}}k'), t('Send a general notice to all {{ml.tenants}} customers naming nobody; tell her ${{ml.keepK}}k')],
+      answer: 0,
+      whyNot: { 1: t('Customers hear from someone else first; at {{ml.latePct}}%, ${{ml.lateK}}k renews.'), 2: t('As processor, GDPR Article 33 has Tessaly notify its controllers; customers who hear from a regulator renew at {{ml.latePct}}%: ${{ml.lateK}}k.'), 3: t('Affected customers cannot tell they were affected, and in this exercise only {{ml.genPct}}% renew: ${{ml.genK}}k.') },
+      effects: eff({ trust: 15, data: 5 }, { trust: -15 }, { trust: -15, data: -5 }, { trust: -10 }),
+      pv: { 0: { planned: ML.keepK, actual: ML.keepK }, 1: { planned: ML.keepK, actual: ML.lateK }, 2: { planned: ML.keepK, actual: ML.lateK }, 3: { planned: ML.keepK, actual: ML.genK } },
+      why: t('Article 33 says a processor notifies its controller without undue delay, and information can follow in phases. Prompt notice keeps {{ml.keepPct}}%: {{ml.all}} × {{ml.keepPct}}% = {{ml.keepK}}.'),
+      lesson: 'As a processor, tell your customers fast; they own the next notice.' },
+
+    { id: 'BRN-9-06', phase: t('Hour {{ml.c6}}'),
+      stem: t('{{ml.c6}} after the report. Several customers’ auditors ask for evidence that it cannot happen again. What do you send?'),
+      options: ['Last year’s SOC 2 report, which had no exceptions in it', 'A polite refusal, since incident details are confidential to Tessaly', 'An incident report: cause, scope, the new control and when SOC 2 will test it', 'The full raw retrieval logs from the incident, including other customers’ tickets'],
+      answer: 2,
+      whyNot: { 0: 'A report on last year says nothing about a control that failed this month.', 1: 'Customers who must answer to their own regulators need the facts.', 3: 'Raw logs expose the other customers a second time.' },
+      effects: eff({ trust: -10 }, { trust: -15 }, { trust: 15, data: 5 }, { data: -20, trust: -10 }),
+      why: 'A Type 2 report tests whether controls operated over a period; telling auditors the new control will be in the next period gives them something to check.',
+      lesson: 'Give auditors the cause, the control and when it will be tested.' },
+
+    { id: 'BRN-9-07', phase: t('Hour {{ml.c7}}'),
+      stem: t('{{ml.c7}} after the report. On {{ml.tests}} test queries written to cross tenants, the old version leaked in {{ml.oldLeak}} ({{ml.oldPct}}%); the fixed one in {{ml.newLeak}}. Sales wants it back and forecasts ${{ml.allNowPlan}}k of new ARR next quarter if every customer gets it now, ${{ml.phasedK}}k if it goes out in waves. What do you do, and what new ARR do you tell the CEO to expect next quarter?'),
+      options: [t('Relaunch to every customer today, since the fix is in; tell her ${{ml.allNowPlan}}k'), t('Relaunch in waves behind the test gate, internal agents first; tell her ${{ml.phasedK}}k'), 'Never relaunch it, because the risk of another leak is too high; tell her nothing', t('Relaunch without retrieval, on the base model alone; tell her ${{ml.allNowPlan}}k')],
+      answer: 1,
+      whyNot: { 0: t('A tenant edge case the test set missed shows up in the first week and it is pulled again: ${{ml.allNowAct}}k.'), 2: 'The fix is tested; abandoning the product loses its value for good.', 3: t('Without the customer’s own tickets the answers are generic and few buy: ${{ml.noRagAct}}k.') },
+      effects: eff({ data: -10, trust: -10 }, { value: 15, trust: 5 }, { value: -15 }, { value: -10 }),
+      pv: { 0: { planned: ML.allNowPlan, actual: ML.allNowAct }, 1: { planned: ML.phasedK, actual: ML.phasedK }, 2: { planned: 0, actual: 0 }, 3: { planned: ML.allNowPlan, actual: ML.noRagAct } },
+      why: t('{{ml.newLeak}} of {{ml.tests}} against {{ml.oldLeak}} ({{ml.oldPct}}%) before. Waves let real traffic test the fix before every customer depends on it.'),
+      lesson: 'Relaunch behind a test gate, in waves.' },
+
+    { id: 'BRN-9-08', phase: t('Day {{ml.d8}}'),
+      stem: t('Day {{ml.d8}}. The assistant is back for internal agents and the first wave of customers. What closes the incident?'),
+      options: ['Blame the engineer who ran the migration, record the cause as human error, and close', 'Put every AI release under legal review from now on, before any customer sees it', 'Close it: the fix works and customers have been told', 'A review without blame: a tenant test in every release and an owner for each data set'],
+      answer: 3,
+      whyNot: { 0: 'The migration was missing a check, not just a careful person.', 1: 'Legal review does not test tenant isolation.', 2: 'Without a test in every release, the next migration can repeat it.' },
+      effects: eff({ trust: -10 }, { value: -10 }, { data: -10 }, { data: 10, trust: 10 }),
+      why: 'Lessons become owned work: the isolation test runs on every release, and each data set has someone accountable for it.',
+      lesson: 'Turn the incident into a test that runs on every release.' }
+  ],
+  endings: [
+    { min: 75, title: 'Contained and trusted', text: 'The leak stopped within the hour, the scope was exact, the fix enforced access, customers heard fast and the relaunch was gated.' },
+    { min: 55, title: 'Fixed, with lost customers', text: 'The leak was fixed, but a slow notice, a weak control or a rushed relaunch cost renewals or trust.' },
+    { min: 0, title: 'A second leak', text: 'Prompts stood in for controls, customers heard late, and the assistant leaked again.' }
+  ]
+});
+
 runs[0].steps.forEach((st, i) => place(st, POS[i]));
 const POS2 = [3, 0, 2, 1, 0, 3];
 runs[1].steps.forEach((st, i) => place(st, POS2[i]));
@@ -581,4 +868,9 @@ const POS5 = [3, 1, 0, 2, 1, 3, 0, 2];
 runs[4].steps.forEach((st, i) => place(st, POS5[i]));
 const POS6 = [2, 0, 3, 1, 3, 0, 2, 1];
 runs[5].steps.forEach((st, i) => place(st, POS6[i]));
+const POS7 = [1, 3, 0, 2, 3, 1, 0, 2], POS8 = [2, 0, 3, 1, 0, 2, 1, 3], POS9 = [0, 2, 1, 3, 2, 0, 3, 1];
+require('assert')(runs[6].id === 'BRN-7' && runs[7].id === 'BRN-8' && runs[8].id === 'BRN-9');
+runs[6].steps.forEach((st, i) => place(st, POS7[i]));
+runs[7].steps.forEach((st, i) => place(st, POS8[i]));
+runs[8].steps.forEach((st, i) => place(st, POS9[i]));
 module.exports = runs;

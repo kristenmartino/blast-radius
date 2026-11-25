@@ -74,18 +74,20 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       '#lesson-dst-1', '#lesson-dst-6', '#lesson-dpv-1', '#lesson-dpv-6', '#lesson-ec-7', '#lesson-ec-8', '#prompts-data-leadership', '#packet-br-12', '#stage-br-12-1', '#stage-br-12-4', '#run-brn-5', '#rp-brl-7', '#rp-brl-8',
       // Phase 3b: CTO lane (every new screen)
       '#lesson-ts-1', '#lesson-ts-2', '#lesson-ts-3', '#lesson-ts-4', '#lesson-ts-5', '#lesson-ts-6', '#lesson-ed-1', '#lesson-ed-2', '#lesson-ed-3', '#lesson-ed-4', '#lesson-ed-5', '#lesson-ed-6', '#prompts-cto',
-      '#packet-br-13', '#packet-br-14', '#stage-br-13-1', '#stage-br-13-2', '#stage-br-13-3', '#stage-br-13-4', '#stage-br-14-1', '#stage-br-14-2', '#stage-br-14-3', '#stage-br-14-4', '#run-brn-6', '#rp-brl-9', '#rp-brl-10', '#rp-brl-11']) {
+      '#packet-br-13', '#packet-br-14', '#stage-br-13-1', '#stage-br-13-2', '#stage-br-13-3', '#stage-br-13-4', '#stage-br-14-1', '#stage-br-14-2', '#stage-br-14-3', '#stage-br-14-4', '#run-brn-6', '#rp-brl-9', '#rp-brl-10', '#rp-brl-11',
+      // Phase 4a: risk module and incident sims (every new screen)
+      '#lesson-rk-1', '#lesson-rk-2', '#lesson-rk-3', '#lesson-rk-4', '#lesson-rk-5', '#lesson-rk-6', '#run-brn-7', '#run-brn-8', '#run-brn-9']) {
       await page.goto(URL + h); await page.waitForTimeout(150); await fit(page, tag + ' ' + h);
     }
     await page.goto(URL + '#lesson-om-3'); await page.waitForSelector('[data-act="check-pick"]');
     await page.locator('[data-act="check-pick"]').first().click(); await page.waitForSelector('.verdict');
     await fit(page, tag + ' lesson with a checked answer');
-    for (const ls of ['ts-4', 'ed-2', 'ed-6']) { await page.goto(URL + '#lesson-' + ls); await page.waitForSelector('[data-act="check-pick"]');
+    for (const ls of ['ts-4', 'ed-2', 'ed-6', 'rk-1', 'rk-3', 'rk-4']) { await page.goto(URL + '#lesson-' + ls); await page.waitForSelector('[data-act="check-pick"]');
       for (const b of await page.locator('[data-act="check-pick"][data-j="0"]').all()) await b.click();
       await page.waitForTimeout(80); await fit(page, tag + ' ' + ls + ' with answered checks'); }
-    await page.goto(URL + '#run-brn-6'); await page.waitForSelector('.opts');
-    await page.locator('[data-act="run-pick"][data-j="0"]').first().click(); await page.waitForTimeout(120);
-    await fit(page, tag + ' BRN-6 step with feedback');
+    for (const rn of ['brn-6', 'brn-7', 'brn-8', 'brn-9']) { await page.goto(URL + '#run-' + rn); await page.waitForSelector('.opts');
+      await page.locator('[data-act="run-pick"][data-j="0"]').first().click(); await page.waitForTimeout(120);
+      await fit(page, tag + ' ' + rn + ' step with feedback'); }
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
     await page.evaluate(() => { BANK.tmay.pendingOk = false; location.hash = '#tmay-cio'; }); await page.waitForSelector('.beat');
     await fit(page, tag + ' TMAY');
@@ -117,7 +119,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await act(page, 'lane', 'cio'); await page.waitForSelector('.secrow');
     ok(/#lane-cio$/.test(page.url()), 'opening CIO sets #lane-cio');
     ok(/C-level/.test(await page.locator('.playtop .meta').textContent()), 'lane header shows the level filter');
-    ok(await page.locator('.secrow').count() === 9 && /Operating model/.test(await page.locator('.secrow').first().textContent()), 'CIO lane lists its sections');
+    ok(await page.locator('.secrow').count() === 11 && /Operating model/.test(await page.locator('.secrow').first().textContent()), 'CIO lane lists its sections');
     await page.reload(); await page.waitForSelector('.secrow');
     ok(await page.locator('[data-act="level"][aria-pressed="true"]').count() === 1, 'level filter survives a reload');
     await act(page, 'home'); await page.waitForSelector('.lanebtn');
@@ -245,7 +247,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     const BANK = await page.evaluate(() => BANK);
     await act(page, 'lane', 'ai-leadership'); await page.waitForSelector('.secrow');
     ok(/#lane-ai-leadership$/.test(page.url()), 'opening AI leadership sets #lane-ai-leadership');
-    ok(await page.locator('.secrow').count() === 11 && await page.locator('.secrow .soon').count() === 0, 'AI lane lists 11 sections, all built');
+    ok(await page.locator('.secrow').count() === 13 && await page.locator('.secrow .soon').count() === 0, 'AI lane lists 13 sections, all built');
     const roles = await page.locator('.roles .pill').allTextContents();
     ok(roles.join('|') === 'Director of AI Enablement|AI Program Lead|AI Governance Lead|Head of AI Transformation|VP/SVP Enterprise AI|Head of AI|Chief AI Officer (CAIO)', 'AI lane shows its seven titles');
     const n = sel => page.locator(sel + ' .itemrow').count();
@@ -374,7 +376,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     }
     await page.goto(URL + '#lane-cto'); await page.waitForSelector('.secrow');
     { const n = sel => page.locator(sel + ' .itemrow').count();
-      ok(await page.locator('.secrow').count() === 12, 'CTO lane lists 12 sections');
+      ok(await page.locator('.secrow').count() === 14, 'CTO lane lists 14 sections');
       ok(await n('#cto-tech-strategy') === 6 && await n('#cto-engineering-delivery') === 6 && await n('#cto-operating-model') === 6 && await n('#cto-economics') === 8, 'CTO lane: 6 + 6 module lessons, shared operating model (6) and economics (8)');
       ok(await n('#cto-debt-sim') === 1 && await n('#cto-cost-sim') === 1 && await page.locator('#cto-cost-sim a[href="#run-brn-2"]').count() === 1 && await n('#cto-first-90') === 1 && await n('#cto-packets') === 1 && await n('#cto-role-plays') === 3 && await n('#cto-behavioral') === 1, 'CTO lane: BRN-6, BRN-2 under its own id, BR-13, BR-14, 3 role-plays, prompts');
       ok(/OK which two beats/.test(await page.locator('#cto-tmay').textContent()) && await n('#cto-tmay') === 0, 'CTO lane TMAY held back');
@@ -426,6 +428,66 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       }
       const m = /predictability\s*(\d+(\.\d)?)%/i.exec(await page.locator('main').textContent());
       ok(m && +m[1] < 100, 'BRN-6: holding back no capacity lowers predictability (' + (m && m[1]) + '%)'); }
+    // ---- Phase 4a: shared risk module and the incident sims, in all four active lanes
+    { const n = sel => page.locator(sel + ' .itemrow').count();
+      for (const [ln, sims] of [['cio', ['brn-7']], ['ai-leadership', ['brn-8', 'brn-9']], ['data-leadership', ['brn-9']], ['cto', ['brn-7']]]) {
+        await page.goto(URL + '#lane-' + ln); await page.waitForSelector('.secrow');
+        ok(await n('#' + ln + '-risk') === 6 && await page.locator('#' + ln + '-risk .cchip.draft').count() === 6, ln + ' lane lists the risk module (6 Draft lessons)');
+        ok(await n('#' + ln + '-incident-sim') === sims.length, ln + ' lane lists ' + sims.length + ' incident sim(s)');
+        for (const id of sims) ok(await page.locator('#' + ln + '-incident-sim a[href="#run-' + id + '"]').count() === 1, ln + ' lane links ' + id + ' under its own id');
+        ok(await page.locator('#' + ln + '-incident-sim .cchip.draft').count() === sims.length, ln + ' incident sims carry Draft labels');
+      }
+      await page.goto(URL + '#lane-data-leadership'); await page.waitForSelector('.secrow');
+      ok(await page.locator('.secrow').count() === 12, 'data lane lists 12 sections'); }
+    { const m = BANK.modules.find(x => x.id === 'risk');
+      ok(m && m.lessons.length === 6 && m.checks.length === 12 && m.lessons.concat(m.checks).every(x => x.status === 'Draft' && x.levels.length), 'risk: 6 lessons, 12 Draft checks with levels');
+      ok(m.lessons.every(l => l.body.every(p => /\((Read|Relayed|Inferred)/.test(p))), 'risk: every paragraph carries a tier tag');
+      ok(!/\{\{|NaN|undefined/.test(JSON.stringify(m)), 'risk: no unfilled placeholder or NaN');
+      for (const l of m.lessons) {
+        await page.goto(URL + '#lesson-' + l.id); await page.waitForSelector('[data-act="check-pick"]');
+        for (const c of m.checks.filter(x => x.lesson === l.id)) {
+          await page.locator('[data-act="check-pick"][data-id="' + c.id + '"][data-j="' + c.answer + '"]').click(); await page.waitForTimeout(60);
+          ok(/Right/.test(await page.locator('#check-' + c.id.toLowerCase() + ' .verdict').textContent()), c.id + ' keyed answer marks right');
+        }
+      } }
+    // the stage clock is in every stage's text
+    for (const rid of ['BRN-7', 'BRN-8', 'BRN-9']) {
+      const r = BANK.runs.find(x => x.id === rid);
+      ok(r.status === 'Draft' && r.section === 'incident-sim' && r.steps.length === 8, rid + ': Draft, incident-sim, eight steps');
+      ok(r.steps.every(st => /^(\d+:\d\d after|Day \d+\.)/.test(st.stem) && /^(Hour \d+:\d\d|Day \d+)$/.test(st.phase)), rid + ': every stage says how long since detection');
+      ok(!/\{\{|NaN|undefined/.test(JSON.stringify(r)), rid + ': no unfilled placeholder or NaN');
+    }
+    // best paths: 100% predictability and the top ending; a wrong pick with a promise lowers predictability
+    for (const [rid, wrongStep, wrongRe] of [['BRN-7', 1, /^Wipe/], ['BRN-8', 2, /^Seats for all/], ['BRN-9', 4, /^Wait three weeks/]]) {
+      const r = BANK.runs.find(x => x.id === rid), st = r.steps;
+      await page.goto(URL + '#run-' + rid.toLowerCase()); await page.waitForSelector('.opts');
+      for (let i = 0; i < st.length; i++) {
+        await page.locator('[data-act="run-pick"][data-j="' + st[i].answer + '"]').click(); await page.waitForTimeout(120);
+        const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+      }
+      const end = await page.locator('main').textContent();
+      ok(/100(\.0)?%/.test(end) && !/NaN|\{\{/.test(end), rid + ' best path: 100% predictability');
+      ok(end.indexOf(r.endings[0].title) !== -1, rid + ' best path reaches the top ending');
+      await page.locator('[data-act="run-replay"]').click(); await page.waitForTimeout(120);
+      for (let i = 0; i < st.length; i++) {
+        const j = i === wrongStep ? st[i].options.findIndex(o => wrongRe.test(o)) : st[i].answer;
+        if (i === wrongStep) ok(j >= 0 && j !== st[i].answer, rid + ': wrong option found at step ' + (i + 1));
+        await page.locator('[data-act="run-pick"][data-j="' + j + '"]').click(); await page.waitForTimeout(120);
+        const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); }
+      }
+      const m = /predictability\s*(\d+(\.\d)?)%/i.exec(await page.locator('main').textContent());
+      ok(m && +m[1] < 100, rid + ': the wrong promise lowers predictability (' + (m && m[1]) + '%)');
+    }
+    // BRN-7's flag: wiping at hour 1:30 changes the next stage's text
+    { const st = BANK.runs.find(x => x.id === 'BRN-7').steps;
+      await page.goto(URL + '#run-brn-7'); await page.waitForTimeout(150);
+      if (await page.locator('[data-act="run-replay"]').count()) { await page.locator('[data-act="run-replay"]').first().click(); }
+      await page.waitForSelector('.opts');
+      await page.locator('[data-act="run-pick"][data-j="' + st[0].answer + '"]').click(); await page.waitForTimeout(120);
+      { const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); } }
+      await page.locator('[data-act="run-pick"][data-j="' + st[1].options.findIndex(o => /^Wipe/.test(o)) + '"]').click(); await page.waitForTimeout(120);
+      { const nx = page.locator('[data-act="run-next"]'); if (await nx.count()) { await nx.first().click(); await page.waitForTimeout(120); } }
+      ok(/destroyed the disk images/.test(await page.locator('main').textContent()), 'BRN-7: wiping at hour 1:30 shows in the next stage'); }
     ok(BANK.roleplays.every(r => /^You are talking with /.test(r.persona)), 'every role-play persona names who the learner is');
     await ctx.close();
   }

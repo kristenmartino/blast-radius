@@ -108,7 +108,8 @@ const MODS = [
   { id: 'data-strategy', title: 'Data strategy and governance', prefix: 'dst', data: require('./content/dst.js') },
   { id: 'data-products', title: 'Data products and analytics value', prefix: 'dpv', data: require('./content/dpv.js') },
   { id: 'tech-strategy', title: 'Technology strategy and architecture governance', prefix: 'ts', data: require('./content/techstrat.js') },
-  { id: 'engineering-delivery', title: 'Engineering org and delivery', prefix: 'ed', data: require('./content/delivery.js') }
+  { id: 'engineering-delivery', title: 'Engineering org and delivery', prefix: 'ed', data: require('./content/delivery.js') },
+  { id: 'risk', title: 'Risk, security and incident leadership', prefix: 'rk', data: require('./content/risk.js') }
 ];
 const LINKS = require('./content/links.js');
 const BP = require('./content/prompts.js'), TMAY = require('./content/tmay.js'), TMAYD = require('./content/tmay-data.js'), TMAYC = require('./content/tmay-cto.js');

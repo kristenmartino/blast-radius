@@ -422,6 +422,59 @@ function compute() {
       dispatchPb: r2(pb(S.find(s => s.id === 'A-01'))), glPb: r2(pb(S.find(s => s.id === 'A-04'))), glInterest: S.find(s => s.id === 'A-04').interest, glEffort: S.find(s => s.id === 'A-04').effort };
     for (const s of S) N.b14['pb_' + s.id.replace('-', '')] = r2(pb(s)); }
 
+  // ---------------------------------------------------------------- Phase 4a: risk module (rk-n) and the three incident sims
+  // Calendar helpers: business days skip Saturday and Sunday only (each example states a week with no public holiday).
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const longDate = d => DAYS[d.getUTCDay()] + ', ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+  const addBiz = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); while (n > 0) { d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6 !== 0) n--; } return d; };
+  // Clock from a stated start (day index into DAYS, minutes after midnight) plus h hours and m minutes.
+  const clock = (startDay, startMin, mins) => { const t = startMin + mins, day = (startDay + Math.floor(t / 1440)) % 7, mm = t % 1440;
+    return DAYS[day] + ' ' + String(Math.floor(mm / 60)).padStart(2, '0') + ':' + String(mm % 60).padStart(2, '0'); };
+  const hm = mins => Math.floor(mins / 60) + ':' + String(mins % 60).padStart(2, '0');
+
+  { // rk-1: a three-line risk register; expected annual loss = likelihood × impact ($k)
+    const rw = [10, 4000], vo = [30, 500], lp = [60, 40], imAfter = 1500, mit = 120, tol = 250, prem = 90, ret = 500;
+    const ex = x => x[0] * x[1] / 100, rwAfter = rw[0] * imAfter / 100;
+    // rk-3: SEC Item 1.05 (four business days from the materiality determination) and GDPR Article 33 (72 hours from awareness)
+    const secDet = '2026-10-15';
+    N.rk = { rwLik: rw[0], rwImp: rw[1], rwExp: ex(rw), voLik: vo[0], voImp: vo[1], voExp: ex(vo), lpLik: lp[0], lpImp: lp[1], lpExp: ex(lp),
+      totExp: ex(rw) + ex(vo) + ex(lp), mitCost: mit, rwImpAfter: imAfter, rwExpAfter: rwAfter, mitCut: ex(rw) - rwAfter, mitNet: ex(rw) - rwAfter - mit,
+      tol, prem, ret, insPays: imAfter - ret, insExp: rw[0] * (imAfter - ret) / 100, insNet: rw[0] * (imAfter - ret) / 100 - prem,
+      secDet: longDate(new Date(secDet + 'T00:00:00Z')), secDue: longDate(addBiz(secDet, 4)),
+      gdprAware: clock(6, 14 * 60, 0), gdprDue: clock(6, 14 * 60, 72 * 60), gdprHours: 72,
+      // rk-4: tiered vendor reviews, hours a year
+      vend: 120, t1: 18, t1h: 16, t2: 40, t2h: 4, t3: 62, t3h: 0.5, t1y: 18 * 16, t2y: 40 * 4 / 2, t3y: 62 * 0.5, tierY: 18 * 16 + 40 * 4 / 2 + 62 * 0.5, fullY: 120 * 16,
+      tierSave: 120 * 16 - (18 * 16 + 40 * 4 / 2 + 62 * 0.5),
+      // rk-5: a SOC 2 Type 2 report's exceptions
+      ctl: 85, exc: 3, excPct: r2(100 * 3 / 85) }; }
+
+  { // BRN-7: ransomware at Marrowgate Logistics (fictional). Detected Monday 02:10. $k of orders shipped this week.
+    const day = 1200, hours = [20, 90, 240, 480, 1560, 2640, 3360, 20160];         // minutes since detection, one per stage
+    const prTB = 6, allTB = 40, rate = 0.5, win = 48, site = day / 4;
+    const exfil = 44 * 60, det = 56 * 60;                                       // exfiltration confirmed at hour 44, materiality at hour 56
+    N.inc = { start: 2400, day, perHour: day / 24, sites: 4, site, srv: 220, enc: 14, encPct: r2(100 * 14 / 220),
+      c1: hm(hours[0]), c2: hm(hours[1]), c3: hm(hours[2]), c4: hm(hours[3]), c5: hm(hours[4]), c6: hm(hours[5]), c7: hm(hours[6]), d8: hours[7] / 1440,
+      isoK: day * 0.75, wipeK: day * 0.5, watchK: day * 0.25,
+      prTB, allTB, rate, prH: prTB / rate, allH: allTB / rate, win, prK: site * (win - prTB / rate) / 24, siteTwo: site * 2,
+      recs: 38000, eu: 4200, exfilH: 44, gdprH: 44 + 72, exfilAt: clock(1, 130, exfil), gdprDue: clock(1, 130, exfil + 72 * 60),
+      detH: 56, detAt: clock(1, 130, det), secDueDay: DAYS[addBiz('2026-11-04', 4).getUTCDay()],            // Wednesday Nov 4, 2026 + 4 business days
+      secDue: longDate(addBiz('2026-11-04', 4)), detDate: longDate(new Date('2026-11-04T00:00:00Z')),
+      retention: 250, irFee: 420, irCover: 420 - 250, demand: 1800 }; }
+
+  { // BRN-8: shadow AI at Pellwood Group (fictional). $k a year of AI licences, bought against used.
+    const staff = 4200, users = 1140, wait = 110, seat = 360;
+    N.sh = { start: 120, staff, users, usersPct: r2(100 * users / staff), tools: 9, trainTools: 3, trainUsers: 610, wait, seats: users + wait, seatPrice: 30, seatYear: seat,
+      bestK: (users + wait) * seat / 1000, allK: staff * seat / 1000, approved: users + wait, aiAll: 1380, appPct: r2(100 * (users + wait) / 1380), unapp: 1380 - users - wait,
+      pasted: 2, botAns: 3 }; }
+
+  { // BRN-9: a support assistant leaks across tenants at Tessaly (fictional SaaS helpdesk). $k of ARR kept or added.
+    const cust = 200, arr = 20, all = cust * arr;
+    N.ml = { start: 600, tenants: 9000, days: 11, cross: 1460, cust, arr, all, keepK: all * 0.95, lateK: all * 0.6, genK: all * 0.8, keepPct: 95, latePct: 60, genPct: 80,
+      untag: 6, chunks: 2400000, untagN: 2400000 * 6 / 100, tests: 5000, oldLeak: 37, oldPct: r2(100 * 37 / 5000), newLeak: 0,
+      phasedK: 360, allNowPlan: 480, allNowAct: 120, noRagAct: 160,
+      c1: hm(45), c2: hm(180), c3: hm(600), c4: hm(1200), c5: hm(1800), c6: hm(2400), c7: hm(4320), d8: 14 }; }
+
   // ---------------------------------------------------------------- TMAY budgets (word counts of the bank's career introduction)
   const W = [20, 19, 17, 26, 24], stress = [3, 2];
   const wt = W.map((w, i) => w * (stress.indexOf(i) !== -1 ? 1.5 : 1)), sw = wt.reduce((a, b) => a + b, 0);
