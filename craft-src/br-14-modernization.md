@@ -19,7 +19,7 @@ You are CTO of Corrin Freight Systems (fictional), a trucking and logistics comp
 
 ### Sequencing rule
 
-Payback in quarters is effort ÷ interest. Fund systems in order of payback, shortest first. Skip any system that no longer fits the year's budget of {{b14.budget}} engineer-weeks and carry on down the list.
+Every system the rule does not mark Retain goes on the list, retirements included. Payback in quarters is effort ÷ interest. Fund systems in order of payback, shortest first. The year's budget of {{b14.budget}} engineer-weeks is pooled across the {{b14.quarters}} quarters. Skip any system that no longer fits what is left and carry on down the list.
 
 ### Note from the CEO
 

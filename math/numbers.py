@@ -396,7 +396,7 @@ def debt_path(pct):
 scan = [(debt_path(p)[0], p) for p in range(101)]
 best_share = max(scan, key=lambda t: (t[0], -t[1]))[1]
 usable0 = 720 * (1 - D('0.0006') * 400 - D('0.00005') * 1200)
-put('td.cap', 720); put('td.eng', 60); put('td.h0', 400); put('td.k0', 1200); put('td.rHpct', D('0.06')); put('td.rKpct', D('0.005')); put('td.acc', D('0.25')); put('td.v', D('0.5'))
+put('td.cap', 720); put('td.eng', 60); put('td.h0', 400); put('td.k0', 1200); put('td.rHpct', D('0.06')); put('td.rKpct', D('0.005')); put('td.rH100', 6); put('td.rK100', D('0.5')); put('td.acc', D('0.25')); put('td.v', D('0.5'))
 put('td.lostPct', c(100 * (D('0.0006') * 400 + D('0.00005') * 1200))); put('td.eff0', c(usable0)); put('td.sBest', best_share)
 paths = {p: debt_path(p) for p in (0, 10, best_share, 50)}
 put('td.t0', c(paths[0][0])); put('td.t10', c(paths[10][0])); put('td.tBest', c(paths[best_share][0])); put('td.t50', c(paths[50][0]))

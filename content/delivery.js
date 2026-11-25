@@ -62,7 +62,7 @@ const lessons = [
 ];
 const checks = [
   { id: 'ED-01', lesson: 'ed-1', levels: ALL,
-    stem: 'Which of these does DORA count as an instability metric?',
+    stem: 'In DORA’s current five-metric guide, which of these is an instability metric?',
     options: ['Deployment frequency', 'Change lead time', 'Change fail rate', 'Failed deployment recovery time'],
     answer: 2, why: 'Change fail rate and deployment rework rate measure instability; the other three measure throughput.',
     whyNot: { 0: 'DORA groups deployment frequency with throughput.', 1: 'Lead time measures throughput.', 3: 'DORA now places recovery time under throughput.' } },
@@ -82,10 +82,10 @@ const checks = [
     answer: 1, why: t('{{cto.usedMin}} minutes is over the {{cto.budgetMin}}-minute budget, so the example policy freezes changes other than P0 and security fixes until the service is back within its objective.'),
     whyNot: { 0: 'The policy exists so that this decision is already made.', 2: 'Changing the objective mid-window to unblock a launch removes the protection it gives customers.', 3: 'The policy says it is not a punishment, and the freeze lifts when the service is back within its objective.' } },
   { id: 'ED-05', lesson: 'ed-3', levels: ALL,
-    stem: 'In Team Topologies, which interaction mode is meant to be temporary?',
+    stem: 'In Team Topologies, which interaction mode is defined as lasting only a set period of time?',
     options: ['X-as-a-Service', 'Facilitation', 'Collaboration', 'Stream alignment'],
     answer: 2, why: 'Collaboration runs for a defined period to discover new things; Fowler describes it as the mode used while a platform matures toward X-as-a-Service.',
-    whyNot: { 0: 'X-as-a-Service is the steady state for a mature platform.', 1: 'Facilitation is a mode of helping and mentoring, not defined by being temporary.', 3: 'Stream-aligned is a team type, not an interaction mode.' } },
+    whyNot: { 0: 'X-as-a-Service is the steady state for a mature platform.', 1: 'Facilitation is defined by helping and mentoring, with no time limit in its definition.', 3: 'Stream-aligned is a team type, not an interaction mode.' } },
   { id: 'ED-06', lesson: 'ed-3', levels: ALL,
     stem: 'One stream-aligned team owns twelve services, two on-call rotations and the company’s search tuning. Its lead time has doubled. What does Team Topologies point to first?',
     options: ['Hire more engineers into the same team until its lead time recovers', 'Too much cognitive load: move work to a platform or a specialist team', 'Ask the team to report its activity daily so that the slowdown is visible', 'Merge the team with another stream-aligned team to share the load'],

@@ -363,7 +363,7 @@ function compute() {
     const eff0 = cap * (1 - rH * h0 - rK * k0), shares = [0, 10, best, 50];
     const R = {}; shares.forEach(p => { R[p] = run(p / 100); });
     const plan = p => r2(v * Q * eff0 * (1 - p / 100)), act = p => r2(v * R[p].tot);
-    N.td = { cap, eng: 60, h0, k0, rHpct: 0.06, rKpct: 0.005, acc, v, lostPct: r2(100 * (rH * h0 + rK * k0)), eff0: r2(eff0), sBest: best,
+    N.td = { cap, eng: 60, h0, k0, rHpct: 0.06, rKpct: 0.005, rH100: 6, rK100: 0.5, acc, v, lostPct: r2(100 * (rH * h0 + rK * k0)), eff0: r2(eff0), sBest: best,
       t0: r2(R[0].tot), t10: r2(R[10].tot), tBest: r2(R[best].tot), t50: r2(R[50].tot),
       f0q1: r2(R[0].per[0]), f0q8: r2(R[0].per[7]), fBq1: r2(R[best].per[0]), fBq8: r2(R[best].per[7]),
       h0end: r2(R[0].h), hBend: r2(R[best].h), h50end: r2(R[50].h), k50end: r2(R[50].k), kBend: r2(R[best].k),
@@ -438,6 +438,8 @@ function fill(text, F) {
   return String(text).replace(/\{\{(\$?)([a-zA-Z0-9_.]+)\}\}/g, (m, d, k) => {
     if (!(k in F)) throw new Error('unknown placeholder ' + m);
     if (typeof F[k] === 'string') { if (d) throw new Error('money placeholder on text ' + m); return F[k]; }   // ids and lists (BR-8)
+    // A value with more than two decimals would print rounded (0.005 as "0.01"): refuse it (Phase 3b blind check).
+    if (!d && Math.abs(Math.round(F[k] * 100) - F[k] * 100) > 1e-6) throw new Error('placeholder ' + m + ' has more than two decimals (' + F[k] + '); round it in the math module or restate the unit');
     return d ? money(F[k]) : Number(F[k]).toLocaleString('en-US', { maximumFractionDigits: 2 });
   });
 }

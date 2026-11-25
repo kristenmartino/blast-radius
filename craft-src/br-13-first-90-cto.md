@@ -8,7 +8,7 @@ You start Monday as CTO of Halyard Software (fictional), a business-software com
 
 {{table:b13.services}}
 
-"Needed intervention" counts deployments that needed an immediate fix or rollback. "Runtime support ends" is the vendor's notice for the language runtime the service runs on; a dash means it is supported.
+Treat a service with no requests in the last 30 days as idle; check whether anything still depends on it before switching it off. "Needed intervention" counts deployments that needed an immediate fix or rollback. "Runtime support ends" is the vendor's notice for the language runtime the service runs on; a dash means it is supported.
 
 ### P1 incidents last quarter
 
