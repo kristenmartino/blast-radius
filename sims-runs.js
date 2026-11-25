@@ -96,7 +96,7 @@ const runs = [{
 
 const I = N.i, IP = N.i.pv;
 runs.push({
-  id: 'BRN-2', status: 'Draft', lane: 'cio', alsoIn: ['ai-leadership'], section: 'cost-sim', levels: ['vp', 'c-level'],
+  id: 'BRN-2', status: 'Draft', lane: 'cio', alsoIn: ['ai-leadership', 'cto'], section: 'cost-sim', levels: ['vp', 'c-level'],
   title: 'Inference at scale', role: 'CIO',
   blurb: 'Six quarters of an AI assistant’s costs as usage grows tenfold. Every figure is computed in code; prices are fictional but follow the published per-token model.',
   briefing: t('Halvorsen Supply (fictional) runs a customer-service assistant on a hosted model. Each request sends {{i.fixedTok}} tokens of fixed instructions and about {{i.varTok}} tokens of question, and gets about {{i.outTok}} tokens back. The model costs ${{i.pin}} per million input tokens and ${{i.pout}} per million output tokens, so {{$i.cBase}} a request today. Usage will grow from {{i.v1}} to {{i.v6}} requests a month over six quarters. Business value here is monthly savings in $k against the starting price; ${{i.startK}}k was saved last year.'),
@@ -468,6 +468,109 @@ runs.push({
   ]
 });
 
+// ---------------------------------------------------------------- Phase 3b, CTO lane (Draft)
+// BRN-6: tech debt vs. features, eight quarters. Value is $k of new ARR from features: planned = what you promise the CEO,
+// actual = what Finance books. Company, rates and figures are fictional; every figure comes from math/numbers.js (N.td).
+// The model in the briefing is invented and simple on purpose; the Q2 best share is found by a scan in both math modules.
+// Q2 promises: a share chosen with the model (the best share, 50%) is promised at the model's forecast; 0% and 10% are
+// promised at today's capacity, which ignores the interest, so they land below the promise.
+const TD = N.td, TP = N.td.pv;
+runs.push({
+  id: 'BRN-6', status: 'Draft', lane: 'cto', section: 'debt-sim', levels: ['vp', 'c-level'],
+  title: 'Tech debt vs. features, eight quarters', role: 'CTO',
+  blurb: 'Eight quarterly decisions at a SaaS company: what to measure, how much capacity goes to debt, a rewrite proposal, a date the CEO promised, an outage, a platform team, architecture control and the board report. Figures are computed in code from a stated model; the company is fictional.',
+  briefing: t('You are CTO of Tallyline (fictional), a business-software company with {{td.eng}} engineers: {{td.cap}} engineer-weeks a quarter. A simple model, invented for this exercise, stands in for the codebase. Teams estimate {{td.h0}} engineer-weeks of debt in code that changes often (hot) and {{td.k0}} in code that rarely changes (cold). Each engineer-week of hot debt removes {{td.rHpct}}% of capacity a quarter and each of cold debt {{td.rKpct}}%, so {{td.lostPct}}% is lost today and {{td.eff0}} engineer-weeks remain. Debt work pays hot debt first, then cold. Each engineer-week of feature work adds {{td.acc}} engineer-weeks of hot debt and brings ${{td.v}}k of new annual recurring revenue (ARR). Business value here is $k of new ARR from features: what you promise the CEO and what Finance books, starting from the ${{td.startK}}k already booked.'),
+  meters: ['delivery', 'reliability', 'people', 'trust'],
+  meterLabels: { delivery: 'Delivery', reliability: 'Reliability', people: 'Team health', trust: 'Trust in engineering' },
+  start: { planned: TD.startK, actual: TD.startK },
+  predNote: 'Here predictability is ARR Finance books ÷ ARR you promised the CEO.',
+  endLabel: 'See the result',
+  steps: [
+    { id: 'BRN-6-01', phase: 'Quarter 1',
+      stem: t('Last quarter: {{td.deploys}} production deployments in {{td.qWeeks}} weeks, {{td.fails}} of which needed immediate intervention, with a median of {{td.leadDays}} days from commit to production. The CEO asks how engineering will show it is improving. What do you set up?'),
+      options: ['A monthly ranking of teams by story points finished per engineer, shared with all staff', t('A per-service DORA baseline: {{td.perWeek}} deploys a week, {{td.cfr}}% fail rate, tracked as trends'), 'A dashboard of lines of code and commits per engineer, reviewed by managers', 'One goal for every team: deploy daily by the fourth quarter, and report only that'],
+      answer: 1,
+      whyNot: { 0: 'Points are sized by each team, so a ranking rewards inflating them.', 2: 'SPACE warns that activity counts used alone mislead and change behaviour.', 3: 'DORA lists metric targets and single-metric judgments as pitfalls.' },
+      effects: eff({ people: -10, trust: -5 }, { trust: 10, delivery: 5 }, { people: -10 }, { reliability: -10, trust: -5 }),
+      why: t('{{td.deploys}} ÷ {{td.qWeeks}} weeks = {{td.perWeek}} deploys a week; {{td.fails}} ÷ {{td.deploys}} = {{td.cfr}}%. A baseline per service, tracked as a trend, shows improvement without inviting gaming.'),
+      lesson: 'Baseline delivery and stability per service; report trends, not targets.' },
+
+    { id: 'BRN-6-02', phase: 'Quarter 2',
+      stem: 'Engineering asks for a fixed share of every quarter’s capacity for debt work, held for eight quarters. Under the briefing’s model, which share gives the most feature work over the eight quarters?',
+      options: ['None: every engineer-week goes to features', t('{{td.sBest}}% of capacity, held for eight quarters'), '10% of capacity, held for eight quarters', '50% of capacity, held for eight quarters'],
+      answer: 1,
+      whyNot: { 0: t('Features fall from {{td.f0q1}} engineer-weeks in the first quarter to {{td.f0q8}} in the eighth as hot debt grows to {{td.h0end}}: {{td.t0}} in all, against {{td.tBest}}. Promised at today’s capacity, ${{td.pv.p0}}k of ARR; ${{td.pv.a0}}k lands.'), 2: t('Better than none, {{td.t10}} engineer-weeks of features, but hot debt keeps growing: ${{td.pv.p10}}k promised, ${{td.pv.a10}}k lands.'), 3: t('Hot debt is gone early, and the rest of the share goes to cold debt that costs little: {{td.t50}} engineer-weeks of features.') },
+      effects: eff({ delivery: 5, reliability: -15, people: -10 }, { delivery: 10, reliability: 10, people: 5 }, { delivery: 5, reliability: -5 }, { delivery: -15, trust: -5 }),
+      pv: { 0: { planned: TP.p0, actual: TP.a0 }, 1: { planned: TP.aB, actual: TP.aB }, 2: { planned: TP.p10, actual: TP.a10 }, 3: { planned: TP.a50, actual: TP.a50 } },
+      sets: { 0: 'nodebt' },
+      why: t('A scan of every whole percentage from 0 to 100 found {{td.sBest}}% best: {{td.tBest}} engineer-weeks of features over eight quarters. Features dip to {{td.fBq1}} in the first quarter and rise to {{td.fBq8}} by the eighth as hot debt falls to {{td.hBend}}.'),
+      lesson: 'Hold back enough capacity to pay down the debt that charges interest, and no more.' },
+
+    { id: 'BRN-6-03', phase: 'Quarter 3',
+      stem: t('A principal engineer proposes rewriting the order platform: all {{td.eng}} engineers for {{td.freezeQ}} quarters with no features, about ${{td.freezeK}}k of new ARR forgone at today’s capacity. Billing, the module with most of the hot debt, already sits behind an API that the rest of the platform calls. What do you decide?'),
+      updateIf: { nodebt: 'With no capacity held back, feature work has slowed each quarter, which is the engineer’s main argument.' },
+      options: [t('Approve the full rewrite with a feature freeze for {{td.freezeQ}} quarters'), t('Strangler fig: {{td.stTeam}} engineers move billing behind a façade over {{td.stQ}} quarters'), 'Leave the platform as it is and fix only the defects customers report', 'Buy a replacement commerce platform and move everything over to it in one cutover'],
+      answer: 1,
+      whyNot: { 0: 'Fowler argues that cut-over rewrites fail because they take long and users cannot wait for features.', 2: 'The hot debt keeps charging interest every quarter.', 3: 'A one-step cutover carries the same risk as the rewrite, and order processing may be what sets Tallyline apart.' },
+      effects: eff({ delivery: -20, trust: -10 }, { delivery: 5, reliability: 10, people: 5 }, { reliability: -10, people: -5 }, { delivery: -10, reliability: -10 }),
+      why: t('The façade lets old and new run side by side. {{td.stTeam}} engineers for {{td.stQ}} quarters is {{td.stWeeks}} engineer-weeks (about ${{td.stK}}k of features deferred), and billing’s hot debt goes first.'),
+      lesson: 'Replace the worst part first behind a seam; avoid the big cutover.' },
+
+    { id: 'BRN-6-04', phase: 'Quarter 4',
+      stem: t('The CEO has promised Aldine Health (fictional) a launch in {{td.weeks}} weeks. The backlog for it is {{td.backlog}} items, and the last six two-week sprints finished {{td.sprintsText}}. What do you commit to?'),
+      options: [t('All {{td.backlog}} items in {{td.weeks}} weeks, because the mean of {{td.tpMean}} items a sprint is close enough'), t('Keep the date for the {{td.fitMin}} must-haves the slowest rate fits; forecast the other {{td.rest}}'), t('Add {{td.addEng}} contractors now so that all {{td.backlog}} items fit in {{td.weeks}} weeks'), 'No date until every item has been estimated in hours by the team'],
+      answer: 1,
+      whyNot: { 0: t('At {{td.tpMean}} a sprint the backlog needs {{td.weeksMean}} weeks, and Aldine signs a smaller deal after the miss.'), 2: 'People added to a late project need time and add coordination; the date still slips.', 3: 'Aldine needs an answer, and hour estimates are no better than throughput history.' },
+      effects: eff({ trust: -15, people: -10 }, { trust: 10, delivery: 5 }, { people: -10, delivery: -5 }, { trust: -10 }),
+      pv: { 0: { planned: TD.dealK, actual: TD.lateK }, 1: { planned: TD.phaseK, actual: TD.phaseK }, 2: { planned: TD.dealK, actual: TD.addK } },
+      why: t('Six sprints at the slowest rate of {{td.tpMin}} is {{td.fitMin}} items. Aldine signs a first phase worth ${{td.phaseK}}k on that scope, and the rest follows on a forecast it can plan around.'),
+      lesson: 'Fix the date and flex the scope; forecast from throughput, not hope.' },
+
+    { id: 'BRN-6-05', phase: 'Quarter 5',
+      stem: t('The order service’s objective is 99.9% availability over a rolling four weeks, a budget of {{td.budgetMin}} minutes. This window it was down {{td.out1}} and {{td.out2}} minutes. A release for Aldine is planned next week, and the agreed policy follows the SRE workbook’s example. What do you do?'),
+      updateIf: { nodebt: 'Both outages trace to order code where hot debt has piled up.' },
+      options: ['Ship the release as planned; the objective is something to aim for, not a rule', t('Freeze all but P0 and security fixes until back within budget; postmortem on the {{td.out1}}-minute outage'), 'Lower the objective to 99.8% for this window, which puts the service back within budget, and ship', 'Ask the order team to work over the weekend and ship the release on its planned date'],
+      answer: 1,
+      whyNot: { 0: 'The policy was agreed so that this call is already made.', 2: 'Moving the objective mid-window removes the protection it gives customers.', 3: 'Tired engineers shipping into an unstable service add risk.' },
+      effects: eff({ reliability: -20, trust: -10 }, { reliability: 15, trust: 5 }, { reliability: -10, trust: -10 }, { people: -15, reliability: -5 }),
+      why: t('{{td.out1}} + {{td.out2}} minutes is {{td.overMin}} over the {{td.budgetMin}}-minute budget, and the {{td.out1}}-minute outage alone used {{td.out1Pct}}% of it, above the 20% that triggers a postmortem with a P0 action.'),
+      lesson: 'When the error budget is spent, the agreed policy decides: reliability first.' },
+
+    { id: 'BRN-6-06', phase: 'Quarter 6',
+      stem: t('Each of the six stream-aligned teams ({{td.eng}} engineers) spends about {{td.toilPct}}% of its time on infrastructure: pipelines, environments and on-call for shared services. What do you change?'),
+      options: ['Leave each team to run its own infrastructure so that the teams keep full autonomy', t('A platform team of {{td.plat}} as an optional product; people on features rise from {{td.featBefore}} to {{td.featAfter}}'), t('Form a platform team of {{td.platBig}} and require every team to use its tools ({{td.featBig}} people on features)'), 'Outsource all infrastructure work to a managed service provider under one contract'],
+      answer: 1,
+      whyNot: { 0: 'The same work is repeated in six teams and keeps their cognitive load high.', 2: t('{{td.featBig}} people on features is fewer than the {{td.featBefore}} today, and mandates breed resistance.'), 3: 'A provider runs infrastructure but does not remove the teams’ own pipeline and environment work.' },
+      effects: eff({ people: -5 }, { delivery: 10, people: 10 }, { delivery: -10, people: -10 }, { delivery: -5, reliability: -5 }),
+      pv: { 1: { planned: TD.platK, actual: TD.platK }, 2: { planned: TD.bigPlanK, actual: TD.bigActK }, 3: { planned: TD.outPlanK, actual: 0 } },
+      why: t('Infrastructure work falls to {{td.toilAfterPct}}% for the other teams, so {{td.gain}} more people work on features: over the two quarters left, about ${{td.platK}}k of ARR. A platform run as a product, which teams choose to use, cuts their cognitive load.'),
+      lesson: 'Size the platform team to the work it removes, and make teams want to use it.' },
+
+    { id: 'BRN-6-07', phase: 'Quarter 7',
+      stem: t('Teams ship about {{td.changes}} changes a quarter at a median lead time of {{td.leadBase}} days. After the outages, the board asks how architecture decisions are controlled. What do you put in place?'),
+      options: [t('A review board that approves every change at a meeting every two weeks (median lead time about {{td.leadArb}} days)'), 'Decision records, advice from affected teams, and formal review only for one-way doors', 'No written decisions, so that each team decides alone and nothing slows down', 'The CTO approves every database and framework choice personally'],
+      answer: 1,
+      whyNot: { 0: t('Every change waits for the meeting: about {{td.waitDays}} change-days a quarter spent waiting.'), 2: 'Unrecorded decisions get argued again, and nobody can see who was asked.', 3: 'One approver becomes the bottleneck the advice process is meant to remove.' },
+      effects: eff({ delivery: -15, trust: 5 }, { delivery: 5, trust: 10, reliability: 5 }, { trust: -10, reliability: -5 }, { delivery: -10, people: -10 }),
+      why: 'Records show what was decided and who was asked; formal review where a decision is hard to undo keeps control without slowing every change.',
+      lesson: 'Match the weight of review to how hard the decision is to undo.' },
+
+    { id: 'BRN-6-08', phase: 'Quarter 8',
+      stem: t('The board asks for the year’s engineering report. Story points per sprint rose {{td.pointsUp}}%. You have the DORA trends per service, the hot debt balance, the ARR Finance booked against what you promised, and the incidents. What do you present?'),
+      options: [t('The {{td.pointsUp}}% rise in story points per sprint, the clearest single sign of a faster team'), 'Delivery trends, debt and its interest, ARR booked against promised, incidents, decisions', 'Lines of code shipped and the number of features released during the year', 'Next year’s roadmap, the hiring plan and the cloud commitment you want approved'],
+      answer: 1,
+      whyNot: { 0: 'Points are team-relative; the board learns nothing it can check.', 2: 'Activity counts, with no outcome or risk.', 3: 'Your plan, not your results.' },
+      effects: eff({ trust: -10 }, { trust: 15, people: 5 }, { trust: -5 }, { trust: -5 }),
+      why: t('On the planned path new ARR rose from ${{td.startK}}k to ${{td.bestK}}k. Showing booked against promised beside the delivery trends is what lets the board trust the next promise.'),
+      lesson: 'Report outcomes, debt and incidents against what you promised.' }
+  ],
+  endings: [
+    { min: 75, title: 'Faster and steadier', text: 'Debt that charged interest was paid down, promises matched throughput, the error budget was respected and the board saw outcomes against promises.' },
+    { min: 55, title: 'Better in places', text: 'Some calls paid off, but a missed date, a heavy process or unpaid debt cost delivery or trust.' },
+    { min: 0, title: 'Busy and slower', text: 'Features slowed as debt grew, dates slipped, and the board heard activity counts instead of results.' }
+  ]
+});
+
 runs[0].steps.forEach((st, i) => place(st, POS[i]));
 const POS2 = [3, 0, 2, 1, 0, 3];
 runs[1].steps.forEach((st, i) => place(st, POS2[i]));
@@ -476,4 +579,6 @@ runs[2].steps.forEach((st, i) => place(st, POS3[i]));
 runs[3].steps.forEach((st, i) => place(st, POS4[i]));
 const POS5 = [3, 1, 0, 2, 1, 3, 0, 2];
 runs[4].steps.forEach((st, i) => place(st, POS5[i]));
+const POS6 = [2, 0, 3, 1, 3, 0, 2, 1];
+runs[5].steps.forEach((st, i) => place(st, POS6[i]));
 module.exports = runs;

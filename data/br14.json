@@ -1,0 +1,151 @@
+{
+ "note": "Fictional. Written by tools/make-br14.py for packet BR-14; do not edit by hand.",
+ "systems": [
+  {
+   "id": "A-01",
+   "name": "Dispatch and routing",
+   "changes": 31,
+   "interest": 42,
+   "effort": 160,
+   "critical": "High",
+   "diff": true,
+   "market": false,
+   "seam": true,
+   "users": 380
+  },
+  {
+   "id": "A-02",
+   "name": "Customer portal",
+   "changes": 24,
+   "interest": 18,
+   "effort": 120,
+   "critical": "High",
+   "diff": true,
+   "market": false,
+   "seam": true,
+   "users": 2600
+  },
+  {
+   "id": "A-03",
+   "name": "Rate quoting",
+   "changes": 19,
+   "interest": 26,
+   "effort": 90,
+   "critical": "High",
+   "diff": true,
+   "market": false,
+   "seam": true,
+   "users": 210
+  },
+  {
+   "id": "A-04",
+   "name": "General ledger (custom)",
+   "changes": 6,
+   "interest": 9,
+   "effort": 140,
+   "critical": "High",
+   "diff": false,
+   "market": true,
+   "seam": false,
+   "users": 45
+  },
+  {
+   "id": "A-05",
+   "name": "Payroll (custom)",
+   "changes": 4,
+   "interest": 7,
+   "effort": 70,
+   "critical": "Medium",
+   "diff": false,
+   "market": true,
+   "seam": false,
+   "users": 30
+  },
+  {
+   "id": "A-06",
+   "name": "Driver mobile app",
+   "changes": 14,
+   "interest": 12,
+   "effort": 150,
+   "critical": "High",
+   "diff": true,
+   "market": false,
+   "seam": true,
+   "users": 1900
+  },
+  {
+   "id": "A-07",
+   "name": "Fuel card reconciliation",
+   "changes": 0,
+   "interest": 1,
+   "effort": 20,
+   "critical": "Low",
+   "diff": false,
+   "market": false,
+   "seam": false,
+   "users": 6
+  },
+  {
+   "id": "A-08",
+   "name": "Document scanning",
+   "changes": 2,
+   "interest": 3,
+   "effort": 40,
+   "critical": "Medium",
+   "diff": false,
+   "market": true,
+   "seam": true,
+   "users": 120
+  },
+  {
+   "id": "A-09",
+   "name": "Claims and damage",
+   "changes": 9,
+   "interest": 15,
+   "effort": 60,
+   "critical": "Medium",
+   "diff": true,
+   "market": false,
+   "seam": true,
+   "users": 85
+  },
+  {
+   "id": "A-10",
+   "name": "Old EDI gateway",
+   "changes": 0,
+   "interest": 2,
+   "effort": 30,
+   "critical": "Low",
+   "diff": false,
+   "market": false,
+   "seam": false,
+   "users": 0
+  },
+  {
+   "id": "A-11",
+   "name": "Yard management",
+   "changes": 3,
+   "interest": 2,
+   "effort": 110,
+   "critical": "Medium",
+   "diff": true,
+   "market": false,
+   "seam": false,
+   "users": 140
+  },
+  {
+   "id": "A-12",
+   "name": "HR intranet",
+   "changes": 1,
+   "interest": 1,
+   "effort": 25,
+   "critical": "Low",
+   "diff": false,
+   "market": true,
+   "seam": false,
+   "users": 600
+  }
+ ],
+ "budgetQ": 180,
+ "quarters": 4
+}
