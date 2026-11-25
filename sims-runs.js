@@ -511,7 +511,7 @@ runs.push({
       updateIf: { nodebt: 'With no capacity held back, feature work has slowed each quarter, which is the engineer’s main argument.' },
       options: [t('Approve the full rewrite with a feature freeze for {{td.freezeQ}} quarters'), t('Strangler fig: {{td.stTeam}} engineers move billing behind a façade over {{td.stQ}} quarters'), 'Leave the platform as it is and fix only the defects customers report', 'Buy a replacement commerce platform and move everything over to it in one cutover'],
       answer: 1,
-      whyNot: { 0: 'Fowler argues that cut-over rewrites fail because they take long and users cannot wait for features.', 2: 'The hot debt keeps charging interest every quarter.', 3: 'A one-step cutover carries the same risk as the rewrite, and order processing may be what sets Tallyline apart.' },
+      whyNot: { 0: 'Fowler warns that cut-over rewrites take a long time and users cannot wait that long for features.', 2: 'The hot debt keeps charging interest every quarter.', 3: 'A one-step cutover carries the same risk as the rewrite, and order processing may be what sets Tallyline apart.' },
       effects: eff({ delivery: -20, trust: -10 }, { delivery: 5, reliability: 10, people: 5 }, { reliability: -10, people: -5 }, { delivery: -10, reliability: -10 }),
       why: t('The façade lets old and new run side by side. {{td.stTeam}} engineers for {{td.stQ}} quarters is {{td.stWeeks}} engineer-weeks (about ${{td.stK}}k of features deferred), and billing’s hot debt goes first.'),
       lesson: 'Replace the worst part first behind a seam; avoid the big cutover.' },

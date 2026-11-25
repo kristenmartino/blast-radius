@@ -341,7 +341,7 @@ function compute() {
       featAfter: r2(54 * 0.95), gain: r2(54 * 0.95 - 60 * 0.8), gainPct: r2(100 * (54 * 95 - 60 * 80) / (60 * 80)), platBig: 15, featBig: r2(45 * 0.95),
       // ed-6: forecasting a date from throughput
       sprintsText: sprints.join(', '), backlog, weeks, sprintsN: n, tpMean: r2(mean), tpMin: lo, needMean: r2(backlog / mean), weeksMean: r2(2 * backlog / mean),
-      needMin: r2(backlog / lo), weeksMin: r2(2 * backlog / lo), fitMean: r2(n * mean), fitMin: n * lo, rest: backlog - n * lo, addEng: 8,
+      needMin: r2(backlog / lo), weeksMin: r2(2 * backlog / lo), fitMean: r2(n * mean), fitMin: n * lo, rest: backlog - n * lo, addEng: 8, needPer: r2(backlog / n),
       // ts-2: Fowler's interest example, made concrete
       withCruft: 10, without: 6, cleanup: 8, breakEven: r2(8 / (10 - 6)), threeSave: 3 * (10 - 6) - 8, saveEach: 10 - 6, gross3: 3 * (10 - 6),
       // ts-4: a review board that approves every change

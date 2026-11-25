@@ -374,7 +374,7 @@ tp = [21, 18, 24, 19, 22, 16]; tp_mean = D(sum(tp)) / len(tp); n_spr = 12 // 2
 put('cto.sprintsText', ', '.join(map(str, tp))); put('cto.backlog', 180); put('cto.weeks', 12); put('cto.sprintsN', n_spr)
 put('cto.tpMean', c(tp_mean)); put('cto.tpMin', min(tp)); put('cto.needMean', c(180 / tp_mean)); put('cto.weeksMean', c(2 * 180 / tp_mean))
 put('cto.needMin', c(D(180) / min(tp))); put('cto.weeksMin', c(D(2 * 180) / min(tp))); put('cto.fitMean', c(n_spr * tp_mean)); put('cto.fitMin', n_spr * min(tp))
-put('cto.rest', 180 - n_spr * min(tp)); put('cto.addEng', 8)
+put('cto.rest', 180 - n_spr * min(tp)); put('cto.addEng', 8); put('cto.needPer', c(D(180) / n_spr))
 put('cto.withCruft', 10); put('cto.without', 6); put('cto.cleanup', 8); put('cto.breakEven', c(D(8) / (10 - 6))); put('cto.threeSave', 3 * (10 - 6) - 8); put('cto.saveEach', 4); put('cto.gross3', 12)
 put('cto.changes', 140); put('cto.arbEvery', 14); put('cto.arbWait', 14 // 2); put('cto.leadBase', D('2.5')); put('cto.leadArb', D('2.5') + 7); put('cto.leadFull', D('2.5') + 14); put('cto.waitDays', 140 * 7)
 put('cto.buildEng', 3); put('cto.loaded', 180000); put('cto.buildYear', 3 * 180000); put('cto.build3', 3 * 3 * 180000)
