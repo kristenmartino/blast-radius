@@ -6,6 +6,7 @@ const { compute, flat, fill } = require('../math/numbers.js');
 const F = flat(compute()), t = x => fill(x, F);
 const SRC = {
   dora: ['DORA, DORA’s software delivery performance metrics (Nathen Harvey, updated January 5, 2026)', 'https://dora.dev/guides/dora-metrics-four-keys', 'Read'],
+  book: ['Google SRE book, Chapter 3: Embracing Risk (Marc Alvidrez; error budget section by Mark Roth)', 'https://sre.google/sre-book/embracing-risk/', 'Read'],
   slos: ['Google SRE Workbook, Chapter 2: Implementing SLOs', 'https://sre.google/workbook/implementing-slos/', 'Read'],
   policy: ['Google SRE Workbook, Appendix B: Example Error Budget Policy', 'https://sre.google/workbook/error-budget-policy/', 'Read'],
   tt: ['Team Topologies, Key Concepts', 'https://teamtopologies.com/key-concepts', 'Read'],
@@ -27,10 +28,11 @@ const lessons = [
   { id: 'ed-2', title: 'SLOs and error budgets', levels: ALL,
     body: [
       t('Google’s SRE workbook defines the error budget as 100% minus the service level objective. Its example: a service with a 99.9% success objective that gets {{cto.reqs}} requests in four weeks can fail {{cto.reqFail}} of them and still meet the objective (Read, SRE Workbook, Implementing SLOs).'),
-      'Its example policy: if a service has spent more than its budget over the preceding four weeks, all changes and releases stop except P0 issues and security fixes until the service is back within its objective. Any single incident that uses more than 20% of the four-week budget gets a postmortem with at least one P0 action. Disputes about the calculation go to the CTO. The policy says it is not a punishment: it gives teams permission to work only on reliability when the data says reliability matters more (Read, SRE Workbook, Example Error Budget Policy).',
+      'The SRE book’s chapter on risk calls the error budget an objective measure of how unreliable a service may be in a quarter, set by its objective. As long as budget remains, new releases can go out; when violations use it up, releases pause so the team can invest in testing and resilience. It says the shared measure settles the tension between product teams judged on speed and SRE judged on reliability, and that product teams then manage their own risk so they do not stall their launches (Read, SRE book, Embracing Risk).',
+      'The workbook’s example policy: if a service has spent more than its budget over the preceding four weeks, all changes and releases stop except P0 issues and security fixes until the service is back within its objective. Any single incident that uses more than 20% of the four-week budget gets a postmortem with at least one P0 action. Disputes about the calculation go to the CTO. The policy says it is not a punishment: it gives teams permission to work only on reliability when the data says reliability matters more (Read, SRE Workbook, Example Error Budget Policy).',
       t('In minutes (arithmetic): a 99.9% availability objective over {{cto.winDays}} days allows {{cto.budgetMin}} minutes of downtime; 99.95% allows {{cto.budget2Min}}. Outages of {{cto.out1}} and {{cto.out2}} minutes use {{cto.usedMin}}, which overspends the 99.9% budget by {{cto.overMin}} minutes, and the {{cto.out1}}-minute outage alone used {{cto.out1Pct}}% of it. Agree the policy with product leaders before the budget runs out, so the freeze is a rule already accepted. (Inferred.)')
     ],
-    sources: [SRC.slos, SRC.policy] },
+    sources: [SRC.book, SRC.slos, SRC.policy] },
   { id: 'ed-3', title: 'Team Topologies: team types and cognitive load', levels: ALL,
     body: [
       'Team Topologies names four team types: stream-aligned (aligned to a flow of work, usually a business domain segment), enabling (helps stream-aligned teams past obstacles), complicated subsystem (where deep specialist knowledge is needed) and platform (a grouping of other team types that provides a compelling internal product). Teams interact in three modes: collaboration for a defined period, X-as-a-Service, and facilitation. The site says teams can only handle so much complexity, and overloaded teams decide poorly and move slowly (Read, Team Topologies, Key Concepts).',

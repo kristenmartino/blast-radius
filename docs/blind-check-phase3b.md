@@ -80,6 +80,10 @@ Two separate reviewers, both Claude Sonnet, neither shown the drafting conversat
 - **ed-6 P3:** the CACM page text the fact checker received did not show Meyer's name. The source stays Relayed (search text names him).
 - **BRN-6-08:** the $2,362.4k best-path figure includes the Aldine first phase ($450k) and the platform team ($39.6k) as well as the Q2 share; the fact checker saw only the Q2 part.
 
+## Added after publishing (Nov 24, 20:50 ET)
+
+- ed-2 now cites the SRE book's "Embracing Risk" chapter (opened with Kristen's approval; Read). The new paragraph says three things: the budget is an objective measure of how unreliable a service may be in a quarter; releases go out while budget remains and pause when it is spent; and the shared measure settles the speed-versus-reliability tension. No stem or key changed, so nothing needed re-solving.
+
 ## Untested
 
 The reviewers answered TS-12, ED-01 and ED-05 from recall, so those items rest on the fact check, which opened the pages.
