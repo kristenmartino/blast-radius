@@ -1,4 +1,4 @@
-// Behavioral prompts by lane (BP-01..10 CIO family, BP-11..22 AI leadership), each mapped to stories in the Master Story Bank (read-only).
+// Behavioral prompts by lane (BP-01..10 CIO family, BP-11..22 AI leadership, BP-43..52 CISO), each mapped to stories in the Master Story Bank (read-only).
 // Mapping read from the Story Bank's private copy (artifact J5TiiDwLanHF9oMU1UFPJ6, version 1794287102-8e21,
 // copied from the Career folder on Nov 10, 2026). Links open the matching story card.
 // `level` notes say how the question scales by level; the stories are hers and stay in her wording.
@@ -219,7 +219,60 @@ const prompts = [
     prompt: 'Tell me about a time you disagreed with a technical decision and went along with it.',
     tests: 'Making the case once with evidence, committing fully, and what you watched for afterward.',
     level: 'VP: how you disagreed. C-level: how you let others overrule you without losing the team.',
-    stories: [['f2', 'F2 Disagreeing with a decision and going along with it anyway'], [36, 'The ID field OMS didn\'t have']] }
+    stories: [['f2', 'F2 Disagreeing with a decision and going along with it anyway'], [36, 'The ID field OMS didn\'t have']] },
+  // Phase 4b: CISO lane (BP-43..52). Stories chosen from the bank's own "If they ask…" lookup (incident, bad news upward,
+  // data governance, integrity, unpopular decision, cost, process improvement, KPIs, proactive work); approved Nov 24
+  // to lean on the existing incident and governance stories.
+  { id: 'BP-43', lane: 'ciso', status: 'Draft', roles: ['CISO', 'Director of Security Operations', 'Head of Security'], levels: ['director', 'vp', 'c-level'],
+    prompt: 'Tell me about an incident you led from detection to the fix.',
+    tests: 'Containing first, saying only what was known, and turning the cause into a fix that stayed fixed.',
+    level: 'Director: the response. VP: who you told and when. C-level: what the board heard and what changed.',
+    stories: [[3, 'The production script incident'], [11, 'The monitoring query nobody asked for']] },
+  { id: 'BP-44', lane: 'ciso', status: 'Draft', roles: ['CISO', 'VP Information Security'], levels: ['vp', 'c-level'],
+    prompt: 'How do you report security risk to a board or an executive team?',
+    tests: 'A few outcome measures with a trend, the largest remaining risks, and what you need them to decide.',
+    level: 'VP: the measures. C-level: the decision you ask the board to make.',
+    stories: [[10, 'The billing investigation, told to an executive'], [43, 'Monitoring billing outcomes with a dashboard I built']] },
+  { id: 'BP-45', lane: 'ciso', status: 'Draft', roles: ['CISO', 'Head of Security', 'Director of Governance, Risk and Compliance'], levels: ['director', 'vp', 'c-level'],
+    prompt: 'Tell me about a time you said no to a request from the business.',
+    tests: 'Explaining the risk in business terms, offering a safer route, and who decided in the end.',
+    level: 'Director: the no and the alternative. C-level: keeping the relationship while holding the line.',
+    stories: [[1, 'The custom-pricing “no”'], ['f2', 'F2 Disagreeing with a decision and going along with it anyway']] },
+  { id: 'BP-46', lane: 'ciso', status: 'Draft', roles: ['Director of Governance, Risk and Compliance', 'VP Information Security'], levels: ['director', 'vp'],
+    prompt: 'Tell me about a time you protected sensitive data or fixed how it was handled.',
+    tests: 'Knowing where the data lived, who owned it, and a control that held without stopping the work.',
+    level: 'Director: the control. VP: getting owners to take responsibility for it.',
+    stories: [[32, 'A governance idea, honestly scoped as a demo'], [36, 'The ID field OMS didn’t have'], [17, 'The HighRadius migration']] },
+  { id: 'BP-47', lane: 'ciso', status: 'Draft', roles: ['CISO', 'VP Information Security'], levels: ['vp', 'c-level'],
+    prompt: 'How do you decide what to fund when the security budget cannot cover everything?',
+    tests: 'Ranking by risk reduced, checking the whole set, and having someone accept what stays unfunded.',
+    level: 'VP: the ranking. C-level: the trade you take to the CFO and the board.',
+    stories: [['f11', 'F11 Prioritizing when you\'re accountable for the outcome, not just the output'], [8, 'Right-sized architecture, exit written down']] },
+  { id: 'BP-48', lane: 'ciso', status: 'Draft', roles: ['Director of Security Operations', 'Head of Security'], levels: ['director', 'vp'],
+    prompt: 'Tell me about a problem you found before anyone asked you to look.',
+    tests: 'Watching for weak signals, checking before raising the alarm, and getting it fixed.',
+    level: 'Director: how you found it. VP: how you made the finding stick.',
+    stories: [[11, 'The monitoring query nobody asked for'], [6, 'Catching my own false headline number']] },
+  { id: 'BP-49', lane: 'ciso', status: 'Draft', roles: ['CISO', 'Head of Security', 'VP Information Security'], levels: ['vp', 'c-level'],
+    prompt: 'Tell me about a time you had to give bad news to senior leaders.',
+    tests: 'Telling them early, with the facts known so far, the impact, and what you were doing about it.',
+    level: 'VP: the message. C-level: what you asked them to decide.',
+    stories: [[10, 'The billing investigation, told to an executive'], [16, 'The wave that slipped']] },
+  { id: 'BP-50', lane: 'ciso', status: 'Draft', roles: ['Director of Governance, Risk and Compliance', 'CISO'], levels: ['director', 'vp', 'c-level'],
+    prompt: 'How do you judge and manage the risk from a vendor?',
+    tests: 'Tiering vendors by what they hold, terms in the contract, and reviewing the critical ones on a schedule.',
+    level: 'Director: the review. C-level: which vendor risks you accept and who signs.',
+    stories: [[38, 'Vendor evaluation: what I have actually done'], [17, 'The HighRadius migration']] },
+  { id: 'BP-51', lane: 'ciso', status: 'Draft', roles: ['Director of Security Operations', 'Director of Governance, Risk and Compliance'], levels: ['director'],
+    prompt: 'Tell me about a process you improved and how you knew it worked.',
+    tests: 'Measuring before and after, and changing the process people actually follow.',
+    level: 'Director: the change and the measure.',
+    stories: [[23, 'The cycle-time fix'], [22, 'The sprint disruption log']] },
+  { id: 'BP-52', lane: 'ciso', status: 'Draft', roles: ['CISO', 'Director of Governance, Risk and Compliance', 'Head of Security'], levels: ['director', 'vp', 'c-level'],
+    prompt: 'Tell me about a time you caught an error in your own work before it caused harm.',
+    tests: 'Checking your own figures the way an auditor would, and correcting them openly.',
+    level: 'Director: the check. C-level: why the board can trust what you report.',
+    stories: [[6, 'Catching my own false headline number'], [25, 'Trying to break my own model']] }
 ];
 for (const p of prompts) p.stories = p.stories.map(([n, title]) => ({ ref: typeof n === 'number' ? 'Story ' + n : n.toUpperCase(), title, url: SB + (typeof n === 'number' ? 'story-' + n : n) }));
 // Reviewed by Kristen Nov 24, 2026 (00:16 ET). New prompts start as status 'Draft'.

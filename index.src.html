@@ -164,6 +164,7 @@ __KIT_CSS__
       return itemRow('#prompts-' + lane, lane === 'cio' ? 'CIO-family behavioral prompts' : l.short + ' behavioral prompts', n + ' of ' + ps.length + ' at your levels · mapped to the Master Story Bank', ALL, ps.some(p => p.status === 'Draft') ? 'Draft' : ''); }
     if (sec === 'tmay' && lane === 'data-leadership') return '<p class="note">Built; shown once you OK which two beats it stresses for data roles.</p>';
     if (sec === 'tmay' && lane === 'cto') return '<p class="note">Built; shown once you OK which two beats it stresses for engineering-leadership roles.</p>';
+    if (sec === 'tmay' && lane === 'ciso') return '<p class="note">Built; shown once you OK which two beats it stresses for security-leadership roles.</p>';
     if (sec === 'tmay' && lane === 'cio') return TMAY.pendingOk ? '<p class="note">Built; shown once you OK which two beats it stresses (IBM and RealPage).</p>' : itemRow('#tmay-cio', 'Tell me about yourself: CIO-family version', 'Five beats · ' + TMAY.targetSec.join(' to ') + ' seconds · four closes', ALL, TMAY.status);
     if (sec === 'links' && LINKS[lane]) return LINKS[lane].map(g => '<div class="lgroup"><p class="k">' + esc(g.group) + '</p>' + g.items.map(x =>
       '<a class="itemrow" href="' + esc(x.url) + '" target="_blank" rel="noopener"><span class="top"><b>' + esc(x.title) + '</b></span><span class="k">' + esc(x.app + ' · ' + x.note) + '</span></a>').join('') + '</div>').join('');

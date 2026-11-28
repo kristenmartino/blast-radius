@@ -67,6 +67,8 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await fit(page, tag + ' data leadership lane');
     await page.goto(URL + '#lane-cto'); await page.waitForSelector('.secrow');
     await fit(page, tag + ' CTO lane');
+    await page.goto(URL + '#lane-ciso'); await page.waitForSelector('.secrow');
+    await fit(page, tag + ' CISO lane');
     for (const h of ['#lesson-om-1', '#lesson-om-2', '#lesson-om-4', '#lesson-om-5', '#lesson-ec-1', '#lesson-ec-3', '#lesson-ec-5', '#prompts-cio', '#packet-br-1', '#packet-br-6', '#packet-br-7', '#stage-br-1-2', '#stage-br-6-1', '#stage-br-7-2', '#run-brn-1', '#run-brn-2', '#rp-brl-1', '#rp-brl-3',
       // Phase 2b: AI leadership lane
       '#lesson-as-1', '#lesson-as-5', '#lesson-ec-6', '#prompts-ai-leadership', '#packet-br-8', '#packet-br-9', '#packet-br-10', '#packet-br-11', '#stage-br-8-2', '#stage-br-9-2', '#stage-br-10-2', '#stage-br-11-1', '#run-brn-3', '#run-brn-4', '#rp-brl-4', '#rp-brl-6',
@@ -76,13 +78,16 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       '#lesson-ts-1', '#lesson-ts-2', '#lesson-ts-3', '#lesson-ts-4', '#lesson-ts-5', '#lesson-ts-6', '#lesson-ed-1', '#lesson-ed-2', '#lesson-ed-3', '#lesson-ed-4', '#lesson-ed-5', '#lesson-ed-6', '#prompts-cto',
       '#packet-br-13', '#packet-br-14', '#stage-br-13-1', '#stage-br-13-2', '#stage-br-13-3', '#stage-br-13-4', '#stage-br-14-1', '#stage-br-14-2', '#stage-br-14-3', '#stage-br-14-4', '#run-brn-6', '#rp-brl-9', '#rp-brl-10', '#rp-brl-11',
       // Phase 4a: risk module and incident sims (every new screen)
-      '#lesson-rk-1', '#lesson-rk-2', '#lesson-rk-3', '#lesson-rk-4', '#lesson-rk-5', '#lesson-rk-6', '#run-brn-7', '#run-brn-8', '#run-brn-9']) {
+      '#lesson-rk-1', '#lesson-rk-2', '#lesson-rk-3', '#lesson-rk-4', '#lesson-rk-5', '#lesson-rk-6', '#run-brn-7', '#run-brn-8', '#run-brn-9',
+      // Phase 4b: CISO lane (every new screen)
+      '#lesson-sp-1', '#lesson-sp-2', '#lesson-sp-3', '#lesson-sp-4', '#lesson-sp-5', '#lesson-sp-6', '#prompts-ciso',
+      '#packet-br-15', '#packet-br-16', '#stage-br-15-1', '#stage-br-15-2', '#stage-br-15-3', '#stage-br-15-4', '#stage-br-16-1', '#stage-br-16-2', '#stage-br-16-3', '#stage-br-16-4', '#rp-brl-12', '#rp-brl-13', '#rp-brl-14']) {
       await page.goto(URL + h); await page.waitForTimeout(150); await fit(page, tag + ' ' + h);
     }
     await page.goto(URL + '#lesson-om-3'); await page.waitForSelector('[data-act="check-pick"]');
     await page.locator('[data-act="check-pick"]').first().click(); await page.waitForSelector('.verdict');
     await fit(page, tag + ' lesson with a checked answer');
-    for (const ls of ['ts-4', 'ed-2', 'ed-6', 'rk-1', 'rk-3', 'rk-4']) { await page.goto(URL + '#lesson-' + ls); await page.waitForSelector('[data-act="check-pick"]');
+    for (const ls of ['ts-4', 'ed-2', 'ed-6', 'rk-1', 'rk-3', 'rk-4', 'sp-1', 'sp-6']) { await page.goto(URL + '#lesson-' + ls); await page.waitForSelector('[data-act="check-pick"]');
       for (const b of await page.locator('[data-act="check-pick"][data-j="0"]').all()) await b.click();
       await page.waitForTimeout(80); await fit(page, tag + ' ' + ls + ' with answered checks'); }
     for (const rn of ['brn-6', 'brn-7', 'brn-8', 'brn-9']) { await page.goto(URL + '#run-' + rn); await page.waitForSelector('.opts');
@@ -106,10 +111,8 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     await page.goto(URL); await page.waitForSelector('.lanebtn');
     const lanes = await page.locator('.lanebtn').evaluateAll(b => b.map(x => ({ id: x.dataset.id, off: x.disabled, t: x.textContent })));
     ok(lanes.map(l => l.id).join() === 'cio,ai-leadership,data-leadership,cto,ciso', 'lane order ' + lanes.map(l => l.id).join());
-    ok(lanes.filter(l => !l.off).map(l => l.id).join() === 'cio,ai-leadership,data-leadership,cto', 'CIO, AI leadership, data leadership and CTO active');
+    ok(lanes.filter(l => !l.off).map(l => l.id).join() === 'cio,ai-leadership,data-leadership,cto,ciso', 'all five lanes active');
     ok(lanes.every(l => !/\b(CDO|CRO|CPO|CCO)\b/.test(l.t)), 'no colliding bare acronyms in lane names');
-    await page.locator('.lanebtn[data-id="ciso"]').click({ force: true }); await page.waitForTimeout(100);
-    ok(await page.locator('.lanebtn').count() === 5, 'a disabled lane does not open');
     const tog = await page.locator('[data-act="level"]').evaluateAll(b => b.map(x => x.dataset.id + ':' + x.getAttribute('aria-pressed')));
     ok(tog.join() === 'director:true,vp:true,c-level:true', 'levels default to all on ' + tog.join());
     await act(page, 'level', 'director'); await act(page, 'level', 'vp');
@@ -124,8 +127,8 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
     ok(await page.locator('[data-act="level"][aria-pressed="true"]').count() === 1, 'level filter survives a reload');
     await act(page, 'home'); await page.waitForSelector('.lanebtn');
     ok(/last visited/.test(await page.locator('.lanebtn[data-id="cio"]').textContent()), 'last lane remembered');
-    await page.goto(URL + '#lane-ciso'); await page.waitForSelector('.lanebtn');
-    ok(true, 'inactive lane route falls back to home');
+    await page.goto(URL + '#lane-nope'); await page.waitForSelector('.lanebtn');
+    ok(true, 'unknown lane route falls back to home');
     await page.goto(URL + '#lane-cio'); await page.waitForSelector('.secrow');
     await act(page, 'theme', 'dark');
     ok(await page.evaluate(() => document.documentElement.getAttribute('data-theme')) === 'dark', 'theme switch sets dark');
@@ -329,7 +332,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       await page.goto(URL + '#rp-' + id); await page.waitForSelector('.fbblock');
       ok(/opens with/.test(await page.locator('main').textContent()), 'role-play ' + id + ' shows the opening line without Claude');
     }
-    ok(BANK.roleplays.length === 11, 'eleven role-plays');
+    ok(BANK.roleplays.length === 14, 'fourteen role-plays');
     await page.goto(URL + '#lane-data-leadership'); await page.waitForSelector('.secrow');
     { const n = sel => page.locator(sel + ' .itemrow').count();
       ok(await n('#data-leadership-data-strategy') === 6 && await n('#data-leadership-data-products') === 6 && await n('#data-leadership-operating-model') === 6 && await n('#data-leadership-economics') === 8, 'data lane: 6 + 6 module lessons, shared operating model (6) and economics (8)');
@@ -430,7 +433,7 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
       ok(m && +m[1] < 100, 'BRN-6: holding back no capacity lowers predictability (' + (m && m[1]) + '%)'); }
     // ---- Phase 4a: shared risk module and the incident sims, in all four active lanes
     { const n = sel => page.locator(sel + ' .itemrow').count();
-      for (const [ln, sims] of [['cio', ['brn-7']], ['ai-leadership', ['brn-8', 'brn-9']], ['data-leadership', ['brn-9']], ['cto', ['brn-7']]]) {
+      for (const [ln, sims] of [['cio', ['brn-7']], ['ai-leadership', ['brn-8', 'brn-9']], ['data-leadership', ['brn-9']], ['cto', ['brn-7']], ['ciso', ['brn-7', 'brn-8', 'brn-9']]]) {
         await page.goto(URL + '#lane-' + ln); await page.waitForSelector('.secrow');
         ok(await n('#' + ln + '-risk') === 6 && await page.locator('#' + ln + '-risk .cchip.draft').count() === 6, ln + ' lane lists the risk module (6 Draft lessons)');
         ok(await n('#' + ln + '-incident-sim') === sims.length, ln + ' lane lists ' + sims.length + ' incident sim(s)');
@@ -450,6 +453,41 @@ function ok(c, m) { if (c) pass++; else { fails.push(m); console.log('FAIL', m);
           ok(/Right/.test(await page.locator('#check-' + c.id.toLowerCase() + ' .verdict').textContent()), c.id + ' keyed answer marks right');
         }
       } }
+    // ---- Phase 4b: CISO lane
+    for (const id of ['brl-12', 'brl-13', 'brl-14']) {
+      await page.goto(URL + '#rp-' + id); await page.waitForSelector('.fbblock');
+      ok(/opens with/.test(await page.locator('main').textContent()), 'role-play ' + id + ' shows the opening line without Claude');
+    }
+    await page.goto(URL + '#lane-ciso'); await page.waitForSelector('.secrow');
+    { const n = sel => page.locator(sel + ' .itemrow').count();
+      ok(await page.locator('.secrow').count() === 11 && await page.locator('.secrow .soon').count() === 0, 'CISO lane lists 11 sections, all built');
+      const roles = await page.locator('.roles .pill').allTextContents();
+      ok(['CISO', 'VP Information Security', 'Head of Security', 'Director of Security Operations', 'Director of Governance, Risk and Compliance'].every(r => roles.indexOf(r) !== -1), 'CISO lane shows its five titles');
+      ok(await n('#ciso-security-program') === 6 && await n('#ciso-risk') === 6 && await n('#ciso-operating-model') === 6 && await n('#ciso-economics') === 8, 'CISO lane: 6 module lessons, shared risk (6), operating model (6) and economics (8)');
+      ok(await n('#ciso-first-90') === 1 && await n('#ciso-packets') === 1 && await n('#ciso-role-plays') === 3 && await n('#ciso-behavioral') === 1, 'CISO lane: BR-15, BR-16, 3 role-plays, prompts');
+      ok(/OK which two beats/.test(await page.locator('#ciso-tmay').textContent()) && await n('#ciso-tmay') === 0, 'CISO lane TMAY held back');
+      const cl = await page.locator('#ciso-links a.itemrow').evaluateAll(a => a.map(x => x.getAttribute('href')));
+      ok(cl.length === 12 && ['#learn-az900-7', '#deck-az900', '#learn-cdmpdmf-7', '#deck-aigp', '#gdc', '#gd-gv-03', '#gd-gv-13', '#gd-cp-01', '#gd-cp-02', '#gd-cp-11'].every(r => cl.some(h => h.endsWith(r))), 'CISO lane links (' + cl.length + ')');
+      ok(await page.locator('#ciso-security-program .cchip.draft').count() === 6 && await page.locator('#ciso-first-90 .cchip.draft').count() === 1 && await page.locator('#ciso-packets .cchip.draft').count() === 1 && await page.locator('#ciso-role-plays .cchip.draft').count() === 3, 'CISO lane new items carry Draft labels'); }
+    { const m = BANK.modules.find(x => x.id === 'security-program');
+      ok(m && m.lessons.length === 6 && m.checks.length === 12 && m.lessons.concat(m.checks).every(x => x.status === 'Draft' && x.levels.length), 'security-program: 6 lessons, 12 Draft checks with levels');
+      ok(m.lessons.every(l => l.body.every(p => /\((Read|Relayed|Inferred)/.test(p))), 'security-program: every paragraph carries a tier tag');
+      ok(!/\{\{|NaN|undefined/.test(JSON.stringify(m)), 'security-program: no unfilled placeholder or NaN');
+      for (const l of m.lessons) {
+        await page.goto(URL + '#lesson-' + l.id); await page.waitForSelector('[data-act="check-pick"]');
+        for (const c of m.checks.filter(x => x.lesson === l.id)) {
+          await page.locator('[data-act="check-pick"][data-id="' + c.id + '"][data-j="' + c.answer + '"]').click(); await page.waitForTimeout(60);
+          ok(/Right/.test(await page.locator('#check-' + c.id.toLowerCase() + ' .verdict').textContent()), c.id + ' keyed answer marks right');
+        }
+      } }
+    await page.goto(URL + '#prompts-ciso'); await page.waitForSelector('.stem');
+    ok(await page.locator('.stem').count() === 10, '10 CISO prompts');
+    { const h = await page.locator('.src a').evaluateAll(a => a.map(x => x.getAttribute('href')));
+      ok(h.length === 21 && h.every(x => /^https:\/\/claude\.ai\/artifact\/J5TiiDwLanHF9oMU1UFPJ6#(story-\d+|f\d+)$/.test(x)), 'CISO prompts link Story Bank cards (' + h.length + ')'); }
+    { const b15 = pk('BR-15'), t15 = JSON.stringify(b15.sections), b16 = pk('BR-16'), t16 = JSON.stringify(b16.sections);
+      ok(b15.stages[0].checklist.indexOf('5 KEV findings, 3 internet-facing, 2 with no owner; 4 past 14 days') !== -1, 'BR-15 stage 1 filled from the math module');
+      ok(/Remote-access VPN appliance/.test(t15) && /T-10/.test(t15) && !/\{\{|NaN|undefined/.test(t15), 'BR-15 tables filled from data/br15.json, no placeholder left');
+      ok(b16.stages[2].checklist.indexOf('I-1, I-2, I-3 for $950k, cutting $1,350k') !== -1 && /Q4/.test(t16) && /I-6/.test(t16) && !/\{\{|NaN|undefined/.test(t16), 'BR-16 filled from data/br16.json and the math module'); }
     // the stage clock is in every stage's text
     for (const rid of ['BRN-7', 'BRN-8', 'BRN-9']) {
       const r = BANK.runs.find(x => x.id === rid);

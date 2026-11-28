@@ -62,7 +62,18 @@
   "data-leadership-risk",
   "data-leadership-incident-sim",
   "cto-risk",
-  "cto-incident-sim"
+  "cto-incident-sim",
+  "ciso-security-program",
+  "ciso-risk",
+  "ciso-operating-model",
+  "ciso-economics",
+  "ciso-incident-sim",
+  "ciso-first-90",
+  "ciso-packets",
+  "ciso-role-plays",
+  "ciso-behavioral",
+  "ciso-links",
+  "ciso-tmay"
  ],
  "craft": [
   "BR-1",
@@ -134,7 +145,17 @@
   "BR-14.1",
   "BR-14.2",
   "BR-14.3",
-  "BR-14.4"
+  "BR-14.4",
+  "BR-15",
+  "BR-15.1",
+  "BR-15.2",
+  "BR-15.3",
+  "BR-15.4",
+  "BR-16",
+  "BR-16.1",
+  "BR-16.2",
+  "BR-16.3",
+  "BR-16.4"
  ],
  "sims": [
   "BRN-1",
@@ -224,7 +245,10 @@
   "BRN-9-05",
   "BRN-9-06",
   "BRN-9-07",
-  "BRN-9-08"
+  "BRN-9-08",
+  "BRL-12",
+  "BRL-13",
+  "BRL-14"
  ],
  "lessons": [
   "om-1",
@@ -276,7 +300,13 @@
   "rk-3",
   "rk-4",
   "rk-5",
-  "rk-6"
+  "rk-6",
+  "sp-1",
+  "sp-2",
+  "sp-3",
+  "sp-4",
+  "sp-5",
+  "sp-6"
  ],
  "checks": [
   "OM-01",
@@ -380,7 +410,19 @@
   "RK-09",
   "RK-10",
   "RK-11",
-  "RK-12"
+  "RK-12",
+  "SP-01",
+  "SP-02",
+  "SP-03",
+  "SP-04",
+  "SP-05",
+  "SP-06",
+  "SP-07",
+  "SP-08",
+  "SP-09",
+  "SP-10",
+  "SP-11",
+  "SP-12"
  ],
  "prompts": [
   "BP-01",
@@ -424,6 +466,16 @@
   "BP-39",
   "BP-40",
   "BP-41",
-  "BP-42"
+  "BP-42",
+  "BP-43",
+  "BP-44",
+  "BP-45",
+  "BP-46",
+  "BP-47",
+  "BP-48",
+  "BP-49",
+  "BP-50",
+  "BP-51",
+  "BP-52"
  ]
 }

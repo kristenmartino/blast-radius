@@ -1,0 +1,112 @@
+{
+ "note": "Fictional. Written by tools/make-br16.py for packet BR-16; do not edit by hand.",
+ "quarters": [
+  {
+   "q": "Q1",
+   "kevDue": 30,
+   "kevMet": 18,
+   "mttdH": 52,
+   "mttcH": 30,
+   "admins": 118,
+   "adminsPR": 60,
+   "critVendors": 9,
+   "critReviewed": 3,
+   "sev1": 2,
+   "sev2": 6,
+   "sent": 1400,
+   "clicked": 99,
+   "planK": 1050,
+   "spentK": 980
+  },
+  {
+   "q": "Q2",
+   "kevDue": 31,
+   "kevMet": 22,
+   "mttdH": 41,
+   "mttcH": 26,
+   "admins": 120,
+   "adminsPR": 74,
+   "critVendors": 9,
+   "critReviewed": 5,
+   "sev1": 1,
+   "sev2": 5,
+   "sent": 1400,
+   "clicked": 90,
+   "planK": 1050,
+   "spentK": 1010
+  },
+  {
+   "q": "Q3",
+   "kevDue": 32,
+   "kevMet": 27,
+   "mttdH": 30,
+   "mttcH": 19,
+   "admins": 121,
+   "adminsPR": 98,
+   "critVendors": 10,
+   "critReviewed": 7,
+   "sev1": 1,
+   "sev2": 7,
+   "sent": 1420,
+   "clicked": 71,
+   "planK": 1050,
+   "spentK": 1060
+  },
+  {
+   "q": "Q4",
+   "kevDue": 37,
+   "kevMet": 35,
+   "mttdH": 22,
+   "mttcH": 14,
+   "admins": 122,
+   "adminsPR": 116,
+   "critVendors": 10,
+   "critReviewed": 9,
+   "sev1": 0,
+   "sev2": 4,
+   "sent": 1430,
+   "clicked": 60,
+   "planK": 1050,
+   "spentK": 1040
+  }
+ ],
+ "investments": [
+  {
+   "id": "I-1",
+   "name": "Phishing-resistant MFA for all staff",
+   "costK": 300,
+   "cutK": 520
+  },
+  {
+   "id": "I-2",
+   "name": "Endpoint detection on the remaining 35% of devices",
+   "costK": 400,
+   "cutK": 450
+  },
+  {
+   "id": "I-3",
+   "name": "Isolated, tested backups",
+   "costK": 250,
+   "cutK": 380
+  },
+  {
+   "id": "I-4",
+   "name": "Replace the security event monitoring tool",
+   "costK": 600,
+   "cutK": 300
+  },
+  {
+   "id": "I-5",
+   "name": "Data loss prevention, full rollout",
+   "costK": 350,
+   "cutK": 140
+  },
+  {
+   "id": "I-6",
+   "name": "Third-party review analyst",
+   "costK": 150,
+   "cutK": 160
+  }
+ ],
+ "budgetK": 1000
+}

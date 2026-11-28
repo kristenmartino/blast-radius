@@ -1,0 +1,320 @@
+{
+ "note": "Fictional. Written by tools/make-br15.py for packet BR-15; do not edit by hand.",
+ "findings": [
+  {
+   "id": "F-01",
+   "system": "Remote-access VPN appliance",
+   "finding": "Authentication bypass, vendor patch available",
+   "internet": true,
+   "kev": true,
+   "severity": "Critical",
+   "ageDays": 41,
+   "owner": "",
+   "exception": null
+  },
+  {
+   "id": "F-02",
+   "system": "Managed file transfer server",
+   "finding": "Remote code execution, vendor patch available",
+   "internet": true,
+   "kev": true,
+   "severity": "Critical",
+   "ageDays": 23,
+   "owner": "",
+   "exception": null
+  },
+  {
+   "id": "F-03",
+   "system": "Customer web app",
+   "finding": "Outdated web framework, remote code execution",
+   "internet": true,
+   "kev": true,
+   "severity": "Critical",
+   "ageDays": 9,
+   "owner": "Storefront",
+   "exception": null
+  },
+  {
+   "id": "F-04",
+   "system": "Build server",
+   "finding": "Outdated automation server plugin",
+   "internet": false,
+   "kev": true,
+   "severity": "High",
+   "ageDays": 64,
+   "owner": "Platform",
+   "exception": -12
+  },
+  {
+   "id": "F-05",
+   "system": "Email gateway",
+   "finding": "Missing security update",
+   "internet": true,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 17,
+   "owner": "IT Operations",
+   "exception": null
+  },
+  {
+   "id": "F-06",
+   "system": "Payroll system",
+   "finding": "Unsupported operating system",
+   "internet": false,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 210,
+   "owner": "Finance Systems",
+   "exception": -30
+  },
+  {
+   "id": "F-07",
+   "system": "Data warehouse",
+   "finding": "Service account with a password that never expires",
+   "internet": false,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 120,
+   "owner": "Data",
+   "exception": 45
+  },
+  {
+   "id": "F-08",
+   "system": "Customer support portal",
+   "finding": "Session tokens do not expire",
+   "internet": true,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 88,
+   "owner": "Support Tools",
+   "exception": null
+  },
+  {
+   "id": "F-09",
+   "system": "Office printers",
+   "finding": "Default administrator passwords",
+   "internet": false,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 300,
+   "owner": "",
+   "exception": null
+  },
+  {
+   "id": "F-10",
+   "system": "HR system",
+   "finding": "Single sign-on not enforced",
+   "internet": true,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 55,
+   "owner": "People Systems",
+   "exception": 20
+  },
+  {
+   "id": "F-11",
+   "system": "Backup servers",
+   "finding": "Backups not tested in 12 months",
+   "internet": false,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 365,
+   "owner": "IT Operations",
+   "exception": null
+  },
+  {
+   "id": "F-12",
+   "system": "Marketing website",
+   "finding": "Outdated content management plugin",
+   "internet": true,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 140,
+   "owner": "Marketing",
+   "exception": -60
+  },
+  {
+   "id": "F-13",
+   "system": "Developer laptops",
+   "finding": "Disk encryption missing on 3% of devices",
+   "internet": false,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 70,
+   "owner": "IT Operations",
+   "exception": null
+  },
+  {
+   "id": "F-14",
+   "system": "Payments API",
+   "finding": "Weak TLS settings",
+   "internet": true,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 33,
+   "owner": "Payments",
+   "exception": null
+  },
+  {
+   "id": "F-15",
+   "system": "Legacy reporting server",
+   "finding": "Unsupported database version",
+   "internet": false,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 400,
+   "owner": "",
+   "exception": 90
+  },
+  {
+   "id": "F-16",
+   "system": "Cloud storage",
+   "finding": "One storage bucket readable by anyone with the link",
+   "internet": true,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 6,
+   "owner": "Data",
+   "exception": null
+  },
+  {
+   "id": "F-17",
+   "system": "Domain controllers",
+   "finding": "Known-exploited privilege escalation, patch available",
+   "internet": false,
+   "kev": true,
+   "severity": "Critical",
+   "ageDays": 28,
+   "owner": "IT Operations",
+   "exception": null
+  },
+  {
+   "id": "F-18",
+   "system": "Wi-Fi controllers",
+   "finding": "Firmware two versions behind",
+   "internet": false,
+   "kev": false,
+   "severity": "Low",
+   "ageDays": 150,
+   "owner": "IT Operations",
+   "exception": null
+  },
+  {
+   "id": "F-19",
+   "system": "Source code repositories",
+   "finding": "No branch protection on 4 repositories",
+   "internet": false,
+   "kev": false,
+   "severity": "Medium",
+   "ageDays": 21,
+   "owner": "Platform",
+   "exception": null
+  },
+  {
+   "id": "F-20",
+   "system": "CRM integration",
+   "finding": "API key stored in plain text",
+   "internet": false,
+   "kev": false,
+   "severity": "High",
+   "ageDays": 48,
+   "owner": "Sales Systems",
+   "exception": null
+  }
+ ],
+ "tools": [
+  {
+   "id": "T-01",
+   "tool": "Endpoint detection, vendor A",
+   "category": "Endpoint detection",
+   "costK": 310,
+   "coverage": 64,
+   "owner": "Security Operations"
+  },
+  {
+   "id": "T-02",
+   "tool": "Endpoint detection, vendor B",
+   "category": "Endpoint detection",
+   "costK": 240,
+   "coverage": 41,
+   "owner": "IT Operations"
+  },
+  {
+   "id": "T-03",
+   "tool": "Security event monitoring (SIEM)",
+   "category": "Monitoring",
+   "costK": 420,
+   "coverage": 70,
+   "owner": "Security Operations"
+  },
+  {
+   "id": "T-04",
+   "tool": "Vulnerability scanner",
+   "category": "Vulnerability management",
+   "costK": 95,
+   "coverage": 82,
+   "owner": "Security Operations"
+  },
+  {
+   "id": "T-05",
+   "tool": "Email filtering",
+   "category": "Email security",
+   "costK": 80,
+   "coverage": 100,
+   "owner": "IT Operations"
+  },
+  {
+   "id": "T-06",
+   "tool": "Single sign-on and MFA",
+   "category": "Identity",
+   "costK": 260,
+   "coverage": 88,
+   "owner": "IT Operations"
+  },
+  {
+   "id": "T-07",
+   "tool": "Password vault for admins",
+   "category": "Identity",
+   "costK": 70,
+   "coverage": 35,
+   "owner": ""
+  },
+  {
+   "id": "T-08",
+   "tool": "Phishing simulation",
+   "category": "Awareness",
+   "costK": 45,
+   "coverage": 100,
+   "owner": "Security Operations"
+  },
+  {
+   "id": "T-09",
+   "tool": "Cloud posture scanner",
+   "category": "Cloud security",
+   "costK": 150,
+   "coverage": 58,
+   "owner": "Platform"
+  },
+  {
+   "id": "T-10",
+   "tool": "Data loss prevention, pilot",
+   "category": "Data protection",
+   "costK": 120,
+   "coverage": 5,
+   "owner": ""
+  }
+ ],
+ "admins": {
+  "total": 120,
+  "phishRes": 74,
+  "pushOnly": 38,
+  "none": 8
+ },
+ "vendors": {
+  "total": 40,
+  "critical": 9,
+  "criticalReviewed12m": 5
+ },
+ "staff": 1400,
+ "kevSlaDays": 14
+}

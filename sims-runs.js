@@ -578,7 +578,7 @@ runs.push({
 // BRN-7: ransomware at a distributor. Value is $k of orders shipped: planned = what you tell the CEO will ship, actual = what ships.
 const IN = N.inc;
 runs.push({
-  id: 'BRN-7', status: 'Draft', lane: 'cio', alsoIn: ['cto'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  id: 'BRN-7', status: 'Draft', lane: 'cio', alsoIn: ['cto', 'ciso'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
   title: 'Major incident: ransomware, fourteen days', role: 'CIO',
   blurb: 'Eight decisions from the first alert to the board review: declaring the incident, containment, outside help, updates, recovery and a ransom demand, a data-protection clock and an SEC filing. Figures are computed in code; the company is fictional.',
   briefing: t('You are CIO of Marrowgate Logistics (fictional), a US-listed distributor whose {{inc.sites}} sites ship ${{inc.day}}k of orders a day, about ${{inc.perHour}}k an hour; each site ships about ${{inc.site}}k a day. The incident response plan names an incident commander role and a disclosure committee that includes counsel. The cyber insurance policy (fictional terms) pays response costs above a ${{inc.retention}}k retention if the insurer is told within 48 hours and its panel firms are used. Backups are written to storage that cannot be changed for 30 days. The attack is detected at 02:10 on Monday, November 2, 2026; each stage says how long it has been since then. Business value here is $k of orders shipped: what you tell the CEO will ship and what does, counting from the ${{inc.start}}k shipped in the two days before the attack.'),
@@ -671,10 +671,10 @@ runs.push({
   ]
 });
 
-// BRN-8: shadow AI. Value is $k a year of AI licences: planned = what you buy, actual = what is used.
+// BRN-8: shadow AI (also listed in the CISO lane from Phase 4b). Value is $k a year of AI licences: planned = what you buy, actual = what is used.
 const SH = N.sh;
 runs.push({
-  id: 'BRN-8', status: 'Draft', lane: 'ai-leadership', section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  id: 'BRN-8', status: 'Draft', lane: 'ai-leadership', alsoIn: ['ciso'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
   title: 'Shadow AI, one hundred and twenty days', role: 'Chief AI Officer',
   blurb: 'Eight decisions after finding staff using unapproved AI tools: triage, a usage rule, an approved tool, a data slip, a chatbot that leaked, vendor terms, a metric and the board report. Figures are computed in code; the company is fictional.',
   briefing: t('You are Chief AI Officer of Pellwood Group (fictional), a {{sh.staff}}-person professional services firm. Network logs show staff using AI tools that nobody approved. The firm already pays ${{sh.start}}k a year for an approved coding assistant, fully used. Each stage says how many days it has been since the discovery. Business value here is $k a year of AI licences: what you buy and what is used.'),
@@ -767,7 +767,7 @@ runs.push({
 // BRN-9: a support assistant leaks across tenants. Value is $k of ARR: planned = what you tell the CEO, actual = what is kept or added.
 const ML = N.ml;
 runs.push({
-  id: 'BRN-9', status: 'Draft', lane: 'ai-leadership', alsoIn: ['data-leadership'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
+  id: 'BRN-9', status: 'Draft', lane: 'ai-leadership', alsoIn: ['data-leadership', 'ciso'], section: 'incident-sim', levels: ['director', 'vp', 'c-level'],
   title: 'Model data leak, fourteen days', role: 'Chief AI Officer',
   blurb: 'Eight decisions after an AI assistant shows one customer another’s data: shutting it off, scoping, the root cause, the training data, telling customers, their auditors, the relaunch and the review. Figures are computed in code; the company is fictional.',
   briefing: t('You are Chief AI Officer of Tessaly (fictional), which sells helpdesk software to {{ml.tenants}} business customers. The customers are the controllers of the personal data in their tickets; Tessaly processes it for them. Tessaly’s support assistant answers agents’ questions by retrieving passages from {{ml.chunks}} indexed ticket chunks and passing them to a model fine-tuned on past tickets. A model invented for this exercise: affected customers who hear from Tessaly promptly renew at {{ml.keepPct}}%; those who hear late renew at {{ml.latePct}}%; a general notice that names nobody keeps {{ml.genPct}}%. Each stage says how long it has been since the first report. Business value here is $k of ARR: what you tell the CEO and what is kept or added, counting from the assistant add-on’s ${{ml.start}}k ARR.'),
